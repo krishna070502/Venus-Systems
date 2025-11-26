@@ -26,7 +26,7 @@ export default function AdminLayout({
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner size="xl" variant="default" text="Loading CoreDesk..." />
+        <LoadingSpinner size="xl" variant="default" text="Loading Venus Chicken..." />
       </div>
     )
   }
@@ -42,7 +42,7 @@ export default function AdminLayout({
         <div className="flex-1 flex flex-col overflow-hidden">
           <header className="border-b bg-card px-8 py-4 flex items-center justify-between flex-shrink-0">
             <div>
-              <h1 className="text-2xl font-bold text-[#1E4DD8]">CoreDesk</h1>
+              <h1 className="text-2xl font-bold text-[#1E4DD8]">Venus Chicken</h1>
               <p className="text-sm text-muted-foreground">Your Application's Control Center</p>
             </div>
             <div className="flex items-center gap-4">

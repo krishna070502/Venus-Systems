@@ -108,7 +108,7 @@ function HomeLandingPage() {
           </div>
         </div>
         <h1 className="text-4xl font-bold bg-gradient-to-r from-[#1E4DD8] to-[#29C6D1] bg-clip-text text-transparent">
-          Welcome to CoreDesk
+          Welcome to Venus Chicken
         </h1>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
           Hello, {user?.email || 'User'}! You're successfully logged in.

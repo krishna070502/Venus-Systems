@@ -2,7 +2,7 @@
 
 ## Overview
 
-CoreDesk includes a comprehensive set of custom UI components built on top of shadcn/ui and Tailwind CSS. This document covers all custom components, their usage, props, and examples.
+Venus Chicken includes a comprehensive set of custom UI components built on top of shadcn/ui and Tailwind CSS. This document covers all custom components, their usage, props, and examples.
 
 ---
 
@@ -153,7 +153,7 @@ showConfirm(
 
 ### Styling
 
-Alerts use CoreDesk brand colors:
+Alerts use Venus Chicken brand colors:
 - Error: Red with red icon
 - Success: Green with checkmark
 - Warning: Yellow/orange with alert triangle
@@ -361,7 +361,7 @@ export default function AdminLayout({ children }) {
 **Features:**
 - Permission-based navigation filtering
 - Active route highlighting
-- CoreDesk branding
+- Venus Chicken branding
 - External API docs link
 - Documentation links (requires `system.docs` permission)
 
@@ -376,7 +376,7 @@ A beautiful, dynamic landing page shown to users without `systemdashboard.view` 
 ### Features
 
 **Welcome Section:**
-- Gradient CoreDesk logo icon
+- Gradient Venus Chicken logo icon
 - Personalized greeting with user email
 - Beautiful gradient text effect
 
@@ -937,7 +937,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 ## Styling Guidelines
 
-### CoreDesk Brand Colors
+### Venus Chicken Brand Colors
 
 ```css
 /* Primary Blue */

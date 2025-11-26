@@ -30,7 +30,7 @@ const documentationSections = [
     content: `
 # Quick Start Guide
 
-Get CoreDesk running in under 10 minutes.
+Get Venus Chicken running in under 10 minutes.
 
 ## Prerequisites
 - Node.js 18+
@@ -89,7 +89,7 @@ npm run dev
 
 ## System Overview
 
-CoreDesk follows a modern three-tier architecture:
+Venus Chicken follows a modern three-tier architecture:
 
 \`\`\`
 Frontend (Next.js) ←→ Backend (FastAPI) ←→ Database (Supabase)
@@ -529,7 +529,7 @@ theme: {
 \`\`\`
 
 ### Update Logo
-Replace CoreDesk text in:
+Replace Venus Chicken text in:
 - \`components/admin/Sidebar.tsx\`
 - \`app/admin/layout.tsx\`
 - \`app/page.tsx\`
@@ -905,7 +905,7 @@ function DocumentationPageContent() {
           Documentation
         </h1>
         <p className="text-muted-foreground mt-2">
-          Everything you need to build with CoreDesk
+          Everything you need to build with Venus Chicken
         </p>
       </div>
 

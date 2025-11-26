@@ -7,8 +7,8 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: {
-    default: 'CoreDesk - Enterprise Admin Panel',
-    template: '%s | CoreDesk'
+    default: 'Venus Chicken - Enterprise Admin Panel',
+    template: '%s | Venus Chicken'
   },
   description: 'Enterprise-grade admin panel with RBAC, user management, and comprehensive permissions system',
   icons: {

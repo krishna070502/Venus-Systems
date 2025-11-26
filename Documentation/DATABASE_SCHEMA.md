@@ -2,7 +2,7 @@
 
 ## Overview
 
-CoreDesk uses PostgreSQL via Supabase for data storage. This document covers the complete database schema, relationships, triggers, and functions.
+Venus Chicken uses PostgreSQL via Supabase for data storage. This document covers the complete database schema, relationships, triggers, and functions.
 
 ---
 

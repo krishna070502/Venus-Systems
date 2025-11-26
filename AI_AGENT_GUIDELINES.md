@@ -1,8 +1,8 @@
-# AI Agent Guidelines for CoreDesk Development
+# AI Agent Guidelines for Venus Chicken Development
 
 ## 🤖 CRITICAL INSTRUCTIONS FOR AI AGENTS
 
-This document contains **MANDATORY** guidelines for AI agents working on CoreDesk. Follow these rules **STRICTLY** to maintain system integrity and security.
+This document contains **MANDATORY** guidelines for AI agents working on Venus Chicken. Follow these rules **STRICTLY** to maintain system integrity and security.
 
 ---
 
@@ -266,7 +266,7 @@ const featureMap: Record<string, {
 ### Component Usage
 
 1. **Use shadcn/ui components** - Don't create custom unless necessary
-2. **Follow CoreDesk branding** - Blue (#1E4DD8), Teal (#29C6D1)
+2. **Follow Venus Chicken branding** - Blue (#1E4DD8), Teal (#29C6D1)
 3. **Consistent icons** - Use lucide-react
 4. **Loading states** - Use `PageLoading` or `LoadingSpinner`
 5. **Error handling** - Use `useAlert` for user feedback
@@ -388,7 +388,7 @@ feat: Add inventory management with permissions
 
 ## 🎯 PROJECT-SPECIFIC NOTES
 
-### CoreDesk Architecture
+### Venus Chicken Architecture
 
 - **Frontend:** Next.js 14 App Router (not Pages Router)
 - **Backend:** FastAPI with async/await
@@ -463,8 +463,8 @@ Before marking work as complete:
 
 ## 📞 IMPORTANT CONTACTS
 
-**Project:** CoreDesk - Enterprise SaaS Starter Kit  
-**Repository:** https://github.com/krishna070502/CoreDesk--App-Starter-Template  
+**Project:** Venus Chicken - Enterprise SaaS Starter Kit  
+**Repository:** https://github.com/krishna070502/Venus Chicken--App-Starter-Template  
 **License:** Proprietary - All Rights Reserved  
 **Documentation:** `/Documentation/` folder
 
@@ -479,7 +479,7 @@ Before marking work as complete:
 ---
 
 **Last Updated:** 26 November 2025  
-**Maintained By:** CoreDesk Development Team
+**Maintained By:** Venus Chicken Development Team
 
 ---
 

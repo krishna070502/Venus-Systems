@@ -2,7 +2,7 @@
 
 ## Overview
 
-CoreDesk uses a JWT-based authentication system powered by Supabase Auth on the backend and a custom AuthProvider context on the frontend. This document covers the complete authentication flow, implementation details, and usage.
+Venus Chicken uses a JWT-based authentication system powered by Supabase Auth on the backend and a custom AuthProvider context on the frontend. This document covers the complete authentication flow, implementation details, and usage.
 
 ---
 

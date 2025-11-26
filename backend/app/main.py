@@ -25,7 +25,7 @@ app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
     description="""
-## CoreDesk - Enterprise SaaS Starter Kit
+## Venus Chicken - Enterprise SaaS Starter Kit
 
 **Your Application's Control Center** with enterprise-grade RBAC and beautiful admin panel.
 
@@ -40,7 +40,7 @@ app = FastAPI(
 
 ### 🔑 Permission System
 
-CoreDesk implements a sophisticated permission system:
+Venus Chicken implements a sophisticated permission system:
 
 - **Permission Format**: `<resource>.<action>` (e.g., `users.read`, `systemdashboard.view`)
 - **Dynamic Features**: New permissions automatically appear in the UI
@@ -126,7 +126,7 @@ async def general_exception_handler(request: Request, exc: Exception):
 async def root():
     """Health check endpoint"""
     return {
-        "message": "CoreDesk API - Your Application's Control Center",
+        "message": "Venus Chicken API - Your Application's Control Center",
         "version": settings.VERSION,
         "status": "healthy"
     }

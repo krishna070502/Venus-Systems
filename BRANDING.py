@@ -1,11 +1,11 @@
-# CoreDesk - Branding Configuration
+# Venus Chicken - Business System - Branding Configuration
 # ===================================
 # This file contains all brand colors, fonts, and design tokens
 
 ## Brand Identity
-BRAND_NAME = "CoreDesk"
-TAGLINE = "Your Application's Control Center"
-DESCRIPTION = "CoreDesk empowers developers and businesses to build modern applications faster by providing a fully structured foundation — roles, permissions, admin panel, and scalable architecture."
+BRAND_NAME = "Venus Chicken - Business System"
+TAGLINE = "Complete Business Management Solution"
+DESCRIPTION = "Venus Chicken - Business System empowers food businesses to manage operations efficiently with a fully structured foundation — roles, permissions, admin panel, and scalable architecture designed for the food industry."
 
 ## Color Palette
 

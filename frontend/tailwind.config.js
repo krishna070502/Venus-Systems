@@ -17,7 +17,7 @@ module.exports = {
     },
     extend: {
       colors: {
-        // CoreDesk Brand Colors
+        // Venus Chicken Brand Colors
         'core-blue': '#1E4DD8',
         'desk-black': '#1A1A1A',
         'slate-gray': '#E8ECF2',

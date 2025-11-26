@@ -1,8 +1,8 @@
 # Getting Started Guide
 
-## Welcome to CoreDesk
+## Welcome to Venus Chicken
 
-CoreDesk is a production-ready SaaS starter kit built with Next.js, FastAPI, and Supabase. This guide will help you set up and start building your application.
+Venus Chicken is a production-ready SaaS starter kit built with Next.js, FastAPI, and Supabase. This guide will help you set up and start building your application.
 
 ---
 
@@ -44,8 +44,8 @@ CoreDesk is a production-ready SaaS starter kit built with Next.js, FastAPI, and
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-org/coredesk.git
-cd coredesk
+git clone https://github.com/your-org/venuschicken.git
+cd venuschicken
 ```
 
 ### 2. Set Up Supabase
@@ -108,7 +108,7 @@ This will:
 ## Project Structure
 
 ```
-coredesk/
+venuschicken/
 ├── Documentation/           # All documentation files
 │   ├── PERMISSION_SYSTEM.md
 │   ├── AUTHENTICATION.md
@@ -621,9 +621,9 @@ psql postgresql://... < migration.sql
 - [Tailwind CSS Docs](https://tailwindcss.com/docs)
 
 ### Community
-- [GitHub Issues](https://github.com/your-org/coredesk/issues)
+- [GitHub Issues](https://github.com/your-org/venuschicken/issues)
 - [Discord Server](#) (if applicable)
-- [Stack Overflow](https://stackoverflow.com/questions/tagged/coredesk)
+- [Stack Overflow](https://stackoverflow.com/questions/tagged/venuschicken)
 
 ---
 
@@ -634,7 +634,7 @@ Need help? Check these resources:
 1. **Documentation:** Read the docs in `Documentation/` folder
 2. **API Docs:** http://localhost:8000/docs
 3. **GitHub Issues:** Report bugs or request features
-4. **Email Support:** support@coredesk.com (if applicable)
+4. **Email Support:** support@venuschicken.com (if applicable)
 
 ---
 

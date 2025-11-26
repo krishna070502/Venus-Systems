@@ -1,13 +1,13 @@
 # Documentation Index
 
-Welcome to CoreDesk documentation! This folder contains comprehensive guides for understanding and extending the application.
+Welcome to Venus Chicken documentation! This folder contains comprehensive guides for understanding and extending the application.
 
 ---
 
 ## 📚 Documentation Files
 
 ### 1. [Getting Started](./GETTING_STARTED.md)
-**Start here if you're new to CoreDesk**
+**Start here if you're new to Venus Chicken**
 
 - Prerequisites and installation
 - Quick start guide
@@ -277,7 +277,7 @@ This documentation covers:
 
 ## 🚀 Next Steps
 
-**New to CoreDesk?**
+**New to Venus Chicken?**
 → Start with [Getting Started](./GETTING_STARTED.md)
 
 **Building a feature?**

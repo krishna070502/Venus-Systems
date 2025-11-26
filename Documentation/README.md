@@ -1,10 +1,10 @@
-# CoreDesk
+# Venus Chicken
 
 **Your Application's Control Center**
 
-CoreDesk empowers developers and businesses to build modern applications faster by providing a fully structured foundation — roles, permissions, admin panel, and scalable architecture. Instead of reinventing the backend for every project, CoreDesk gives you the core essentials from day one.
+Venus Chicken empowers developers and businesses to build modern applications faster by providing a fully structured foundation — roles, permissions, admin panel, and scalable architecture. Instead of reinventing the backend for every project, Venus Chicken gives you the core essentials from day one.
 
-> **Modular. Extensible. Developer-friendly.** — CoreDesk is the backbone for any application.
+> **Modular. Extensible. Developer-friendly.** — Venus Chicken is the backbone for any application.
 
 ## 🚀 Tech Stack
 

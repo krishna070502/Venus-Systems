@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# CoreDesk - Start Script
+# Venus Chicken - Start Script
 # This script starts both the frontend and backend servers
 
-echo "🚀 Starting CoreDesk..."
+echo "🚀 Starting Venus Chicken..."
 echo ""
 
 # Colors for output
@@ -66,7 +66,7 @@ FRONTEND_PID=$!
 cd ..
 
 echo ""
-echo -e "${GREEN}✅ CoreDesk is starting!${NC}"
+echo -e "${GREEN}✅ Venus Chicken is starting!${NC}"
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
@@ -82,7 +82,7 @@ echo ""
 # Function to handle script termination
 cleanup() {
     echo ""
-    echo -e "${YELLOW}🛑 Stopping CoreDesk...${NC}"
+    echo -e "${YELLOW}🛑 Stopping Venus Chicken...${NC}"
     kill $BACKEND_PID 2>/dev/null
     kill $FRONTEND_PID 2>/dev/null
     echo -e "${GREEN}✓ All services stopped${NC}"

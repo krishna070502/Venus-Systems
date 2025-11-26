@@ -52,7 +52,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-2xl text-[#1E4DD8]">CoreDesk</CardTitle>
+          <CardTitle className="text-2xl text-[#1E4DD8]">Venus Chicken</CardTitle>
           <CardDescription>
             Sign in to your control center
           </CardDescription>

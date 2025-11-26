@@ -1,8 +1,8 @@
-# 🎨 CoreDesk – Branding Guide
+# 🎨 Venus Chicken – Branding Guide
 
 ## ✅ 1. Brand Name Meaning
 
-**CoreDesk**
+**Venus Chicken**
 
 - **Core** → foundation, central system, essential infrastructure
 - **Desk** → admin panel, workspace, control center
@@ -59,12 +59,12 @@ Together, it communicates:
 
 ```tsx
 // TailwindCSS
-<h1 className="text-core-blue">CoreDesk</h1>
+<h1 className="text-core-blue">Venus Chicken</h1>
 <div className="bg-slate-gray">...</div>
 <button className="bg-core-aqua hover:bg-core-blue">Action</button>
 
 // Direct HEX
-<span style={{ color: '#1E4DD8' }}>CoreDesk</span>
+<span style={{ color: '#1E4DD8' }}>Venus Chicken</span>
 ```
 
 ---
@@ -143,11 +143,11 @@ Both are Google Fonts and free to use.
 
 ## 🧱 7. Brand Story
 
-CoreDesk empowers developers and businesses to build modern applications faster by providing a fully structured foundation — roles, permissions, admin panel, and scalable architecture. 
+Venus Chicken empowers developers and businesses to build modern applications faster by providing a fully structured foundation — roles, permissions, admin panel, and scalable architecture. 
 
-Instead of reinventing the backend for every project, CoreDesk gives you the core essentials from day one. 
+Instead of reinventing the backend for every project, Venus Chicken gives you the core essentials from day one. 
 
-**Modular, extensible, and developer-friendly** — CoreDesk is the backbone for any application.
+**Modular, extensible, and developer-friendly** — Venus Chicken is the backbone for any application.
 
 ---
 
@@ -166,7 +166,7 @@ Instead of reinventing the backend for every project, CoreDesk gives you the cor
 
 ## 🚀 9. Usage Guidelines
 
-### Always Represent CoreDesk As:
+### Always Represent Venus Chicken As:
 - ✅ Clean
 - ✅ Structured
 - ✅ Capable
@@ -187,11 +187,11 @@ Instead of reinventing the backend for every project, CoreDesk gives you the cor
 
 ```tsx
 // Primary header style
-<h1 className="text-3xl font-bold text-core-blue">CoreDesk</h1>
+<h1 className="text-3xl font-bold text-core-blue">Venus Chicken</h1>
 <p className="text-sm text-muted-foreground">Your Application's Control Center</p>
 
 // Dashboard header
-<h1 className="text-2xl font-bold text-core-blue">CoreDesk</h1>
+<h1 className="text-2xl font-bold text-core-blue">Venus Chicken</h1>
 <p className="text-muted-foreground">Build. Manage. Scale.</p>
 ```
 
@@ -223,11 +223,11 @@ Instead of reinventing the backend for every project, CoreDesk gives you the cor
 - Short paragraphs (2-3 sentences)
 - Use bullet points for lists
 - Technical but accessible
-- Example: "CoreDesk provides RBAC, JWT auth, and audit logging out of the box."
+- Example: "Venus Chicken provides RBAC, JWT auth, and audit logging out of the box."
 
 ### Call-to-Actions
 - Clear and action-oriented
-- Examples: "Get Started", "View Docs", "Try CoreDesk"
+- Examples: "Get Started", "View Docs", "Try Venus Chicken"
 
 ---
 
@@ -235,7 +235,7 @@ Instead of reinventing the backend for every project, CoreDesk gives you the cor
 
 - [x] Update all logos and favicons
 - [x] Apply color palette to TailwindCSS config
-- [x] Update all page titles with "CoreDesk"
+- [x] Update all page titles with "Venus Chicken"
 - [x] Replace "SaaS Starter Kit" references
 - [x] Update README.md with brand story
 - [x] Add brand colors to components
@@ -246,4 +246,4 @@ Instead of reinventing the backend for every project, CoreDesk gives you the cor
 
 ---
 
-**CoreDesk** - Your Application's Control Center
+**Venus Chicken** - Your Application's Control Center

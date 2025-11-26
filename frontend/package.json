@@ -1,8 +1,8 @@
 {
-  "name": "coredesk-frontend",
+  "name": "venuschicken-frontend",
   "version": "1.0.0",
   "private": true,
-  "description": "CoreDesk - Your Application's Control Center",
+  "description": "Venus Chicken - Your Application's Control Center",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

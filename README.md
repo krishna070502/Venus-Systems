@@ -1,8 +1,8 @@
-# CoreDesk - Enterprise SaaS Starter Kit
+# Venus Chicken - Enterprise SaaS Starter Kit
 
 A production-ready SaaS starter kit with comprehensive RBAC (Role-Based Access Control), built with **Next.js 14**, **FastAPI**, and **Supabase**.
 
-![CoreDesk](https://img.shields.io/badge/CoreDesk-Enterprise%20SaaS-1E4DD8?style=for-the-badge)
+![Venus Chicken](https://img.shields.io/badge/Venus Chicken-Enterprise%20SaaS-1E4DD8?style=for-the-badge)
 ![Next.js](https://img.shields.io/badge/Next.js-14-black?style=flat-square&logo=next.js)
 ![FastAPI](https://img.shields.io/badge/FastAPI-Python-009688?style=flat-square&logo=fastapi)
 ![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?style=flat-square&logo=supabase)
@@ -573,8 +573,8 @@ vercel --prod
 ```bash
 cd backend
 # Build Docker image
-docker build -t coredesk-backend .
-docker run -p 8000:8000 coredesk-backend
+docker build -t venuschicken-backend .
+docker run -p 8000:8000 venuschicken-backend
 ```
 
 **Environment Variables:**
@@ -730,6 +730,6 @@ MIT License - see [LICENSE](./LICENSE) file
 
 ---
 
-**Built with ❤️ using Next.js, FastAPI, and Supabase**
+**Built with ❤️ for Venus Chicken using Next.js, FastAPI, and Supabase**
 
 **Happy Building! 🚀**

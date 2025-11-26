@@ -2,7 +2,7 @@
 
 ## Overview
 
-CoreDesk implements a comprehensive Role-Based Access Control (RBAC) system that controls access to routes, UI components, and API endpoints based on user permissions. This document covers the complete implementation, configuration, and usage of the permission system.
+Venus Chicken implements a comprehensive Role-Based Access Control (RBAC) system that controls access to routes, UI components, and API endpoints based on user permissions. This document covers the complete implementation, configuration, and usage of the permission system.
 
 ---
 
@@ -484,7 +484,7 @@ export function AdminSidebar() {
 
 **File:** `frontend/app/admin/page.tsx`
 
-CoreDesk includes a sophisticated dynamic permission display system that automatically shows ALL user permissions without requiring code changes for new permissions.
+Venus Chicken includes a sophisticated dynamic permission display system that automatically shows ALL user permissions without requiring code changes for new permissions.
 
 **How It Works:**
 

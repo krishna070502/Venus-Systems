@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to CoreDesk will be documented in this file.
+All notable changes to Venus Chicken will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -47,7 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - **Home Landing Page**
   - Created beautiful landing page for users without `systemdashboard.view` permission
-  - Shows welcome message with CoreDesk branding and gradient effects
+  - Shows welcome message with Venus Chicken branding and gradient effects
   - Displays app features: Enterprise Security, Modern UI, Real-Time Monitoring
   - "Your Available Features" section dynamically shows all accessible pages
   - Displays 9 possible features based on user permissions
@@ -108,7 +108,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2025-11-26
 
 ### Added
-- Initial release of CoreDesk Enterprise SaaS Starter Kit
+- Initial release of Venus Chicken Enterprise SaaS Starter Kit
 - Complete RBAC system with granular permissions
 - Next.js 14 frontend with TypeScript
 - FastAPI backend with Python 3.11

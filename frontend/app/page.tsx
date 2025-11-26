@@ -61,7 +61,7 @@ export default function HomePage() {
                 <div className="absolute inset-0 bg-core-blue/20 rounded-lg blur-md" />
               </div>
               <span className="text-xl font-bold bg-gradient-to-r from-core-blue to-core-aqua bg-clip-text text-transparent">
-                CoreDesk
+                Venus Chicken
               </span>
             </div>
             <div className="flex items-center gap-4">
@@ -104,7 +104,7 @@ export default function HomePage() {
             <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight mb-6">
               <span className="block text-desk-black mb-2">Ship faster with</span>
               <span className="block bg-gradient-to-r from-core-blue via-core-aqua to-core-blue bg-clip-text text-transparent animate-gradient bg-[length:200%_auto]">
-                CoreDesk
+                Venus Chicken
               </span>
             </h1>
             
@@ -240,7 +240,7 @@ export default function HomePage() {
             Ready to build something amazing?
           </h2>
           <p className="text-xl text-blue-100 mb-10 max-w-2xl mx-auto leading-relaxed">
-            Join developers shipping production apps faster with CoreDesk's enterprise foundation.
+            Join developers shipping production apps faster with Venus Chicken's enterprise foundation.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/auth/signup">
@@ -269,10 +269,10 @@ export default function HomePage() {
               <div className="relative w-8 h-8 bg-gradient-to-br from-core-blue to-core-aqua rounded-lg flex items-center justify-center">
                 <div className="w-3 h-3 bg-white rounded-full" />
               </div>
-              <span className="text-xl font-bold">CoreDesk</span>
+              <span className="text-xl font-bold">Venus Chicken</span>
             </div>
             <div className="text-sm text-gray-400">
-              © 2025 CoreDesk. Your Application's Control Center. Built with ❤️ for developers.
+              © 2025 Venus Chicken. Your Application's Control Center. Built with ❤️ for developers.
             </div>
           </div>
         </div>
