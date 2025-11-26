@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/lib/auth/AuthProvider'
 import { usePermissions, hasPermission } from '@/lib/auth/usePermissions'
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import {
   LayoutDashboard,
   Users,
@@ -171,8 +171,44 @@ export function AdminSidebar() {
   const { permissions: userPermissions, loading: permissionsLoading } = usePermissions()
   const [expandedGroups, setExpandedGroups] = useState<string[]>(['System Administration', 'Business'])
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const [sidebarWidth, setSidebarWidth] = useState(256) // 256px = w-64
+  const [isResizing, setIsResizing] = useState(false)
+  const sidebarRef = useRef<HTMLDivElement>(null)
 
   const apiDocsUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+
+  // Handle mouse down on resize handle
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsResizing(true)
+    e.preventDefault()
+  }
+
+  // Handle mouse move for resizing
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizing) return
+      
+      const newWidth = e.clientX
+      // Set min width to 200px and max width to 500px
+      if (newWidth >= 200 && newWidth <= 500) {
+        setSidebarWidth(newWidth)
+      }
+    }
+
+    const handleMouseUp = () => {
+      setIsResizing(false)
+    }
+
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove)
+      document.addEventListener('mouseup', handleMouseUp)
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [isResizing])
 
   const toggleGroup = (groupName: string) => {
     setExpandedGroups(prev =>
@@ -235,10 +271,14 @@ export function AdminSidebar() {
 
   return (
     <TooltipProvider delayDuration={0}>
-      <div className={cn(
-        "bg-card border-r flex flex-col transition-all duration-300 relative z-20",
-        isCollapsed ? "w-16" : "w-64"
-      )}>
+      <div 
+        ref={sidebarRef}
+        className={cn(
+          "bg-card border-r flex flex-col relative z-20",
+          isCollapsed ? "w-16" : ""
+        )}
+        style={!isCollapsed ? { width: `${sidebarWidth}px` } : undefined}
+      >
         {/* Header with Logo and Toggle */}
         <div className="p-4 flex items-center justify-between border-b">
           {isCollapsed ? (
@@ -511,6 +551,18 @@ export function AdminSidebar() {
             )
           )}
         </div>
+
+        {/* Resize Handle */}
+        {!isCollapsed && (
+          <div
+            onMouseDown={handleMouseDown}
+            className={cn(
+              "absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-primary/50 transition-colors",
+              isResizing && "bg-primary"
+            )}
+            style={{ touchAction: 'none' }}
+          />
+        )}
       </div>
     </TooltipProvider>
   )
