@@ -239,6 +239,22 @@ Always use: `<resource>.<action>`
 - `payment.write` - Create new payment entries
 - `payment.update` - Update existing payment entries
 - `payment.delete` - Delete payment entries
+- `inventory.view` - Access Inventory Management section (controls nested dropdown)
+- `stock.view` - View Stock page in sidebar
+- `stock.read` - Read stock records
+- `stock.write` - Create new stock entries
+- `stock.update` - Update existing stock entries
+- `stock.delete` - Delete stock entries
+- `wastage.view` - View Wastage page in sidebar
+- `wastage.read` - Read wastage records
+- `wastage.write` - Create new wastage entries
+- `wastage.update` - Update existing wastage entries
+- `wastage.delete` - Delete wastage entries
+- `adjustments.view` - View Adjustments page in sidebar
+- `adjustments.read` - Read adjustment records
+- `adjustments.write` - Create new adjustment entries
+- `adjustments.update` - Update existing adjustment entries
+- `adjustments.delete` - Delete adjustment entries
 - `systemdashboard.view` - View the system dashboard
 - `users.read` - View users
 - `users.write` - Create/update users

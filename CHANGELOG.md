@@ -5,6 +5,29 @@ All notable changes to Venus Chicken will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.0] - 2025-11-26
+
+### Added
+- **Inventory Management Module**
+  - Added nested "📦 Inventory Management" dropdown inside Business section
+  - Comprehensive CRUD permissions for 3 modules:
+    - **Stock**: 5 permissions (view, read, write, update, delete)
+    - **Wastage**: 5 permissions (view, read, write, update, delete)
+    - **Adjustments**: 5 permissions (view, read, write, update, delete)
+  - Parent permission `inventory.view` controls entire nested section
+  - Three "Coming Soon" pages with permission status indicators:
+    - `/admin/business/inventory/stock` - Manage inventory stock levels
+    - `/admin/business/inventory/wastage` - Track inventory wastage
+    - `/admin/business/inventory/adjustments` - Make inventory adjustments
+  - Database migration `017_add_inventory_management_permissions.sql`
+  - Auto-assigns all 16 permissions to Admin and Manager roles
+  - Added icons: Package, Box, Trash2, ClipboardEdit from lucide-react
+
+### Technical
+- Follows same nested dropdown pattern as Purchases & Payables
+- Permission structure: Parent controls section visibility, individual permissions control CRUD operations
+- Consistent "Coming Soon" page design with permission status display
+
 ## [1.8.0] - 2025-11-26
 
 ### Added

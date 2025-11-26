@@ -23,6 +23,10 @@ import {
   ShoppingCart,
   Truck,
   CreditCard,
+  Package,
+  Box,
+  Trash2,
+  ClipboardEdit,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
@@ -75,6 +79,18 @@ const purchasesPayablesGroup: NavigationGroup = {
   ]
 }
 
+// Inventory Management sub-group
+const inventoryManagementGroup: NavigationGroup = {
+  name: '📦 Inventory Management',
+  icon: Package,
+  permission: 'inventory.view',
+  items: [
+    { name: 'Stock', href: '/admin/business/inventory/stock', icon: Box, permission: 'stock.view' },
+    { name: 'Wastage', href: '/admin/business/inventory/wastage', icon: Trash2, permission: 'wastage.view' },
+    { name: 'Adjustments', href: '/admin/business/inventory/adjustments', icon: ClipboardEdit, permission: 'adjustments.view' },
+  ]
+}
+
 // Business group
 const businessGroup: NavigationGroup = {
   name: 'Business',
@@ -83,6 +99,7 @@ const businessGroup: NavigationGroup = {
   items: [
     { name: 'Business Dashboard', href: '/admin/business', icon: Activity, permission: 'businessdashboard.view' },
     purchasesPayablesGroup,
+    inventoryManagementGroup,
     // Add more business-related pages here
   ]
 }
@@ -274,7 +291,7 @@ export function AdminSidebar() {
                                 >
                                   <div className="flex items-center gap-2">
                                     <nestedGroup.icon className="h-4 w-4" />
-                                    <span className="text-xs">{nestedGroup.name}</span>
+                                    <span>{nestedGroup.name}</span>
                                   </div>
                                   {isNestedExpanded ? (
                                     <ChevronDown className="h-3 w-3" />
@@ -300,7 +317,7 @@ export function AdminSidebar() {
                                           )}
                                         >
                                           <nestedItem.icon className="h-4 w-4" />
-                                          <span className="text-xs">{nestedItem.name}</span>
+                                          <span>{nestedItem.name}</span>
                                         </Link>
                                       )
                                     })}
@@ -337,6 +354,9 @@ export function AdminSidebar() {
                 {isCollapsed && isExpanded && (
                   <div className="space-y-1">
                     {group.items.map((item) => {
+                      // Skip nested groups in collapsed view
+                      if (isNavigationGroup(item)) return null
+                      
                       const isActive = pathname === item.href
                       return (
                         <Tooltip key={item.name}>
