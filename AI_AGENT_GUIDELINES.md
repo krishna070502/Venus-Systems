@@ -6,6 +6,43 @@ This document contains **MANDATORY** guidelines for AI agents working on CoreDes
 
 ---
 
+## 📖 RULE 0: READ ALL DOCUMENTATION FIRST
+
+**⚠️ BEFORE MAKING ANY CHANGES:**
+
+1. **READ** the `/Documentation/` folder - Contains 15+ comprehensive guides
+2. **READ** `README.md` - Project overview, setup, and common tasks
+3. **READ** `CHANGELOG.md` - Recent changes and version history
+4. **READ** this file (`AI_AGENT_GUIDELINES.md`) - Complete guidelines
+
+**Why this matters:**
+- Prevents breaking existing functionality
+- Ensures consistency with established patterns
+- Avoids duplicate implementations
+- Maintains security standards
+- Preserves permission system integrity
+
+**Key Documentation Files:**
+- `Documentation/PERMISSION_SYSTEM.md` - Complete RBAC implementation
+- `Documentation/AUTHENTICATION.md` - Auth system and JWT
+- `Documentation/DATABASE_SCHEMA.md` - Database structure and migrations
+- `Documentation/UI_COMPONENTS.md` - All UI components and usage
+- `Documentation/GETTING_STARTED.md` - Setup and quick start
+
+**❌ DO NOT:**
+- Skip reading documentation
+- Assume you know the architecture
+- Implement features without checking existing patterns
+- Make changes without understanding the current system
+
+**✅ ALWAYS:**
+- Review relevant documentation before coding
+- Check existing implementations for similar features
+- Follow established naming conventions and patterns
+- Update documentation after making changes
+
+---
+
 ## 🔒 PERMISSION SYSTEM - MANDATORY RULES
 
 ### Rule 1: EVERY New Page MUST Have Permission Control

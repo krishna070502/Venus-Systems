@@ -11,8 +11,9 @@ CoreDesk includes a comprehensive set of custom UI components built on top of sh
 1. [Alert Modal System](#alert-modal-system)
 2. [Loading Components](#loading-components)
 3. [Admin Components](#admin-components)
-4. [Form Components](#form-components)
-5. [Layout Components](#layout-components)
+4. [Home Landing Page](#home-landing-page)
+5. [Form Components](#form-components)
+6. [Layout Components](#layout-components)
 
 ---
 
@@ -363,6 +364,75 @@ export default function AdminLayout({ children }) {
 - CoreDesk branding
 - External API docs link
 - Documentation links (requires `system.docs` permission)
+
+---
+
+## Home Landing Page
+
+A beautiful, dynamic landing page shown to users without `systemdashboard.view` permission.
+
+**File:** `frontend/app/admin/page.tsx`
+
+### Features
+
+**Welcome Section:**
+- Gradient CoreDesk logo icon
+- Personalized greeting with user email
+- Beautiful gradient text effect
+
+**App Features Showcase:**
+- Enterprise-Grade Security card
+- Modern & Beautiful UI card
+- Real-Time Monitoring card
+- Hover effects with brand colors
+
+**Your Available Features (Dynamic):**
+- Shows all 9 possible features based on permissions:
+  - System Dashboard (`systemdashboard.view`)
+  - User Management (`users.read`)
+  - Role Management (`roles.read`)
+  - Permissions (`permissions.read`)
+  - System Health (`system.admin`)
+  - Settings (`system.settings`)
+  - Audit Logs (`system.logs`)
+  - Documentation (`system.docs`)
+  - Test Suite (`test.run`)
+- Only displays features user has access to
+- Clickable cards that navigate to respective pages
+- Responsive 2-column grid layout
+
+**Help Section:**
+- Information about requesting more access
+- Support contact information
+- Styled with brand colors
+
+### Implementation
+
+```typescript
+export default function AdminDashboard() {
+  const { permissions, loading: permLoading } = usePermissions()
+  const { user, loading: authLoading } = useAuth()
+
+  if (authLoading || permLoading) {
+    return <PageLoading text="Loading..." />
+  }
+
+  const canViewDashboard = permissions.includes('systemdashboard.view')
+
+  if (canViewDashboard) {
+    return <AdminDashboardContent />
+  } else {
+    return <HomeLandingPage />
+  }
+}
+```
+
+**Key Points:**
+- Conditionally renders based on `systemdashboard.view` permission
+- Shows `AdminDashboardContent` for users with permission
+- Shows `HomeLandingPage` for users without permission
+- No "Access Denied" message - provides helpful alternative
+- Improves UX for users with limited permissions
 
 ### StatusIndicators
 

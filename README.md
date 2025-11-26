@@ -14,6 +14,7 @@ A production-ready SaaS starter kit with comprehensive RBAC (Role-Based Access C
 - ✅ **Complete Authentication System** - JWT-based auth with Supabase
 - ✅ **Advanced RBAC** - Granular permission-based access control
 - ✅ **Beautiful Admin Panel** - Modern UI with shadcn/ui components
+- ✅ **Home Landing Page** - Dynamic landing page for users without dashboard access
 - ✅ **Audit Logging** - Track all system changes
 - ✅ **Session Management** - Monitor active user sessions
 - ✅ **Health Monitoring** - System health dashboard

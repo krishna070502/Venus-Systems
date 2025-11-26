@@ -5,6 +5,23 @@ All notable changes to CoreDesk will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2025-11-26
+
+### Added
+- **Home Landing Page**
+  - Created beautiful landing page for users without `systemdashboard.view` permission
+  - Shows welcome message with CoreDesk branding and gradient effects
+  - Displays app features: Enterprise Security, Modern UI, Real-Time Monitoring
+  - "Your Available Features" section dynamically shows all accessible pages
+  - Displays 9 possible features based on user permissions
+  - Provides help section for requesting additional access
+  - Improves UX for users with limited permissions
+
+### Changed
+- Dashboard now shows different content based on `systemdashboard.view` permission
+- Users without dashboard permission see Home Landing Page instead of access denied
+- Enhanced permission-based UI rendering
+
 ## [1.2.0] - 2025-11-26
 
 ### Added
