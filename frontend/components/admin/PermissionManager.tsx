@@ -40,6 +40,7 @@ export default function PermissionManager({
   const [loading, setLoading] = useState(false)
   const [localPermissions, setLocalPermissions] = useState<string[]>(currentPermissions)
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set())
+  const [searchQuery, setSearchQuery] = useState('')
 
   // Update local state when props change
   useEffect(() => {
@@ -274,21 +275,49 @@ export default function PermissionManager({
     )
   }
 
-  const permissionGroups = groupPermissions()
+  // Filter permissions based on search query
+  const filteredPermissions = allPermissions.filter(p => 
+    p.key.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (p.description && p.description.toLowerCase().includes(searchQuery.toLowerCase()))
+  )
+
+  // Use filtered permissions if searching, otherwise use grouped permissions
+  const permissionGroups = searchQuery ? [] : groupPermissions()
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-6xl max-h-[90vh] flex flex-col">
+      <Card className="w-full max-w-[95vw] max-h-[95vh] flex flex-col">
         <CardHeader>
           <CardTitle>Manage Permissions for {roleName}</CardTitle>
           <CardDescription>
             Select which permissions this role should have. Permissions are grouped by section.
           </CardDescription>
+          <div className="mt-4">
+            <input
+              type="text"
+              placeholder="Search permissions..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          </div>
         </CardHeader>
         <CardContent className="flex-1 overflow-y-auto">
-          <div className="space-y-4">
-            {permissionGroups.map(group => renderPermissionGroup(group))}
-          </div>
+          {searchQuery ? (
+            <div className="space-y-2">
+              {filteredPermissions.length > 0 ? (
+                filteredPermissions.map(renderPermissionItem)
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  No permissions found matching "{searchQuery}"
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {permissionGroups.map(group => renderPermissionGroup(group))}
+            </div>
+          )}
         </CardContent>
         <div className="p-6 border-t flex justify-between items-center">
           <div className="text-sm text-muted-foreground">

@@ -48,6 +48,7 @@ function RolesPageContent() {
   const [editingRole, setEditingRole] = useState<Role | null>(null)
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [allPermissions, setAllPermissions] = useState<Permission[]>([])
+  const [searchQuery, setSearchQuery] = useState('')
 
   const { showError, showSuccess, showConfirm } = useAlert()
 
@@ -150,6 +151,15 @@ function RolesPageContent() {
           <CardDescription>
             Roles define what users can do in the system
           </CardDescription>
+          <div className="mt-4">
+            <input
+              type="text"
+              placeholder="Search roles..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
@@ -162,7 +172,10 @@ function RolesPageContent() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {roles.map((role) => (
+              {roles.filter(role => 
+                role.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                (role.description && role.description.toLowerCase().includes(searchQuery.toLowerCase()))
+              ).map((role) => (
                 <TableRow key={role.id}>
                   <TableCell className="font-medium">{role.name}</TableCell>
                   <TableCell>{role.description || '-'}</TableCell>
