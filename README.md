@@ -224,9 +224,13 @@ Always use: `<resource>.<action>`
 - `users.delete` - Delete users
 - `reports.view` - View reports
 - `reports.export` - Export reports
+- `roles.read` - View and manage roles
+- `permissions.read` - View and manage permissions
 - `settings.update` - Update settings
-- `system.admin` - Admin access
-- `system.logs` - View logs
+- `system.admin` - Admin access, health monitoring, status indicators
+- `system.logs` - View audit logs
+- `system.docs` - Access documentation and API docs
+- `test.run` - Run test suite
 
 ---
 

@@ -362,24 +362,34 @@ export default function AdminLayout({ children }) {
 - Active route highlighting
 - CoreDesk branding
 - External API docs link
+- Documentation links (requires `system.docs` permission)
 
 ### StatusIndicators
 
-Real-time status badges and indicators.
+Real-time backend and database status indicators displayed in the admin header.
 
 **File:** `frontend/components/admin/StatusIndicators.tsx`
 
+**Permission Required:** `system.admin`
+
 ```typescript
-import { StatusBadge, HealthStatus } from '@/components/admin/StatusIndicators'
+import { StatusIndicators } from '@/components/admin/StatusIndicators'
 
-// Status badge
-<StatusBadge status="healthy" />
-<StatusBadge status="degraded" />
-<StatusBadge status="unhealthy" />
-
-// Health status with icon
-<HealthStatus status="healthy" label="Database" />
+// In admin layout header
+<header>
+  <StatusIndicators />
+</header>
 ```
+
+**Features:**
+- Real-time backend API health monitoring
+- Database connection status
+- Response time metrics (ms)
+- Auto-refresh every 30 seconds
+- Click to navigate to full health page
+- Only visible to users with `system.admin` permission
+- Color-coded status (green=healthy, yellow=degraded, red=unhealthy)
+- Animated status dots
 
 ### CreateRoleDialog
 

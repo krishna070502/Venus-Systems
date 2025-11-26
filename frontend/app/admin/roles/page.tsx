@@ -41,14 +41,6 @@ export default function RolesPage() {
   )
 }
 
-export default function RolesPage() {
-  return (
-    <PermissionGuard permission="roles.read">
-      <RolesPageContent />
-    </PermissionGuard>
-  )
-}
-
 function RolesPageContent() {
   const [roles, setRoles] = useState<Role[]>([])
   const [loading, setLoading] = useState(true)

@@ -226,6 +226,8 @@ async def get_my_profile(current_user: dict = Depends(get_current_user)):
     "permissions.read",
     "system.settings",
     "system.logs",
+    "system.docs",
+    "system.admin",
     "test.run"
   ]
 }
@@ -433,6 +435,15 @@ const navigation: NavigationItem[] = [
     href: '/admin/test', 
     icon: TestTube, 
     permission: 'test.run' 
+  },
+]
+
+const docsNavigation = [
+  { 
+    name: 'Documentation', 
+    href: '/admin/docs', 
+    icon: BookOpen, 
+    permission: 'system.docs' 
   },
 ]
 
@@ -780,8 +791,9 @@ export default function MyPage() {
 
 ### System Permissions
 - `system.settings` - Access system settings
-- `system.logs` - View system logs
-- `system.admin` - Access admin panel and health monitoring
+- `system.logs` - View audit logs
+- `system.docs` - Access documentation and API documentation
+- `system.admin` - Access admin panel, health monitoring, and status indicators (Backend/DB)
 
 ### Profile Permissions
 - `profile.read` - View own profile
