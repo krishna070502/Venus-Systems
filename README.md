@@ -308,6 +308,7 @@ Always use: `<resource>.<action>`
 - `wastagereport.write` - Create new wastage report entries
 - `wastagereport.update` - Update existing wastage report entries
 - `wastagereport.delete` - Delete wastage report entries
+- `businessmanagement.view` - View and access Business Management section
 - `systemdashboard.view` - View the system dashboard
 - `users.read` - View users
 - `users.write` - Create/update users

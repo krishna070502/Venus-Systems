@@ -473,6 +473,7 @@ Before marking work as complete:
 
 ## 🔄 VERSION HISTORY
 
+- v1.13.0 (2025-11-26) - Added Business Management top-level dropdown section
 - v1.12.0 (2025-11-26) - Added Insights & Reports nested dropdown with 16 CRUD permissions
 - v1.11.0 (2025-11-26) - Added Finance Management nested dropdown with 16 CRUD permissions
 - v1.10.0 (2025-11-26) - Added Sales & Income nested dropdown with 16 CRUD permissions

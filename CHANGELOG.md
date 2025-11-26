@@ -5,6 +5,21 @@ All notable changes to Venus Chicken will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.13.0] - 2025-11-26
+
+### Added
+- **Business Management Section**
+  - Added new "Business Management" dropdown in sidebar
+  - Permission `businessmanagement.view` controls access to entire section
+  - Database migration `021_add_business_management_permission.sql`
+  - Auto-assigns permission to Admin and Manager roles
+  - Ready for business management modules to be added
+
+### Technical
+- New top-level navigation group alongside System Administration and Business
+- Follows same permission structure as other navigation groups
+- Expandable/collapsible dropdown with nested item support
+
 ## [1.12.0] - 2025-11-26
 
 ### Added

@@ -156,9 +156,20 @@ const businessGroup: NavigationGroup = {
   ]
 }
 
+// Business Management group
+const businessManagementGroup: NavigationGroup = {
+  name: 'Business Management',
+  icon: Settings,
+  permission: 'businessmanagement.view',
+  items: [
+    // Add business management pages here
+  ]
+}
+
 const navigationGroups: NavigationGroup[] = [
   systemAdministrationGroup,
-  businessGroup
+  businessGroup,
+  businessManagementGroup
 ]
 
 const docsNavigation = [
@@ -169,7 +180,7 @@ export function AdminSidebar() {
   const pathname = usePathname()
   const { user } = useAuth()
   const { permissions: userPermissions, loading: permissionsLoading } = usePermissions()
-  const [expandedGroups, setExpandedGroups] = useState<string[]>(['System Administration', 'Business'])
+  const [expandedGroups, setExpandedGroups] = useState<string[]>(['System Administration', 'Business', 'Business Management'])
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [sidebarWidth, setSidebarWidth] = useState(256) // 256px = w-64
   const [isResizing, setIsResizing] = useState(false)
