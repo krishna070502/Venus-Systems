@@ -800,7 +800,8 @@ export default function MyPage() {
 - `system.settings` - Access system settings
 - `system.logs` - View audit logs
 - `system.docs` - Access documentation and API documentation
-- `system.admin` - Access admin panel, health monitoring, and status indicators (Backend/DB)
+- `system.status` - View backend and database status indicators
+- `system.admin` - Access admin panel and health monitoring
 
 ### Profile Permissions
 - `profile.read` - View own profile

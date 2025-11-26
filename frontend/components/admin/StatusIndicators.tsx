@@ -31,7 +31,7 @@ export function StatusIndicators() {
   const { permissions, loading: permLoading } = usePermissions()
 
   // Check if user has permission to view status indicators
-  const canViewStatus = permissions.includes('system.admin')
+  const canViewStatus = permissions.includes('system.status')
 
   useEffect(() => {
     const fetchStatus = async () => {

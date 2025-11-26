@@ -229,7 +229,8 @@ Always use: `<resource>.<action>`
 - `roles.read` - View and manage roles
 - `permissions.read` - View and manage permissions
 - `settings.update` - Update settings
-- `system.admin` - Admin access, health monitoring, status indicators
+- `system.admin` - Admin access and health monitoring
+- `system.status` - View backend and database status indicators
 - `system.logs` - View audit logs
 - `system.docs` - Access documentation and API docs
 - `test.run` - Run test suite

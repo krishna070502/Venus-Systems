@@ -5,6 +5,20 @@ All notable changes to CoreDesk will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2025-11-26
+
+### Added
+- **Dedicated Status Indicator Permission**
+  - Added `system.status` permission for viewing API status indicators
+  - Separated status indicator access from `system.admin`
+  - More granular control over who can view backend/database status
+  - Database migration `013_add_status_permission.sql`
+  - Auto-assigns to Admin and Manager roles
+
+### Changed
+- StatusIndicators component now requires `system.status` instead of `system.admin`
+- Updated all documentation with new permission
+
 ## [1.3.0] - 2025-11-26
 
 ### Added

@@ -440,7 +440,7 @@ Real-time backend and database status indicators displayed in the admin header.
 
 **File:** `frontend/components/admin/StatusIndicators.tsx`
 
-**Permission Required:** `system.admin`
+**Permission Required:** `system.status`
 
 ```typescript
 import { StatusIndicators } from '@/components/admin/StatusIndicators'
@@ -457,7 +457,7 @@ import { StatusIndicators } from '@/components/admin/StatusIndicators'
 - Response time metrics (ms)
 - Auto-refresh every 30 seconds
 - Click to navigate to full health page
-- Only visible to users with `system.admin` permission
+- Only visible to users with `system.status` permission
 - Color-coded status (green=healthy, yellow=degraded, red=unhealthy)
 - Animated status dots
 
