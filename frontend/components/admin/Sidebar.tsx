@@ -70,9 +70,9 @@ export function AdminSidebar() {
 
   return (
     <div className="w-64 bg-card border-r flex flex-col">
-      <div className="p-6 pb-4">
+      <Link href="/admin" className="p-6 pb-4 cursor-pointer hover:opacity-80 transition-opacity">
         <h2 className="text-3xl font-bold text-[#1E4DD8]">CoreDesk</h2>
-      </div>
+      </Link>
 
       <nav className="flex-1 px-4 space-y-1">
         {filteredNavigation.map((item) => {

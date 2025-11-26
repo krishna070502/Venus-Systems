@@ -31,7 +31,7 @@ export default function AdminDashboard() {
 // Landing page for users without dashboard access
 function HomeLandingPage() {
   const { user } = useAuth()
-  const { permissions } = usePermissions()
+  const { permissions, loading: permissionsLoading } = usePermissions()
 
   return (
     <div className="space-y-8">
@@ -99,7 +99,14 @@ function HomeLandingPage() {
           <CardDescription>Based on your current permissions</CardDescription>
         </CardHeader>
         <CardContent>
-          {permissions.length > 0 ? (
+          {permissionsLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="text-center space-y-3">
+                <div className="animate-spin h-8 w-8 border-4 border-[#1E4DD8] border-t-transparent rounded-full mx-auto"></div>
+                <p className="text-sm text-muted-foreground">Loading your features...</p>
+              </div>
+            </div>
+          ) : permissions.length > 0 ? (
             <div className="space-y-3">
               <p className="text-sm text-muted-foreground mb-4">
                 You have access to the following areas:
