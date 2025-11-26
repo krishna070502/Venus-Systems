@@ -40,6 +40,9 @@ function LogsPageContent() {
   const [logs, setLogs] = useState<AuditLog[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [filterAction, setFilterAction] = useState<string>('all')
+  const [filterResourceType, setFilterResourceType] = useState<string>('all')
 
   useEffect(() => {
     loadLogs()
@@ -102,6 +105,25 @@ function LogsPageContent() {
     setSelectedLog(log)
   }
 
+  // Get unique actions and resource types for filter dropdowns
+  const uniqueActions = Array.from(new Set(logs.map(log => log.action).filter(Boolean)))
+  const uniqueResourceTypes = Array.from(new Set(logs.map(log => log.resource_type).filter(Boolean)))
+
+  // Filter logs based on search and filters
+  const filteredLogs = logs.filter(log => {
+    const matchesSearch = 
+      searchQuery === '' ||
+      (log.action && log.action.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (log.resource_type && log.resource_type.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (log.resource_id && log.resource_id.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (log.user_id && log.user_id.toLowerCase().includes(searchQuery.toLowerCase()))
+
+    const matchesAction = filterAction === 'all' || log.action === filterAction
+    const matchesResourceType = filterResourceType === 'all' || log.resource_type === filterResourceType
+
+    return matchesSearch && matchesAction && matchesResourceType
+  })
+
   return (
     <div className="space-y-6">
       <div>
@@ -117,6 +139,67 @@ function LogsPageContent() {
           <CardDescription>
             Complete history of all system changes and user actions
           </CardDescription>
+          <div className="mt-4 space-y-4">
+            {/* Search Bar */}
+            <input
+              type="text"
+              placeholder="Search logs by action, resource, resource ID, or user..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+            
+            {/* Filters */}
+            <div className="flex gap-4 flex-wrap">
+              <div className="flex-1 min-w-[200px]">
+                <label className="text-sm font-medium mb-2 block">Action</label>
+                <select
+                  value={filterAction}
+                  onChange={(e) => setFilterAction(e.target.value)}
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                >
+                  <option value="all">All Actions</option>
+                  {uniqueActions.map(action => (
+                    <option key={action} value={action}>{action}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div className="flex-1 min-w-[200px]">
+                <label className="text-sm font-medium mb-2 block">Resource Type</label>
+                <select
+                  value={filterResourceType}
+                  onChange={(e) => setFilterResourceType(e.target.value)}
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                >
+                  <option value="all">All Resource Types</option>
+                  {uniqueResourceTypes.map(type => (
+                    <option key={type} value={type}>{type}</option>
+                  ))}
+                </select>
+              </div>
+
+              {(searchQuery || filterAction !== 'all' || filterResourceType !== 'all') && (
+                <div className="flex items-end">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setSearchQuery('')
+                      setFilterAction('all')
+                      setFilterResourceType('all')
+                    }}
+                  >
+                    Clear Filters
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            {/* Results count */}
+            <div className="text-sm text-muted-foreground">
+              Showing {filteredLogs.length} of {logs.length} logs
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
@@ -131,14 +214,16 @@ function LogsPageContent() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {logs.length === 0 ? (
+              {filteredLogs.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                    No audit logs yet. Changes will appear here once you start using the system.
+                    {logs.length === 0 
+                      ? 'No audit logs yet. Changes will appear here once you start using the system.'
+                      : 'No logs match your search criteria. Try adjusting your filters.'}
                   </TableCell>
                 </TableRow>
               ) : (
-                logs.map((log) => (
+                filteredLogs.map((log) => (
                   <TableRow key={log.id}>
                     <TableCell className="text-sm whitespace-nowrap">
                       {log.timestamp ? new Date(log.timestamp).toLocaleString() : 'N/A'}
