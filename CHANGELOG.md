@@ -5,6 +5,77 @@ All notable changes to Venus Chicken will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.12.0] - 2025-11-26
+
+### Added
+- **Insights & Reports Module**
+  - Added nested "📊 Insights & Reports" dropdown inside Business section
+  - Comprehensive CRUD permissions for 3 modules:
+    - **Sales Reports**: 5 permissions (view, read, write, update, delete)
+    - **Purchase Reports**: 5 permissions (view, read, write, update, delete)
+    - **Expense Reports**: 5 permissions (view, read, write, update, delete)
+  - Parent permission `analytics.view` controls entire nested section
+  - Three "Coming Soon" pages with permission status indicators:
+    - `/admin/business/reports/sales` - Analyze sales data and insights
+    - `/admin/business/reports/purchase` - Analyze purchase and supplier data
+    - `/admin/business/reports/expense` - Analyze expense patterns
+  - Database migration `020_add_insights_reports_permissions.sql`
+  - Auto-assigns all 16 permissions to Admin and Manager roles
+  - Added icons: BarChart3, LineChart, PieChart, FileBarChart from lucide-react
+
+### Technical
+- Follows same nested dropdown pattern as other business modules
+- Permission structure: Parent controls section visibility, individual permissions control CRUD operations
+- Consistent "Coming Soon" page design with permission status display
+- Business section now has 5 nested modules with 80 CRUD permissions total
+
+## [1.11.0] - 2025-11-26
+
+### Added
+- **Finance Management Module**
+  - Added nested "🏬 Finance Management" dropdown inside Business section
+  - Comprehensive CRUD permissions for 3 modules:
+    - **Expenses**: 5 permissions (view, read, write, update, delete)
+    - **Cashbook**: 5 permissions (view, read, write, update, delete)
+    - **Ledger**: 5 permissions (view, read, write, update, delete)
+  - Parent permission `finance.view` controls entire nested section
+  - Three "Coming Soon" pages with permission status indicators:
+    - `/admin/business/finance/expenses` - Track business expenses
+    - `/admin/business/finance/cashbook` - Manage cash transactions
+    - `/admin/business/finance/ledger` - General ledger accounting
+  - Database migration `019_add_finance_management_permissions.sql`
+  - Auto-assigns all 16 permissions to Admin and Manager roles
+  - Added icons: Landmark, Banknote, Wallet, BookOpenCheck from lucide-react
+
+### Technical
+- Follows same nested dropdown pattern as other business modules
+- Permission structure: Parent controls section visibility, individual permissions control CRUD operations
+- Consistent "Coming Soon" page design with permission status display
+- Business section now has 4 nested modules: Purchases & Payables, Inventory, Sales & Income, Finance
+
+## [1.10.0] - 2025-11-26
+
+### Added
+- **Sales & Income Module**
+  - Added nested "💰 Sales & Income" dropdown inside Business section
+  - Comprehensive CRUD permissions for 3 modules:
+    - **Sales**: 5 permissions (view, read, write, update, delete)
+    - **Customers**: 5 permissions (view, read, write, update, delete)
+    - **Receipts**: 5 permissions (view, read, write, update, delete)
+  - Parent permission `salesincome.view` controls entire nested section
+  - Three "Coming Soon" pages with permission status indicators:
+    - `/admin/business/sales` - Track sales transactions
+    - `/admin/business/customers` - Manage customer database
+    - `/admin/business/receipts` - Manage sales receipts
+  - Database migration `018_add_sales_income_permissions.sql`
+  - Auto-assigns all 16 permissions to Admin and Manager roles
+  - Added icons: DollarSign, TrendingUp, UserCheck, FileCheck from lucide-react
+
+### Technical
+- Follows same nested dropdown pattern as Purchases & Payables and Inventory Management
+- Permission structure: Parent controls section visibility, individual permissions control CRUD operations
+- Consistent "Coming Soon" page design with permission status display
+
 ## [1.9.0] - 2025-11-26
 
 ### Added

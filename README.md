@@ -255,6 +255,54 @@ Always use: `<resource>.<action>`
 - `adjustments.write` - Create new adjustment entries
 - `adjustments.update` - Update existing adjustment entries
 - `adjustments.delete` - Delete adjustment entries
+- `salesincome.view` - Access Sales & Income section (controls nested dropdown)
+- `sales.view` - View Sales page in sidebar
+- `sales.read` - Read sales records
+- `sales.write` - Create new sales entries
+- `sales.update` - Update existing sales entries
+- `sales.delete` - Delete sales entries
+- `customer.view` - View Customers page in sidebar
+- `customer.read` - Read customer records
+- `customer.write` - Create new customer entries
+- `customer.update` - Update existing customer entries
+- `customer.delete` - Delete customer entries
+- `receipt.view` - View Receipts page in sidebar
+- `receipt.read` - Read receipt records
+- `receipt.write` - Create new receipt entries
+- `receipt.update` - Update existing receipt entries
+- `receipt.delete` - Delete receipt entries
+- `finance.view` - Access Finance Management section (controls nested dropdown)
+- `expense.view` - View Expenses page in sidebar
+- `expense.read` - Read expense records
+- `expense.write` - Create new expense entries
+- `expense.update` - Update existing expense entries
+- `expense.delete` - Delete expense entries
+- `cashbook.view` - View Cashbook page in sidebar
+- `cashbook.read` - Read cashbook records
+- `cashbook.write` - Create new cashbook entries
+- `cashbook.update` - Update existing cashbook entries
+- `cashbook.delete` - Delete cashbook entries
+- `ledger.view` - View Ledger page in sidebar
+- `ledger.read` - Read ledger records
+- `ledger.write` - Create new ledger entries
+- `ledger.update` - Update existing ledger entries
+- `ledger.delete` - Delete ledger entries
+- `analytics.view` - Access Insights & Reports section (controls nested dropdown)
+- `salesreport.view` - View Sales Reports page in sidebar
+- `salesreport.read` - Read sales report records
+- `salesreport.write` - Create new sales report entries
+- `salesreport.update` - Update existing sales report entries
+- `salesreport.delete` - Delete sales report entries
+- `purchasereport.view` - View Purchase Reports page in sidebar
+- `purchasereport.read` - Read purchase report records
+- `purchasereport.write` - Create new purchase report entries
+- `purchasereport.update` - Update existing purchase report entries
+- `purchasereport.delete` - Delete purchase report entries
+- `expensereport.view` - View Expense Reports page in sidebar
+- `expensereport.read` - Read expense report records
+- `expensereport.write` - Create new expense report entries
+- `expensereport.update` - Update existing expense report entries
+- `expensereport.delete` - Delete expense report entries
 - `systemdashboard.view` - View the system dashboard
 - `users.read` - View users
 - `users.write` - Create/update users

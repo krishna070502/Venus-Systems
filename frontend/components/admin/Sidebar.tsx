@@ -27,6 +27,18 @@ import {
   Box,
   Trash2,
   ClipboardEdit,
+  DollarSign,
+  TrendingUp,
+  UserCheck,
+  FileCheck,
+  Landmark,
+  Banknote,
+  Wallet,
+  BookOpenCheck,
+  BarChart3,
+  LineChart,
+  PieChart,
+  FileBarChart,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
@@ -91,6 +103,42 @@ const inventoryManagementGroup: NavigationGroup = {
   ]
 }
 
+// Sales & Income sub-group
+const salesIncomeGroup: NavigationGroup = {
+  name: '💰 Sales & Income',
+  icon: DollarSign,
+  permission: 'salesincome.view',
+  items: [
+    { name: 'Sales', href: '/admin/business/sales', icon: TrendingUp, permission: 'sales.view' },
+    { name: 'Customers', href: '/admin/business/customers', icon: UserCheck, permission: 'customer.view' },
+    { name: 'Receipts', href: '/admin/business/receipts', icon: FileCheck, permission: 'receipt.view' },
+  ]
+}
+
+// Finance Management sub-group
+const financeManagementGroup: NavigationGroup = {
+  name: '🏦 Finance Management',
+  icon: Landmark,
+  permission: 'finance.view',
+  items: [
+    { name: 'Expenses', href: '/admin/business/finance/expenses', icon: Banknote, permission: 'expense.view' },
+    { name: 'Cashbook', href: '/admin/business/finance/cashbook', icon: Wallet, permission: 'cashbook.view' },
+    { name: 'Ledger', href: '/admin/business/finance/ledger', icon: BookOpenCheck, permission: 'ledger.view' },
+  ]
+}
+
+// Insights & Reports sub-group
+const insightsReportsGroup: NavigationGroup = {
+  name: '📊 Insights & Reports',
+  icon: BarChart3,
+  permission: 'analytics.view',
+  items: [
+    { name: 'Sales Reports', href: '/admin/business/reports/sales', icon: LineChart, permission: 'salesreport.view' },
+    { name: 'Purchase Reports', href: '/admin/business/reports/purchase', icon: PieChart, permission: 'purchasereport.view' },
+    { name: 'Expense Reports', href: '/admin/business/reports/expense', icon: FileBarChart, permission: 'expensereport.view' },
+  ]
+}
+
 // Business group
 const businessGroup: NavigationGroup = {
   name: 'Business',
@@ -100,6 +148,9 @@ const businessGroup: NavigationGroup = {
     { name: 'Business Dashboard', href: '/admin/business', icon: Activity, permission: 'businessdashboard.view' },
     purchasesPayablesGroup,
     inventoryManagementGroup,
+    salesIncomeGroup,
+    financeManagementGroup,
+    insightsReportsGroup,
     // Add more business-related pages here
   ]
 }

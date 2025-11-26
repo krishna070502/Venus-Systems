@@ -473,6 +473,9 @@ Before marking work as complete:
 
 ## 🔄 VERSION HISTORY
 
+- v1.12.0 (2025-11-26) - Added Insights & Reports nested dropdown with 16 CRUD permissions
+- v1.11.0 (2025-11-26) - Added Finance Management nested dropdown with 16 CRUD permissions
+- v1.10.0 (2025-11-26) - Added Sales & Income nested dropdown with 16 CRUD permissions
 - v1.9.0 (2025-11-26) - Added Inventory Management nested dropdown with 16 CRUD permissions
 - v1.8.0 (2025-11-26) - Added Purchases & Payables nested dropdown with 16 CRUD permissions
 - v1.7.0 (2025-11-26) - Added Business dropdown and collapsible sidebar
