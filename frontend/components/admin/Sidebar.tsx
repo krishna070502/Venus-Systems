@@ -81,7 +81,7 @@ const systemAdministrationGroup: NavigationGroup = {
 
 // Purchases & Payables sub-group
 const purchasesPayablesGroup: NavigationGroup = {
-  name: '🧾 Purchases & Payables',
+  name: 'Purchases & Payables',
   icon: Receipt,
   permission: 'purchase&payment.view',
   items: [
@@ -93,7 +93,7 @@ const purchasesPayablesGroup: NavigationGroup = {
 
 // Inventory Management sub-group
 const inventoryManagementGroup: NavigationGroup = {
-  name: '📦 Inventory Management',
+  name: 'Inventory Management',
   icon: Package,
   permission: 'inventory.view',
   items: [
@@ -105,7 +105,7 @@ const inventoryManagementGroup: NavigationGroup = {
 
 // Sales & Income sub-group
 const salesIncomeGroup: NavigationGroup = {
-  name: '💰 Sales & Income',
+  name: 'Sales & Income',
   icon: DollarSign,
   permission: 'salesincome.view',
   items: [
@@ -117,7 +117,7 @@ const salesIncomeGroup: NavigationGroup = {
 
 // Finance Management sub-group
 const financeManagementGroup: NavigationGroup = {
-  name: '🏦 Finance Management',
+  name: 'Finance Management',
   icon: Landmark,
   permission: 'finance.view',
   items: [
@@ -129,7 +129,7 @@ const financeManagementGroup: NavigationGroup = {
 
 // Insights & Reports sub-group
 const insightsReportsGroup: NavigationGroup = {
-  name: '📊 Insights & Reports',
+  name: 'Insights & Reports',
   icon: BarChart3,
   permission: 'analytics.view',
   items: [
