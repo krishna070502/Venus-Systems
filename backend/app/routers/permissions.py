@@ -23,7 +23,28 @@ router = APIRouter()
     dependencies=[Depends(require_permission(["permissions.read"]))]
 )
 async def get_all_permissions():
-    """Get all permissions"""
+    """
+    Get all permissions in the system
+    
+    Returns a complete list of all available permissions that can be assigned to roles.
+    
+    **Permission Required:** `permissions.read`
+    
+    **Dynamic Permission System:**
+    - New permissions can be created and will automatically appear in the UI
+    - Frontend displays permissions as feature cards (if mapped) or badges
+    - No code changes needed for new permissions to be visible
+    
+    **Permissions are used to:**
+    - Protect frontend pages with PermissionGuard
+    - Filter navigation sidebar items
+    - Control access to API endpoints
+    - Display available features on landing page
+    
+    **Standard Permission Format:** `<resource>.<action>`
+    
+    Examples: `users.read`, `systemdashboard.view`, `system.logs`, etc.
+    """
     role_service = RoleService()
     permissions = await role_service.get_all_permissions()
     return permissions
@@ -55,7 +76,36 @@ async def get_permission(permission_id: int):
     dependencies=[Depends(require_permission(["permissions.write"]))]
 )
 async def create_permission(permission_data: PermissionCreate):
-    """Create a new permission"""
+    """
+    Create a new permission
+    
+    **Permission Required:** `permissions.write`
+    
+    Creates a new permission that can be assigned to roles. The permission will:
+    - Automatically appear in the permissions list
+    - Show in the frontend UI immediately
+    - Display on the landing page for users who have it (as badge or feature card)
+    - Can be assigned to roles via the admin panel
+    
+    **Naming Convention:** Use format `<resource>.<action>`
+    
+    **Examples:**
+    - `reports.view` - View reports
+    - `analytics.export` - Export analytics
+    - `billing.manage` - Manage billing
+    
+    **Request Body:**
+    ```json
+    {
+      "key": "reports.view",
+      "description": "View analytics reports"
+    }
+    ```
+    
+    **Dynamic Display:**
+    - To show as a feature card, add to frontend featureMap
+    - Otherwise, appears automatically in "Additional Permissions" section
+    """
     role_service = RoleService()
     
     try:

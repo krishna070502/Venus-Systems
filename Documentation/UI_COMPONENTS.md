@@ -387,19 +387,22 @@ A beautiful, dynamic landing page shown to users without `systemdashboard.view` 
 - Hover effects with brand colors
 
 **Your Available Features (Dynamic):**
-- Shows all 9 possible features based on permissions:
+- **Fully Dynamic Permission Display** - Shows ALL permissions user has, not just predefined ones
+- **Feature Cards** - Displays mapped permissions with icons, names, descriptions, and clickable navigation:
   - System Dashboard (`systemdashboard.view`)
   - User Management (`users.read`)
   - Role Management (`roles.read`)
   - Permissions (`permissions.read`)
-  - System Health (`system.admin`)
-  - Settings (`system.settings`)
+  - System Settings (`system.settings`)
   - Audit Logs (`system.logs`)
-  - Documentation (`system.docs`)
   - Test Suite (`test.run`)
-- Only displays features user has access to
-- Clickable cards that navigate to respective pages
-- Responsive 2-column grid layout
+  - Documentation (`system.docs`)
+  - System Health (`system.status`)
+- **Additional Permissions Section** - Automatically displays any unmapped permissions as badges
+- **Automatic Adaptation** - New permissions appear automatically without code changes
+- **featureMap Pattern** - Easily add new permissions to feature cards by updating the featureMap object
+- Responsive 2-column grid layout for feature cards
+- Loading state with spinner during permission fetch
 
 **Help Section:**
 - Information about requesting more access
@@ -433,6 +436,101 @@ export default function AdminDashboard() {
 - Shows `HomeLandingPage` for users without permission
 - No "Access Denied" message - provides helpful alternative
 - Improves UX for users with limited permissions
+
+### Dynamic Permission Display System
+
+The landing page uses a dynamic featureMap pattern to display ALL user permissions automatically.
+
+**Architecture:**
+
+```typescript
+// 1. Define feature mappings for known permissions
+const featureMap: Record<string, {
+  name: string
+  description: string
+  href: string
+  icon: any
+}> = {
+  'systemdashboard.view': {
+    name: 'System Dashboard',
+    description: 'Overview and analytics',
+    href: '/admin',
+    icon: LayoutDashboard
+  },
+  'users.read': {
+    name: 'User Management',
+    description: 'Manage users and access',
+    href: '/admin/users',
+    icon: Users
+  },
+  // ... more mappings
+}
+
+// 2. Filter user permissions into two groups
+const availableFeatures = permissions
+  .filter(perm => featureMap[perm])
+  .map(perm => ({
+    permission: perm,
+    ...featureMap[perm]
+  }))
+
+const otherPermissions = permissions.filter(perm => !featureMap[perm])
+
+// 3. Render dynamically
+{availableFeatures.map((feature) => (
+  <Link key={feature.permission} href={feature.href}>
+    <div className="feature-card">
+      <Icon className="h-5 w-5" />
+      <div>
+        <p>{feature.name}</p>
+        <p className="text-xs">{feature.description}</p>
+      </div>
+    </div>
+  </Link>
+))}
+
+// 4. Show unmapped permissions as badges
+{otherPermissions.length > 0 && (
+  <div className="mt-6">
+    <p className="text-sm font-medium mb-3">Additional Permissions:</p>
+    <div className="flex flex-wrap gap-2">
+      {otherPermissions.map((perm) => (
+        <div key={perm} className="permission-badge">
+          {perm}
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+```
+
+**Benefits:**
+- ✅ **Scalable** - New permissions appear automatically without code changes
+- ✅ **Complete** - Shows ALL permissions, not just predefined ones
+- ✅ **Flexible** - Easy to add new feature mappings to featureMap
+- ✅ **User-Friendly** - Clear visual distinction between UI features and raw permissions
+- ✅ **Maintainable** - Reduced from 140 lines to 35 lines of code
+
+**Adding New Feature Mappings:**
+
+To add a new permission to the feature cards section:
+
+```typescript
+// In frontend/app/admin/page.tsx
+const featureMap: Record<string, {...}> = {
+  // Existing mappings...
+  
+  // Add new mapping
+  'reports.view': {
+    name: 'Reports',
+    description: 'View analytics and reports',
+    href: '/admin/reports',
+    icon: FileText  // Import from lucide-react
+  }
+}
+```
+
+That's it! The permission will automatically appear in the feature cards when assigned to users.
 
 ### StatusIndicators
 

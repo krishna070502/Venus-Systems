@@ -480,6 +480,115 @@ export function AdminSidebar() {
 }
 ```
 
+### Dynamic Feature Display (Landing Page)
+
+**File:** `frontend/app/admin/page.tsx`
+
+CoreDesk includes a sophisticated dynamic permission display system that automatically shows ALL user permissions without requiring code changes for new permissions.
+
+**How It Works:**
+
+```typescript
+// 1. Define a featureMap for known permissions with UI features
+const featureMap: Record<string, {
+  name: string
+  description: string
+  href: string
+  icon: any
+}> = {
+  'systemdashboard.view': {
+    name: 'System Dashboard',
+    description: 'Overview and analytics',
+    href: '/admin',
+    icon: LayoutDashboard
+  },
+  'users.read': {
+    name: 'User Management',
+    description: 'Manage users and access',
+    href: '/admin/users',
+    icon: Users
+  },
+  // ... 9 total permission mappings
+}
+
+// 2. Filter permissions into two groups
+const availableFeatures = permissions
+  .filter(perm => featureMap[perm])
+  .map(perm => ({
+    permission: perm,
+    ...featureMap[perm]
+  }))
+
+// Permissions not in featureMap (new/unmapped permissions)
+const otherPermissions = permissions.filter(perm => !featureMap[perm])
+
+// 3. Render feature cards for mapped permissions
+{availableFeatures.map((feature) => (
+  <Link key={feature.permission} href={feature.href}>
+    <div className="feature-card">
+      <Icon className="h-5 w-5 text-[#1E4DD8]" />
+      <div>
+        <p className="font-medium">{feature.name}</p>
+        <p className="text-xs text-muted-foreground">{feature.description}</p>
+      </div>
+    </div>
+  </Link>
+))}
+
+// 4. Show unmapped permissions as badges
+{otherPermissions.length > 0 && (
+  <div className="mt-6">
+    <p className="text-sm font-medium mb-3">Additional Permissions:</p>
+    <div className="flex flex-wrap gap-2">
+      {otherPermissions.map((perm) => (
+        <div key={perm} className="px-3 py-1.5 bg-white rounded-md border">
+          {perm}
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+```
+
+**Key Benefits:**
+
+- ✅ **Automatic** - New permissions appear immediately without code changes
+- ✅ **Complete** - Shows ALL permissions user has, not just predefined ones
+- ✅ **Scalable** - Add feature mappings as UI features are built
+- ✅ **User-Friendly** - Clear distinction between UI features and raw permissions
+- ✅ **Maintainable** - Reduced code complexity (140 lines → 35 lines)
+
+**Adding New Features:**
+
+When you create a new page with a permission, add it to the featureMap:
+
+```typescript
+const featureMap: Record<string, {...}> = {
+  // Existing...
+  'reports.view': {
+    name: 'Reports',
+    description: 'View analytics and reports',
+    href: '/admin/reports',
+    icon: FileBarChart
+  }
+}
+```
+
+The permission will automatically appear as a feature card when assigned to users.
+
+**Current Mapped Permissions:**
+- `systemdashboard.view` - System Dashboard
+- `users.read` - User Management
+- `roles.read` - Role Management
+- `permissions.read` - Permissions
+- `system.settings` - System Settings
+- `system.logs` - Audit Logs
+- `test.run` - Test Suite
+- `system.docs` - Documentation
+- `system.status` - System Health
+
+
+
 ---
 
 ## Adding New Permissions

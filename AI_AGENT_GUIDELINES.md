@@ -125,6 +125,44 @@ This document contains **MANDATORY** guidelines for AI agents working on CoreDes
 - ✅ **ALWAYS** protect both frontend AND backend
 - ✅ **ALWAYS** use principle of least privilege
 
+### Rule 4: Dynamic Feature Display Pattern
+
+**When adding new pages with permissions**, update the featureMap to show them in the landing page:
+
+**File:** `frontend/app/admin/page.tsx`
+
+```typescript
+const featureMap: Record<string, {
+  name: string
+  description: string
+  href: string
+  icon: any
+}> = {
+  // Existing mappings...
+  
+  // Add new permission mapping
+  'reports.view': {
+    name: 'Reports',
+    description: 'View analytics and reports',
+    href: '/admin/reports',
+    icon: FileBarChart  // Import from lucide-react
+  }
+}
+```
+
+**How it works:**
+- The landing page automatically displays ALL user permissions
+- Permissions in featureMap show as clickable feature cards with icons
+- Permissions NOT in featureMap show in "Additional Permissions" section as badges
+- **No code changes needed** for new permissions to appear - they show automatically
+- Only add to featureMap when you create the actual UI page/feature
+
+**Benefits:**
+- ✅ Scalable - New permissions appear automatically
+- ✅ Complete - Shows all permissions, not just mapped ones
+- ✅ User-friendly - Clear visual distinction between features and permissions
+- ✅ Maintainable - Simple pattern to follow
+
 ---
 
 ## 🏗️ PROJECT ARCHITECTURE - CRITICAL PATTERNS

@@ -20,7 +20,48 @@ router = APIRouter()
 
 @router.get("/me")
 async def get_my_profile(current_user: dict = Depends(get_current_user)):
-    """Get current user's profile with roles and permissions"""
+    """
+    Get current user's profile with roles and permissions
+    
+    Returns the authenticated user's complete profile including:
+    - User details (id, email, full_name, etc.)
+    - Assigned roles (list of role names)
+    - All permissions (list of permission keys)
+    
+    The permissions array contains ALL permissions the user has access to,
+    which is used by the frontend to:
+    - Filter navigation items
+    - Protect page routes with PermissionGuard
+    - Display dynamic feature cards on the landing page
+    - Show available features based on user access
+    
+    **Dynamic Permission Display:**
+    - Permissions in the frontend featureMap show as clickable feature cards
+    - Other permissions automatically appear in "Additional Permissions" section
+    - New permissions appear automatically without code changes
+    
+    **Example Response:**
+    ```json
+    {
+      "id": "uuid",
+      "email": "user@example.com",
+      "full_name": "John Doe",
+      "roles": ["Admin", "Manager"],
+      "permissions": [
+        "systemdashboard.view",
+        "users.read",
+        "users.write",
+        "roles.read",
+        "permissions.read",
+        "system.settings",
+        "system.logs",
+        "system.docs",
+        "system.status",
+        "test.run"
+      ]
+    }
+    ```
+    """
     from app.services.role_service import RoleService
     
     user_service = UserService()

@@ -24,7 +24,53 @@ logger = logging.getLogger(__name__)
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
-    description="CoreDesk - Your Application's Control Center. Enterprise-grade RBAC and admin panel.",
+    description="""
+## CoreDesk - Enterprise SaaS Starter Kit
+
+**Your Application's Control Center** with enterprise-grade RBAC and beautiful admin panel.
+
+### ✨ Key Features
+
+- 🔐 **Advanced RBAC** - Comprehensive permission-based access control
+- 🎯 **Dynamic Permission Display** - Automatically shows all user permissions
+- 👥 **User Management** - Complete user and role administration
+- 📊 **Audit Logging** - Track all system changes
+- 🏥 **Health Monitoring** - Real-time backend and database status
+- 🎨 **Beautiful Admin UI** - Modern, responsive interface
+
+### 🔑 Permission System
+
+CoreDesk implements a sophisticated permission system:
+
+- **Permission Format**: `<resource>.<action>` (e.g., `users.read`, `systemdashboard.view`)
+- **Dynamic Features**: New permissions automatically appear in the UI
+- **Feature Mapping**: Known permissions display as feature cards with icons
+- **Granular Control**: Protect pages, components, and API endpoints
+
+### 📖 Available Permissions
+
+- `systemdashboard.view` - View system dashboard
+- `users.read` - View users
+- `users.write` - Create/update users
+- `roles.read` - Manage roles
+- `permissions.read` - Manage permissions
+- `system.admin` - Admin access
+- `system.settings` - Access settings
+- `system.logs` - View audit logs
+- `system.docs` - Access documentation
+- `system.status` - View status indicators
+- `test.run` - Run test suite
+
+### 🚀 Getting Started
+
+1. **Authenticate**: Use `/api/v1/auth/login` to get JWT token
+2. **Include Token**: Add `Authorization: Bearer <token>` header to requests
+3. **Check Permissions**: User permissions returned in `/api/v1/users/me`
+
+### 🔒 Security
+
+All admin endpoints require appropriate permissions. See endpoint descriptions for required permissions.
+""",
     docs_url="/docs" if settings.ENVIRONMENT != "production" else None,
     redoc_url="/redoc" if settings.ENVIRONMENT != "production" else None,
 )

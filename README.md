@@ -12,9 +12,9 @@ A production-ready SaaS starter kit with comprehensive RBAC (Role-Based Access C
 ## 🚀 Features
 
 - ✅ **Complete Authentication System** - JWT-based auth with Supabase
-- ✅ **Advanced RBAC** - Granular permission-based access control
+- ✅ **Advanced RBAC** - Granular permission-based access control with dynamic display
 - ✅ **Beautiful Admin Panel** - Modern UI with shadcn/ui components
-- ✅ **Home Landing Page** - Dynamic landing page for users without dashboard access
+- ✅ **Home Landing Page** - Dynamic landing page showing ALL user permissions automatically
 - ✅ **Audit Logging** - Track all system changes
 - ✅ **Session Management** - Monitor active user sessions
 - ✅ **Health Monitoring** - System health dashboard
@@ -339,6 +339,31 @@ export const api = {
 ```
 
 **That's it!** 🎉 Your page is now protected and only users with `reports.view` permission can access it.
+
+### 6. Add to Landing Page Feature Map (Optional)
+
+If you want the new permission to show as a feature card on the landing page:
+
+**File:** `frontend/app/admin/page.tsx`
+
+```typescript
+const featureMap: Record<string, {
+  name: string
+  description: string
+  href: string
+  icon: any
+}> = {
+  // ... existing mappings
+  'reports.view': {
+    name: 'Reports',
+    description: 'View analytics and reports',
+    href: '/admin/reports',
+    icon: FileBarChart  // Import from lucide-react
+  }
+}
+```
+
+**Note:** If you don't add it to featureMap, the permission will still appear automatically in the "Additional Permissions" section on the landing page. Adding to featureMap just creates a nicer, clickable feature card with icon and description.
 
 ---
 

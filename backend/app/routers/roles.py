@@ -187,7 +187,28 @@ async def assign_permission_to_role(
     permission_id: int,
     current_user: Dict = Depends(get_current_user)
 ):
-    """Assign a permission to a role"""
+    """
+    Assign a permission to a role
+    
+    **Permission Required:** `permissions.manage`
+    
+    When a permission is assigned to a role, all users with that role
+    will immediately gain access to the associated features.
+    
+    **Dynamic UI Updates:**
+    - Permission appears in user's permissions list (`/api/v1/users/me`)
+    - Frontend automatically shows new features/pages
+    - Navigation items become visible (if permission matches sidebar items)
+    - Landing page displays the new permission (as feature card or badge)
+    
+    **Use Cases:**
+    - Grant dashboard access: Assign `systemdashboard.view` to Manager role
+    - Enable reports: Assign `reports.view` to Analyst role
+    - Allow user management: Assign `users.read` and `users.write` to Admin role
+    
+    **Example:** 
+    Assigning `reports.view` to "Manager" role makes reports accessible to all Managers.
+    """
     role_service = RoleService()
     
     # Get role and permission details

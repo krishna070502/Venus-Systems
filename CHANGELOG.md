@@ -5,6 +5,29 @@ All notable changes to CoreDesk will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2025-11-26
+
+### Added
+- **Dynamic Permission Display System**
+  - Landing page now shows ALL user permissions automatically
+  - Feature cards display for 9 mapped permissions with icons, names, descriptions, and navigation links
+  - "Additional Permissions" section displays unmapped permissions as badges
+  - New permissions appear automatically without code changes
+  - Fully scalable architecture using featureMap pattern
+
+### Changed
+- Converted hardcoded permission display (140 lines) to dynamic system (35 lines)
+- "Your Available Features" section now renders all permissions dynamically
+- Improved code maintainability and scalability for future permission additions
+- Updated UI_COMPONENTS.md with detailed dynamic feature display documentation
+- Updated PERMISSION_SYSTEM.md with featureMap implementation guide
+
+### Technical
+- Created featureMap for 9 known permissions
+- Automatic filtering of permissions into availableFeatures and otherPermissions
+- Dynamic rendering using .map() instead of individual permission checks
+- Clear separation between UI features and raw permissions
+
 ## [1.4.0] - 2025-11-26
 
 ### Added
