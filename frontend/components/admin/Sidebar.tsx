@@ -25,7 +25,7 @@ interface NavigationItem {
 }
 
 const navigation: NavigationItem[] = [
-  { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
+  { name: 'Dashboard', href: '/admin', icon: LayoutDashboard, permission: 'systemdashboard.view' },
   { name: 'Users', href: '/admin/users', icon: Users, permission: 'users.read' },
   { name: 'Roles', href: '/admin/roles', icon: ShieldCheck, permission: 'roles.read' },
   { name: 'Permissions', href: '/admin/permissions', icon: Key, permission: 'permissions.read' },

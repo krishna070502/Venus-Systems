@@ -7,8 +7,17 @@ import { api } from '@/lib/api/client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Users, ShieldCheck, Key, Activity } from 'lucide-react'
 import { PageLoading } from '@/components/ui/loading'
+import { PermissionGuard } from '@/components/admin/PermissionGuard'
 
 export default function AdminDashboard() {
+  return (
+    <PermissionGuard permission="systemdashboard.view">
+      <AdminDashboardContent />
+    </PermissionGuard>
+  )
+}
+
+function AdminDashboardContent() {
   const router = useRouter()
   const [stats, setStats] = useState({
     total_users: 0,

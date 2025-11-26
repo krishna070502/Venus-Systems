@@ -219,6 +219,7 @@ WHERE r.name = 'Admin' AND p.key = 'reports.view';
 Always use: `<resource>.<action>`
 
 **Examples:**
+- `systemdashboard.view` - View the system dashboard
 - `users.read` - View users
 - `users.write` - Create/update users
 - `users.delete` - Delete users

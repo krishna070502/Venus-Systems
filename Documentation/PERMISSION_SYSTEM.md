@@ -220,6 +220,7 @@ async def get_my_profile(current_user: dict = Depends(get_current_user)):
   "full_name": "Admin User",
   "roles": ["Admin"],
   "permissions": [
+    "systemdashboard.view",
     "users.read",
     "users.write",
     "roles.read",
@@ -393,7 +394,12 @@ interface NavigationItem {
 }
 
 const navigation: NavigationItem[] = [
-  { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
+  { 
+    name: 'Dashboard', 
+    href: '/admin', 
+    icon: LayoutDashboard, 
+    permission: 'systemdashboard.view' 
+  },
   { 
     name: 'Users', 
     href: '/admin/users', 
@@ -790,6 +796,7 @@ export default function MyPage() {
 - `permissions.manage` - Assign permissions to roles
 
 ### System Permissions
+- `systemdashboard.view` - Access to view the system dashboard
 - `system.settings` - Access system settings
 - `system.logs` - View audit logs
 - `system.docs` - Access documentation and API documentation
