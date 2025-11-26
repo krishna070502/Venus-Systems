@@ -140,7 +140,7 @@ export default function UsersPage() {
           <div className="mt-4">
             <input
               type="text"
-              placeholder="Search users by email or name..."
+              placeholder="Search users by email, name, or role..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
@@ -161,7 +161,8 @@ export default function UsersPage() {
             <TableBody>
               {users.filter(user =>
                 user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                (user.full_name && user.full_name.toLowerCase().includes(searchQuery.toLowerCase()))
+                (user.full_name && user.full_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                (user.roles && user.roles.some(role => role.toLowerCase().includes(searchQuery.toLowerCase())))
               ).map((user) => (
                 <TableRow key={user.id}>
                   <TableCell className="font-medium">{user.email}</TableCell>
