@@ -40,7 +40,7 @@ export default function AdminLayout({
       <div className="h-screen flex overflow-hidden">
         <AdminSidebar />
         <div className="flex-1 flex flex-col overflow-hidden">
-          <header className="border-b bg-card px-8 py-4 flex items-center justify-between flex-shrink-0">
+          <header className="border-b bg-card px-8 py-4 flex items-center justify-between flex-shrink-0 relative z-10">
             <div>
               <h1 className="text-2xl font-bold text-[#1E4DD8]">Venus Chicken</h1>
               <p className="text-sm text-muted-foreground">Your Application's Control Center</p>
