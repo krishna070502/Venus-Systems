@@ -41,6 +41,7 @@ import {
   FileBarChart,
   Store,
   UserCog,
+  Tags,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
@@ -166,6 +167,7 @@ const shopManagementGroup: NavigationGroup = {
   items: [
     { name: 'Shops', href: '/admin/business-management/shops', icon: Store, permission: 'shops.view' },
     { name: 'Managers', href: '/admin/business-management/managers', icon: UserCog, permission: 'managers.view' },
+    { name: 'Price Config', href: '/admin/business-management/price-config', icon: Tags, permission: 'priceconfig.view' },
   ]
 }
 

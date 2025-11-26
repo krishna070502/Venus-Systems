@@ -320,6 +320,11 @@ Always use: `<resource>.<action>`
 - `managers.write` - Create new managers
 - `managers.update` - Update existing managers
 - `managers.delete` - Delete managers
+- `priceconfig.view` - View Price Config page in sidebar
+- `priceconfig.read` - Read price configurations
+- `priceconfig.write` - Create new price configurations
+- `priceconfig.update` - Update existing price configurations
+- `priceconfig.delete` - Delete price configurations
 - `systemdashboard.view` - View the system dashboard
 - `users.read` - View users
 - `users.write` - Create/update users

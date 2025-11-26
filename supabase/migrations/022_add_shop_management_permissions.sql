@@ -21,7 +21,14 @@ VALUES
   ('managers.read', 'Read manager records'),
   ('managers.write', 'Create new managers'),
   ('managers.update', 'Update existing managers'),
-  ('managers.delete', 'Delete managers')
+  ('managers.delete', 'Delete managers'),
+  
+  -- Price Config permissions
+  ('priceconfig.view', 'View Price Config page in sidebar'),
+  ('priceconfig.read', 'Read price configuration records'),
+  ('priceconfig.write', 'Create new price configurations'),
+  ('priceconfig.update', 'Update existing price configurations'),
+  ('priceconfig.delete', 'Delete price configurations')
 ON CONFLICT (key) DO NOTHING;
 
 -- Assign all permissions to Admin role
@@ -32,7 +39,8 @@ CROSS JOIN public.permissions p
 WHERE r.name = 'Admin' AND p.key IN (
   'shopmanagement.view',
   'shops.view', 'shops.read', 'shops.write', 'shops.update', 'shops.delete',
-  'managers.view', 'managers.read', 'managers.write', 'managers.update', 'managers.delete'
+  'managers.view', 'managers.read', 'managers.write', 'managers.update', 'managers.delete',
+  'priceconfig.view', 'priceconfig.read', 'priceconfig.write', 'priceconfig.update', 'priceconfig.delete'
 )
 ON CONFLICT (role_id, permission_id) DO NOTHING;
 
@@ -44,6 +52,7 @@ CROSS JOIN public.permissions p
 WHERE r.name = 'Manager' AND p.key IN (
   'shopmanagement.view',
   'shops.view', 'shops.read', 'shops.write', 'shops.update', 'shops.delete',
-  'managers.view', 'managers.read', 'managers.write', 'managers.update', 'managers.delete'
+  'managers.view', 'managers.read', 'managers.write', 'managers.update', 'managers.delete',
+  'priceconfig.view', 'priceconfig.read', 'priceconfig.write', 'priceconfig.update', 'priceconfig.delete'
 )
 ON CONFLICT (role_id, permission_id) DO NOTHING;
