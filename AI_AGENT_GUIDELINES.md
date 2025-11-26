@@ -112,6 +112,7 @@ This document contains **MANDATORY** guidelines for AI agents working on Venus C
 **Examples:**
 - ✅ `users.read`, `users.write`, `users.delete`
 - ✅ `systemdashboard.view`, `businessdashboard.view`
+- ✅ `systemadministration.view` (controls entire admin section)
 - ✅ `reports.view`, `reports.export`
 - ✅ `system.admin`, `system.logs`, `system.docs`
 - ❌ `read_users` (wrong format)
@@ -472,6 +473,8 @@ Before marking work as complete:
 
 ## 🔄 VERSION HISTORY
 
+- v1.6.0 (2025-11-26) - Added System Administration dropdown with systemadministration.view permission
+- v1.5.0 (2025-11-26) - Added dynamic permission display system
 - v1.2.0 (2025-11-26) - Added systemdashboard.view permission
 - v1.1.0 (2025-11-26) - Added permission controls for docs, status, roles
 - v1.0.0 (2025-11-26) - Initial release with complete RBAC system

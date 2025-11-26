@@ -5,6 +5,24 @@ All notable changes to Venus Chicken will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2025-11-26
+
+### Added
+- **System Administration Dropdown Menu**
+  - Grouped sidebar navigation into "System Administration" section
+  - Added collapsible dropdown for better organization
+  - New permission `systemadministration.view` controls entire section visibility
+  - Groups 8 pages: Dashboard, Users, Roles, Permissions, Health, Settings, Logs, Test
+  - Improved navigation UX with expand/collapse functionality
+  - Database migration `014_add_systemadministration_permission.sql`
+  - Auto-assigns to Admin and Manager roles
+
+### Changed
+- Sidebar now uses grouped navigation structure
+- Individual page permissions still enforced within the group
+- Enhanced visual hierarchy with indented sub-items
+- Added chevron indicators for dropdown state
+
 ## [1.5.0] - 2025-11-26
 
 ### Added

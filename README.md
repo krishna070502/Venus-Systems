@@ -220,6 +220,7 @@ WHERE r.name = 'Admin' AND p.key = 'reports.view';
 Always use: `<resource>.<action>`
 
 **Examples:**
+- `systemadministration.view` - Access System Administration section (controls entire dropdown)
 - `systemdashboard.view` - View the system dashboard
 - `users.read` - View users
 - `users.write` - Create/update users
