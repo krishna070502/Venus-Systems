@@ -33,6 +33,72 @@ function HomeLandingPage() {
   const { user } = useAuth()
   const { permissions, loading: permissionsLoading } = usePermissions()
 
+  // Define feature mapping for known permissions
+  const featureMap: Record<string, { name: string; description: string; href: string; icon: any }> = {
+    'systemdashboard.view': {
+      name: 'System Dashboard',
+      description: 'View system overview',
+      href: '/admin',
+      icon: LayoutDashboard
+    },
+    'users.read': {
+      name: 'User Management',
+      description: 'View and manage users',
+      href: '/admin/users',
+      icon: Users
+    },
+    'roles.read': {
+      name: 'Role Management',
+      description: 'Configure roles',
+      href: '/admin/roles',
+      icon: ShieldCheck
+    },
+    'permissions.read': {
+      name: 'Permissions',
+      description: 'Manage permissions',
+      href: '/admin/permissions',
+      icon: Key
+    },
+    'system.admin': {
+      name: 'System Health',
+      description: 'Monitor system status',
+      href: '/admin/health',
+      icon: Activity
+    },
+    'system.settings': {
+      name: 'Settings',
+      description: 'Configure system',
+      href: '/admin/settings',
+      icon: Settings
+    },
+    'system.logs': {
+      name: 'Audit Logs',
+      description: 'View system logs',
+      href: '/admin/logs',
+      icon: FileText
+    },
+    'system.docs': {
+      name: 'Documentation',
+      description: 'Browse guides',
+      href: '/admin/docs',
+      icon: BookOpen
+    },
+    'test.run': {
+      name: 'Test Suite',
+      description: 'Run tests',
+      href: '/admin/test',
+      icon: TestTube
+    }
+  }
+
+  // Get all features user has access to
+  const availableFeatures = permissions
+    .filter(perm => featureMap[perm])
+    .map(perm => ({ permission: perm, ...featureMap[perm] }))
+
+  // Get permissions without features (just display permission keys)
+  const otherPermissions = permissions.filter(perm => !featureMap[perm])
+
   return (
     <div className="space-y-8">
       <div className="text-center space-y-4 py-12">
@@ -107,111 +173,44 @@ function HomeLandingPage() {
               </div>
             </div>
           ) : permissions.length > 0 ? (
-            <div className="space-y-3">
-              <p className="text-sm text-muted-foreground mb-4">
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
                 You have access to the following areas:
               </p>
-              <div className="grid gap-3 md:grid-cols-2">
-                {permissions.includes('systemdashboard.view') && (
-                  <Link href="/admin">
-                    <div className="flex items-center gap-3 p-3 bg-white rounded-lg border hover:border-[#1E4DD8] transition-all cursor-pointer">
-                      <LayoutDashboard className="h-5 w-5 text-[#1E4DD8]" />
-                      <div>
-                        <p className="font-medium">System Dashboard</p>
-                        <p className="text-xs text-muted-foreground">View system overview</p>
+              
+              {/* Feature Cards */}
+              {availableFeatures.length > 0 && (
+                <div className="grid gap-3 md:grid-cols-2">
+                  {availableFeatures.map((feature) => {
+                    const Icon = feature.icon
+                    return (
+                      <Link key={feature.permission} href={feature.href}>
+                        <div className="flex items-center gap-3 p-3 bg-white rounded-lg border hover:border-[#1E4DD8] transition-all cursor-pointer">
+                          <Icon className="h-5 w-5 text-[#1E4DD8]" />
+                          <div>
+                            <p className="font-medium">{feature.name}</p>
+                            <p className="text-xs text-muted-foreground">{feature.description}</p>
+                          </div>
+                        </div>
+                      </Link>
+                    )
+                  })}
+                </div>
+              )}
+
+              {/* Other Permissions */}
+              {otherPermissions.length > 0 && (
+                <div className="mt-6">
+                  <p className="text-sm font-medium mb-3">Additional Permissions:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {otherPermissions.map((perm) => (
+                      <div key={perm} className="px-3 py-1.5 bg-white rounded-md border border-gray-200 text-xs font-mono text-gray-700">
+                        {perm}
                       </div>
-                    </div>
-                  </Link>
-                )}
-                {permissions.includes('users.read') && (
-                  <Link href="/admin/users">
-                    <div className="flex items-center gap-3 p-3 bg-white rounded-lg border hover:border-[#1E4DD8] transition-all cursor-pointer">
-                      <Users className="h-5 w-5 text-[#1E4DD8]" />
-                      <div>
-                        <p className="font-medium">User Management</p>
-                        <p className="text-xs text-muted-foreground">View and manage users</p>
-                      </div>
-                    </div>
-                  </Link>
-                )}
-                {permissions.includes('roles.read') && (
-                  <Link href="/admin/roles">
-                    <div className="flex items-center gap-3 p-3 bg-white rounded-lg border hover:border-[#1E4DD8] transition-all cursor-pointer">
-                      <ShieldCheck className="h-5 w-5 text-[#1E4DD8]" />
-                      <div>
-                        <p className="font-medium">Role Management</p>
-                        <p className="text-xs text-muted-foreground">Configure roles</p>
-                      </div>
-                    </div>
-                  </Link>
-                )}
-                {permissions.includes('permissions.read') && (
-                  <Link href="/admin/permissions">
-                    <div className="flex items-center gap-3 p-3 bg-white rounded-lg border hover:border-[#1E4DD8] transition-all cursor-pointer">
-                      <Key className="h-5 w-5 text-[#1E4DD8]" />
-                      <div>
-                        <p className="font-medium">Permissions</p>
-                        <p className="text-xs text-muted-foreground">Manage permissions</p>
-                      </div>
-                    </div>
-                  </Link>
-                )}
-                {permissions.includes('system.admin') && (
-                  <Link href="/admin/health">
-                    <div className="flex items-center gap-3 p-3 bg-white rounded-lg border hover:border-[#1E4DD8] transition-all cursor-pointer">
-                      <Activity className="h-5 w-5 text-[#1E4DD8]" />
-                      <div>
-                        <p className="font-medium">System Health</p>
-                        <p className="text-xs text-muted-foreground">Monitor system status</p>
-                      </div>
-                    </div>
-                  </Link>
-                )}
-                {permissions.includes('system.settings') && (
-                  <Link href="/admin/settings">
-                    <div className="flex items-center gap-3 p-3 bg-white rounded-lg border hover:border-[#1E4DD8] transition-all cursor-pointer">
-                      <Settings className="h-5 w-5 text-[#1E4DD8]" />
-                      <div>
-                        <p className="font-medium">Settings</p>
-                        <p className="text-xs text-muted-foreground">Configure system</p>
-                      </div>
-                    </div>
-                  </Link>
-                )}
-                {permissions.includes('system.logs') && (
-                  <Link href="/admin/logs">
-                    <div className="flex items-center gap-3 p-3 bg-white rounded-lg border hover:border-[#1E4DD8] transition-all cursor-pointer">
-                      <FileText className="h-5 w-5 text-[#1E4DD8]" />
-                      <div>
-                        <p className="font-medium">Audit Logs</p>
-                        <p className="text-xs text-muted-foreground">View system logs</p>
-                      </div>
-                    </div>
-                  </Link>
-                )}
-                {permissions.includes('system.docs') && (
-                  <Link href="/admin/docs">
-                    <div className="flex items-center gap-3 p-3 bg-white rounded-lg border hover:border-[#1E4DD8] transition-all cursor-pointer">
-                      <BookOpen className="h-5 w-5 text-[#1E4DD8]" />
-                      <div>
-                        <p className="font-medium">Documentation</p>
-                        <p className="text-xs text-muted-foreground">Browse guides</p>
-                      </div>
-                    </div>
-                  </Link>
-                )}
-                {permissions.includes('test.run') && (
-                  <Link href="/admin/test">
-                    <div className="flex items-center gap-3 p-3 bg-white rounded-lg border hover:border-[#1E4DD8] transition-all cursor-pointer">
-                      <TestTube className="h-5 w-5 text-[#1E4DD8]" />
-                      <div>
-                        <p className="font-medium">Test Suite</p>
-                        <p className="text-xs text-muted-foreground">Run tests</p>
-                      </div>
-                    </div>
-                  </Link>
-                )}
-              </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="text-center py-8">
