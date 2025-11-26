@@ -18,6 +18,7 @@ import PermissionManager from '@/components/admin/PermissionManager'
 import EditRoleDialog from '@/components/admin/EditRoleDialog'
 import CreateRoleDialog from '@/components/admin/CreateRoleDialog'
 import { PageLoading } from '@/components/ui/loading'
+import { PermissionGuard } from '@/components/admin/PermissionGuard'
 
 interface Role {
   id: number
@@ -33,6 +34,22 @@ interface Permission {
 }
 
 export default function RolesPage() {
+  return (
+    <PermissionGuard permission="roles.read">
+      <RolesPageContent />
+    </PermissionGuard>
+  )
+}
+
+export default function RolesPage() {
+  return (
+    <PermissionGuard permission="roles.read">
+      <RolesPageContent />
+    </PermissionGuard>
+  )
+}
+
+function RolesPageContent() {
   const [roles, setRoles] = useState<Role[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedRole, setSelectedRole] = useState<Role | null>(null)

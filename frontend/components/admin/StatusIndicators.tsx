@@ -10,6 +10,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { useRouter } from 'next/navigation'
+import { usePermissions } from '@/lib/auth/usePermissions'
 
 interface QuickStatus {
   backend: {
@@ -27,6 +28,10 @@ export function StatusIndicators() {
   const [status, setStatus] = useState<QuickStatus | null>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
+  const { permissions, loading: permLoading } = usePermissions()
+
+  // Check if user has permission to view status indicators
+  const canViewStatus = permissions.includes('system.admin')
 
   useEffect(() => {
     const fetchStatus = async () => {
@@ -81,6 +86,15 @@ export function StatusIndicators() {
 
   const handleClick = () => {
     router.push('/admin/health')
+  }
+
+  // Don't show status indicators if user doesn't have permission
+  if (permLoading) {
+    return null
+  }
+
+  if (!canViewStatus) {
+    return null
   }
 
   if (loading || !status) {

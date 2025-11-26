@@ -16,6 +16,7 @@ import {
   Package
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { PermissionGuard } from '@/components/admin/PermissionGuard'
 
 const documentationSections = [
   {
@@ -886,6 +887,14 @@ Document all setup steps, environment variables, and deployment procedures.
 ]
 
 export default function DocumentationPage() {
+  return (
+    <PermissionGuard permission="system.docs">
+      <DocumentationPageContent />
+    </PermissionGuard>
+  )
+}
+
+function DocumentationPageContent() {
   const [selectedDoc, setSelectedDoc] = useState(documentationSections[0])
 
   return (

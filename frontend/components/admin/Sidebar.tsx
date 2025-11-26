@@ -36,7 +36,7 @@ const navigation: NavigationItem[] = [
 ]
 
 const docsNavigation = [
-  { name: 'Documentation', href: '/admin/docs', icon: BookOpen },
+  { name: 'Documentation', href: '/admin/docs', icon: BookOpen, permission: 'system.docs' },
 ]
 
 export function AdminSidebar() {
@@ -57,6 +57,16 @@ export function AdminSidebar() {
     // Check if user has the required permission
     return hasPermission(userPermissions, item.permission)
   })
+
+  // Filter docs navigation based on permissions
+  const filteredDocsNavigation = docsNavigation.filter((item) => {
+    if (!item.permission) return true
+    if (permissionsLoading) return false
+    return hasPermission(userPermissions, item.permission)
+  })
+
+  // Check if user can view API documentation
+  const canViewApiDocs = !permissionsLoading && hasPermission(userPermissions, 'system.docs')
 
   return (
     <div className="w-64 bg-card border-r flex flex-col">
@@ -86,7 +96,7 @@ export function AdminSidebar() {
       </nav>
 
       <div className="px-4 pb-4 space-y-1 border-t pt-4">
-        {docsNavigation.map((item) => {
+        {filteredDocsNavigation.map((item) => {
           const isActive = pathname === item.href
           return (
             <Link
@@ -107,15 +117,17 @@ export function AdminSidebar() {
       </div>
 
       <div className="p-4 border-t">{/* Remove space-y-1 */}
-        <a
-          href={`${apiDocsUrl}/docs`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
-        >
-          <BookOpen className="h-5 w-5" />
-          <span>API Documentation</span>
-        </a>
+        {canViewApiDocs && (
+          <a
+            href={`${apiDocsUrl}/docs`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+          >
+            <BookOpen className="h-5 w-5" />
+            <span>API Documentation</span>
+          </a>
+        )}
       </div>
     </div>
   )
