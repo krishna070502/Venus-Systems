@@ -28,7 +28,14 @@ VALUES
   ('expensereport.read', 'Read expense report records'),
   ('expensereport.write', 'Create new expense report entries'),
   ('expensereport.update', 'Update existing expense report entries'),
-  ('expensereport.delete', 'Delete expense report entries')
+  ('expensereport.delete', 'Delete expense report entries'),
+  
+  -- Wastage Reports permissions
+  ('wastagereport.view', 'View Wastage Reports page in sidebar'),
+  ('wastagereport.read', 'Read wastage report records'),
+  ('wastagereport.write', 'Create new wastage report entries'),
+  ('wastagereport.update', 'Update existing wastage report entries'),
+  ('wastagereport.delete', 'Delete wastage report entries')
 ON CONFLICT (key) DO NOTHING;
 
 -- Assign all permissions to Admin role
@@ -40,7 +47,8 @@ WHERE r.name = 'Admin' AND p.key IN (
   'analytics.view',
   'salesreport.view', 'salesreport.read', 'salesreport.write', 'salesreport.update', 'salesreport.delete',
   'purchasereport.view', 'purchasereport.read', 'purchasereport.write', 'purchasereport.update', 'purchasereport.delete',
-  'expensereport.view', 'expensereport.read', 'expensereport.write', 'expensereport.update', 'expensereport.delete'
+  'expensereport.view', 'expensereport.read', 'expensereport.write', 'expensereport.update', 'expensereport.delete',
+  'wastagereport.view', 'wastagereport.read', 'wastagereport.write', 'wastagereport.update', 'wastagereport.delete'
 )
 ON CONFLICT (role_id, permission_id) DO NOTHING;
 
@@ -53,6 +61,7 @@ WHERE r.name = 'Manager' AND p.key IN (
   'analytics.view',
   'salesreport.view', 'salesreport.read', 'salesreport.write', 'salesreport.update', 'salesreport.delete',
   'purchasereport.view', 'purchasereport.read', 'purchasereport.write', 'purchasereport.update', 'purchasereport.delete',
-  'expensereport.view', 'expensereport.read', 'expensereport.write', 'expensereport.update', 'expensereport.delete'
+  'expensereport.view', 'expensereport.read', 'expensereport.write', 'expensereport.update', 'expensereport.delete',
+  'wastagereport.view', 'wastagereport.read', 'wastagereport.write', 'wastagereport.update', 'wastagereport.delete'
 )
 ON CONFLICT (role_id, permission_id) DO NOTHING;

@@ -136,6 +136,7 @@ const insightsReportsGroup: NavigationGroup = {
     { name: 'Sales Reports', href: '/admin/business/reports/sales', icon: LineChart, permission: 'salesreport.view' },
     { name: 'Purchase Reports', href: '/admin/business/reports/purchase', icon: PieChart, permission: 'purchasereport.view' },
     { name: 'Expense Reports', href: '/admin/business/reports/expense', icon: FileBarChart, permission: 'expensereport.view' },
+    { name: 'Wastage Reports', href: '/admin/business/reports/wastage', icon: Trash2, permission: 'wastagereport.view' },
   ]
 }
 

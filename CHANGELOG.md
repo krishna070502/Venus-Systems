@@ -10,24 +10,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - **Insights & Reports Module**
   - Added nested "📊 Insights & Reports" dropdown inside Business section
-  - Comprehensive CRUD permissions for 3 modules:
+  - Comprehensive CRUD permissions for 4 report modules:
     - **Sales Reports**: 5 permissions (view, read, write, update, delete)
     - **Purchase Reports**: 5 permissions (view, read, write, update, delete)
     - **Expense Reports**: 5 permissions (view, read, write, update, delete)
+    - **Wastage Reports**: 5 permissions (view, read, write, update, delete)
   - Parent permission `analytics.view` controls entire nested section
-  - Three "Coming Soon" pages with permission status indicators:
+  - Four "Coming Soon" pages with permission status indicators:
     - `/admin/business/reports/sales` - Analyze sales data and insights
     - `/admin/business/reports/purchase` - Analyze purchase and supplier data
     - `/admin/business/reports/expense` - Analyze expense patterns
+    - `/admin/business/reports/wastage` - Track and analyze wastage patterns
   - Database migration `020_add_insights_reports_permissions.sql`
-  - Auto-assigns all 16 permissions to Admin and Manager roles
-  - Added icons: BarChart3, LineChart, PieChart, FileBarChart from lucide-react
+  - Auto-assigns all 21 permissions to Admin and Manager roles
+  - Added icons: BarChart3, LineChart, PieChart, FileBarChart, Trash2 from lucide-react
 
 ### Technical
 - Follows same nested dropdown pattern as other business modules
 - Permission structure: Parent controls section visibility, individual permissions control CRUD operations
 - Consistent "Coming Soon" page design with permission status display
-- Business section now has 5 nested modules with 80 CRUD permissions total
+- Business section now has 5 nested modules with 85 CRUD permissions total
 
 ## [1.11.0] - 2025-11-26
 

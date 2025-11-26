@@ -303,6 +303,11 @@ Always use: `<resource>.<action>`
 - `expensereport.write` - Create new expense report entries
 - `expensereport.update` - Update existing expense report entries
 - `expensereport.delete` - Delete expense report entries
+- `wastagereport.view` - View Wastage Reports page in sidebar
+- `wastagereport.read` - Read wastage report records
+- `wastagereport.write` - Create new wastage report entries
+- `wastagereport.update` - Update existing wastage report entries
+- `wastagereport.delete` - Delete wastage report entries
 - `systemdashboard.view` - View the system dashboard
 - `users.read` - View users
 - `users.write` - Create/update users
