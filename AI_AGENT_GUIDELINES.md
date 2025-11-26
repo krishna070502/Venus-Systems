@@ -473,6 +473,8 @@ Before marking work as complete:
 
 ## 🔄 VERSION HISTORY
 
+- v1.8.0 (2025-11-26) - Added Purchases & Payables nested dropdown with 16 CRUD permissions
+- v1.7.0 (2025-11-26) - Added Business dropdown and collapsible sidebar
 - v1.6.0 (2025-11-26) - Added System Administration dropdown with systemadministration.view permission
 - v1.5.0 (2025-11-26) - Added dynamic permission display system
 - v1.2.0 (2025-11-26) - Added systemdashboard.view permission

@@ -19,6 +19,10 @@ import {
   ChevronRight,
   ChevronLeft,
   Menu,
+  Receipt,
+  ShoppingCart,
+  Truck,
+  CreditCard,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
@@ -39,7 +43,7 @@ interface NavigationGroup {
   name: string
   icon: any
   permission?: string // Permission required to view the entire group
-  items: NavigationItem[]
+  items: (NavigationItem | NavigationGroup)[] // Items can be pages or nested groups
 }
 
 // System Administration group
@@ -59,8 +63,33 @@ const systemAdministrationGroup: NavigationGroup = {
   ]
 }
 
+// Purchases & Payables sub-group
+const purchasesPayablesGroup: NavigationGroup = {
+  name: '🧾 Purchases & Payables',
+  icon: Receipt,
+  permission: 'purchase&payment.view',
+  items: [
+    { name: 'Purchases', href: '/admin/business/purchases', icon: ShoppingCart, permission: 'purchase.view' },
+    { name: 'Suppliers', href: '/admin/business/suppliers', icon: Truck, permission: 'supplier.view' },
+    { name: 'Payments', href: '/admin/business/payments', icon: CreditCard, permission: 'payment.view' },
+  ]
+}
+
+// Business group
+const businessGroup: NavigationGroup = {
+  name: 'Business',
+  icon: Activity,
+  permission: 'business.view',
+  items: [
+    { name: 'Business Dashboard', href: '/admin/business', icon: Activity, permission: 'businessdashboard.view' },
+    purchasesPayablesGroup,
+    // Add more business-related pages here
+  ]
+}
+
 const navigationGroups: NavigationGroup[] = [
-  systemAdministrationGroup
+  systemAdministrationGroup,
+  businessGroup
 ]
 
 const docsNavigation = [
@@ -71,7 +100,7 @@ export function AdminSidebar() {
   const pathname = usePathname()
   const { user } = useAuth()
   const { permissions: userPermissions, loading: permissionsLoading } = usePermissions()
-  const [expandedGroups, setExpandedGroups] = useState<string[]>(['System Administration'])
+  const [expandedGroups, setExpandedGroups] = useState<string[]>(['System Administration', 'Business'])
   const [isCollapsed, setIsCollapsed] = useState(false)
 
   const apiDocsUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
@@ -84,19 +113,32 @@ export function AdminSidebar() {
     )
   }
 
-  // Filter navigation groups based on user permissions
-  const filteredNavigationGroups = navigationGroups.map(group => {
+  // Helper function to check if item is a group (has items array)
+  const isNavigationGroup = (item: NavigationItem | NavigationGroup): item is NavigationGroup => {
+    return 'items' in item
+  }
+
+  // Recursive function to filter navigation groups and items
+  const filterNavigationGroup = (group: NavigationGroup): NavigationGroup | null => {
     // Check if user has permission to view the group
     if (group.permission && (!permissionsLoading && !hasPermission(userPermissions, group.permission))) {
       return null
     }
 
-    // Filter items within the group
-    const filteredItems = group.items.filter((item) => {
-      if (!item.permission) return true
-      if (permissionsLoading) return false
-      return hasPermission(userPermissions, item.permission)
-    })
+    // Filter items within the group (can be pages or nested groups)
+    const filteredItems = group.items
+      .map((item) => {
+        if (isNavigationGroup(item)) {
+          // Recursively filter nested group
+          return filterNavigationGroup(item)
+        } else {
+          // Filter regular navigation item
+          if (!item.permission) return item
+          if (permissionsLoading) return null
+          return hasPermission(userPermissions, item.permission) ? item : null
+        }
+      })
+      .filter(Boolean) as (NavigationItem | NavigationGroup)[]
 
     // Don't show the group if it has no visible items
     if (filteredItems.length === 0) return null
@@ -105,7 +147,12 @@ export function AdminSidebar() {
       ...group,
       items: filteredItems
     }
-  }).filter(Boolean) as NavigationGroup[]
+  }
+
+  // Filter navigation groups based on user permissions
+  const filteredNavigationGroups = navigationGroups
+    .map(filterNavigationGroup)
+    .filter(Boolean) as NavigationGroup[]
 
   // Filter docs navigation based on permissions
   const filteredDocsNavigation = docsNavigation.filter((item) => {
@@ -206,6 +253,64 @@ export function AdminSidebar() {
                     {isExpanded && (
                       <div className="ml-4 space-y-1 border-l-2 border-border pl-2">
                         {group.items.map((item) => {
+                          // Check if this is a nested group
+                          if (isNavigationGroup(item)) {
+                            const nestedGroup = item
+                            const isNestedExpanded = expandedGroups.includes(nestedGroup.name)
+                            const hasActiveNestedItem = nestedGroup.items.some((nestedItem: any) => 
+                              !isNavigationGroup(nestedItem) && pathname === nestedItem.href
+                            )
+                            
+                            return (
+                              <div key={nestedGroup.name} className="space-y-1">
+                                <button
+                                  onClick={() => toggleGroup(nestedGroup.name)}
+                                  className={cn(
+                                    'w-full flex items-center justify-between gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors',
+                                    hasActiveNestedItem
+                                      ? 'bg-accent text-accent-foreground'
+                                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                                  )}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <nestedGroup.icon className="h-4 w-4" />
+                                    <span className="text-xs">{nestedGroup.name}</span>
+                                  </div>
+                                  {isNestedExpanded ? (
+                                    <ChevronDown className="h-3 w-3" />
+                                  ) : (
+                                    <ChevronRight className="h-3 w-3" />
+                                  )}
+                                </button>
+                                
+                                {isNestedExpanded && (
+                                  <div className="ml-4 space-y-1 border-l-2 border-border pl-2">
+                                    {nestedGroup.items.map((nestedItem: any) => {
+                                      if (isNavigationGroup(nestedItem)) return null // Skip deeper nesting for now
+                                      const isActive = pathname === nestedItem.href
+                                      return (
+                                        <Link
+                                          key={nestedItem.name}
+                                          href={nestedItem.href}
+                                          className={cn(
+                                            'flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors',
+                                            isActive
+                                              ? 'bg-primary text-primary-foreground'
+                                              : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                                          )}
+                                        >
+                                          <nestedItem.icon className="h-4 w-4" />
+                                          <span className="text-xs">{nestedItem.name}</span>
+                                        </Link>
+                                      )
+                                    })}
+                                  </div>
+                                )}
+                              </div>
+                            )
+                          }
+                          
+                          // Regular navigation item
                           const isActive = pathname === item.href
                           return (
                             <Link

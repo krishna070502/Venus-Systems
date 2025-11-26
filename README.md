@@ -221,6 +221,24 @@ Always use: `<resource>.<action>`
 
 **Examples:**
 - `systemadministration.view` - Access System Administration section (controls entire dropdown)
+- `business.view` - Access Business section (controls entire dropdown)
+- `businessdashboard.view` - View Business Dashboard
+- `purchase&payment.view` - Access Purchases & Payables section (controls nested dropdown)
+- `purchase.view` - View Purchases page in sidebar
+- `purchase.read` - Read purchase records
+- `purchase.write` - Create new purchase entries
+- `purchase.update` - Update existing purchase entries
+- `purchase.delete` - Delete purchase entries
+- `supplier.view` - View Suppliers page in sidebar
+- `supplier.read` - Read supplier records
+- `supplier.write` - Create new supplier entries
+- `supplier.update` - Update existing supplier entries
+- `supplier.delete` - Delete supplier entries
+- `payment.view` - View Payments page in sidebar
+- `payment.read` - Read payment records
+- `payment.write` - Create new payment entries
+- `payment.update` - Update existing payment entries
+- `payment.delete` - Delete payment entries
 - `systemdashboard.view` - View the system dashboard
 - `users.read` - View users
 - `users.write` - Create/update users

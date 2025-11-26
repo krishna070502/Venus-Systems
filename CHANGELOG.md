@@ -5,6 +5,56 @@ All notable changes to Venus Chicken will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.0] - 2025-11-26
+
+### Added
+- **Purchases & Payables Module**
+  - Added nested "🧾 Purchases & Payables" dropdown inside Business section
+  - Comprehensive CRUD permissions for 3 modules:
+    - **Purchases**: 5 permissions (view, read, write, update, delete)
+    - **Suppliers**: 5 permissions (view, read, write, update, delete)
+    - **Payments**: 5 permissions (view, read, write, update, delete)
+  - Parent permission `purchase&payment.view` controls entire nested section
+  - Three "Coming Soon" pages with permission status indicators:
+    - `/admin/business/purchases` - Manage purchase orders
+    - `/admin/business/suppliers` - Manage supplier relationships
+    - `/admin/business/payments` - Track payment transactions
+  - Database migration `016_add_purchases_payables_permissions.sql`
+  - Auto-assigns all 16 permissions to Admin and Manager roles
+  - Enhanced sidebar with nested dropdown support
+  - Recursive permission filtering for multi-level navigation
+
+### Changed
+- Sidebar now supports nested navigation groups (groups within groups)
+- Updated TypeScript interfaces to handle multi-level navigation
+- Enhanced permission filtering logic with recursive function
+- Improved rendering logic for nested dropdowns with indentation
+
+### Technical
+- Added icons: Receipt, ShoppingCart, Truck, CreditCard from lucide-react
+- Implemented `isNavigationGroup` type guard for nested detection
+- Created `filterNavigationGroup` recursive function
+- Enhanced rendering with nested group expansion/collapse
+- Permission structure: Parent controls section, individual permissions control CRUD operations
+
+## [1.7.0] - 2025-11-26
+
+### Added
+- **Business Dropdown Menu**
+  - Added new "Business" section in sidebar navigation
+  - New permission `business.view` controls Business section visibility
+  - Ready for business-related pages to be added
+  - Database migration `015_add_business_permission.sql`
+  - Auto-assigns to Admin and Manager roles
+- **Collapsible Sidebar**
+  - Added collapse/expand toggle button
+  - Icon-only view when collapsed (64px width)
+  - Full view when expanded (256px width)
+  - Shows "VC" logo when collapsed
+  - Tooltips on hover for all navigation items
+  - Smooth 300ms transition animations
+  - Fixed z-index layering
+
 ## [1.6.0] - 2025-11-26
 
 ### Added
