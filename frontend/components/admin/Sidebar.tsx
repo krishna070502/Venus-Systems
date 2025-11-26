@@ -39,6 +39,7 @@ import {
   LineChart,
   PieChart,
   FileBarChart,
+  Store,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
@@ -156,13 +157,24 @@ const businessGroup: NavigationGroup = {
   ]
 }
 
+// Shop Management sub-group
+const shopManagementGroup: NavigationGroup = {
+  name: 'Shop Management',
+  icon: Store,
+  permission: 'shopmanagement.view',
+  items: [
+    { name: 'Shops', href: '/admin/business-management/shops', icon: Store, permission: 'shops.view' },
+  ]
+}
+
 // Business Management group
 const businessManagementGroup: NavigationGroup = {
   name: 'Business Management',
   icon: Settings,
   permission: 'businessmanagement.view',
   items: [
-    // Add business management pages here
+    shopManagementGroup,
+    // Add more business management modules here
   ]
 }
 

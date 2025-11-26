@@ -5,6 +5,26 @@ All notable changes to Venus Chicken will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.14.0] - 2025-11-26
+
+### Added
+- **Shop Management Module**
+  - Added nested "Shop Management" dropdown inside Business Management section
+  - Comprehensive CRUD permissions for Shops module:
+    - **Shops**: 5 permissions (view, read, write, update, delete)
+  - Parent permission `shopmanagement.view` controls nested dropdown visibility
+  - "Coming Soon" page with permission status indicators:
+    - `/admin/business-management/shops` - Manage shop locations and branches
+  - Database migration `022_add_shop_management_permissions.sql`
+  - Auto-assigns all 6 permissions to Admin and Manager roles
+  - Added Store icon from lucide-react
+
+### Technical
+- First nested module within Business Management section
+- Follows same nested dropdown pattern as Business section modules
+- Permission structure: Parent controls section visibility, individual permissions control CRUD operations
+- Consistent "Coming Soon" page design with permission status display
+
 ## [1.13.0] - 2025-11-26
 
 ### Added

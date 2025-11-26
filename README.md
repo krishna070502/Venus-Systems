@@ -309,6 +309,12 @@ Always use: `<resource>.<action>`
 - `wastagereport.update` - Update existing wastage report entries
 - `wastagereport.delete` - Delete wastage report entries
 - `businessmanagement.view` - View and access Business Management section
+- `shopmanagement.view` - Access Shop Management section (controls nested dropdown)
+- `shops.view` - View Shops page in sidebar
+- `shops.read` - Read shop records
+- `shops.write` - Create new shops
+- `shops.update` - Update existing shops
+- `shops.delete` - Delete shops
 - `systemdashboard.view` - View the system dashboard
 - `users.read` - View users
 - `users.write` - Create/update users
