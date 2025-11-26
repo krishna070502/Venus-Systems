@@ -315,6 +315,11 @@ Always use: `<resource>.<action>`
 - `shops.write` - Create new shops
 - `shops.update` - Update existing shops
 - `shops.delete` - Delete shops
+- `managers.view` - View Managers page in sidebar
+- `managers.read` - Read manager records
+- `managers.write` - Create new managers
+- `managers.update` - Update existing managers
+- `managers.delete` - Delete managers
 - `systemdashboard.view` - View the system dashboard
 - `users.read` - View users
 - `users.write` - Create/update users

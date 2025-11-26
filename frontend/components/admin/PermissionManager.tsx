@@ -159,7 +159,8 @@ export default function PermissionManager({
     // Shop Management
     const shopMgmtPerms = allPermissions.filter(p =>
       p.key === 'shopmanagement.view' ||
-      p.key.startsWith('shops.')
+      p.key.startsWith('shops.') ||
+      p.key.startsWith('managers.')
     )
 
     const businessMgmtSubGroups: PermissionGroup[] = []

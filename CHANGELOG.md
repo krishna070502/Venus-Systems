@@ -10,14 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - **Shop Management Module**
   - Added nested "Shop Management" dropdown inside Business Management section
-  - Comprehensive CRUD permissions for Shops module:
+  - Comprehensive CRUD permissions for 2 modules:
     - **Shops**: 5 permissions (view, read, write, update, delete)
+    - **Managers**: 5 permissions (view, read, write, update, delete)
   - Parent permission `shopmanagement.view` controls nested dropdown visibility
-  - "Coming Soon" page with permission status indicators:
+  - "Coming Soon" pages with permission status indicators:
     - `/admin/business-management/shops` - Manage shop locations and branches
+    - `/admin/business-management/managers` - Manage shop managers and assignments
   - Database migration `022_add_shop_management_permissions.sql`
-  - Auto-assigns all 6 permissions to Admin and Manager roles
-  - Added Store icon from lucide-react
+  - Auto-assigns all 11 permissions to Admin and Manager roles
+  - Added Store and UserCog icons from lucide-react
 
 ### Technical
 - First nested module within Business Management section

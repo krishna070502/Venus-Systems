@@ -14,7 +14,14 @@ VALUES
   ('shops.read', 'Read shop records'),
   ('shops.write', 'Create new shops'),
   ('shops.update', 'Update existing shops'),
-  ('shops.delete', 'Delete shops')
+  ('shops.delete', 'Delete shops'),
+  
+  -- Managers permissions
+  ('managers.view', 'View Managers page in sidebar'),
+  ('managers.read', 'Read manager records'),
+  ('managers.write', 'Create new managers'),
+  ('managers.update', 'Update existing managers'),
+  ('managers.delete', 'Delete managers')
 ON CONFLICT (key) DO NOTHING;
 
 -- Assign all permissions to Admin role
@@ -24,7 +31,8 @@ FROM public.roles r
 CROSS JOIN public.permissions p
 WHERE r.name = 'Admin' AND p.key IN (
   'shopmanagement.view',
-  'shops.view', 'shops.read', 'shops.write', 'shops.update', 'shops.delete'
+  'shops.view', 'shops.read', 'shops.write', 'shops.update', 'shops.delete',
+  'managers.view', 'managers.read', 'managers.write', 'managers.update', 'managers.delete'
 )
 ON CONFLICT (role_id, permission_id) DO NOTHING;
 
@@ -35,6 +43,7 @@ FROM public.roles r
 CROSS JOIN public.permissions p
 WHERE r.name = 'Manager' AND p.key IN (
   'shopmanagement.view',
-  'shops.view', 'shops.read', 'shops.write', 'shops.update', 'shops.delete'
+  'shops.view', 'shops.read', 'shops.write', 'shops.update', 'shops.delete',
+  'managers.view', 'managers.read', 'managers.write', 'managers.update', 'managers.delete'
 )
 ON CONFLICT (role_id, permission_id) DO NOTHING;

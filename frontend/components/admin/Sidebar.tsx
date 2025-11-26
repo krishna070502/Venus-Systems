@@ -40,6 +40,7 @@ import {
   PieChart,
   FileBarChart,
   Store,
+  UserCog,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
@@ -164,6 +165,7 @@ const shopManagementGroup: NavigationGroup = {
   permission: 'shopmanagement.view',
   items: [
     { name: 'Shops', href: '/admin/business-management/shops', icon: Store, permission: 'shops.view' },
+    { name: 'Managers', href: '/admin/business-management/managers', icon: UserCog, permission: 'managers.view' },
   ]
 }
 
