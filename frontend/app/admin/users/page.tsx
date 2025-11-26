@@ -40,6 +40,7 @@ export default function UsersPage() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [editingUser, setEditingUser] = useState<User | null>(null)
   const [allRoles, setAllRoles] = useState<Role[]>([])
+  const [searchQuery, setSearchQuery] = useState('')
   const { showError, showSuccess, showInfo, showConfirm } = useAlert()
 
   useEffect(() => {
@@ -136,6 +137,15 @@ export default function UsersPage() {
           <CardDescription>
             A list of all users in your system
           </CardDescription>
+          <div className="mt-4">
+            <input
+              type="text"
+              placeholder="Search users by email or name..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
@@ -149,7 +159,10 @@ export default function UsersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {users.map((user) => (
+              {users.filter(user =>
+                user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                (user.full_name && user.full_name.toLowerCase().includes(searchQuery.toLowerCase()))
+              ).map((user) => (
                 <TableRow key={user.id}>
                   <TableCell className="font-medium">{user.email}</TableCell>
                   <TableCell>{user.full_name || '-'}</TableCell>

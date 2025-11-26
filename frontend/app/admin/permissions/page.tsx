@@ -28,6 +28,7 @@ export default function PermissionsPage() {
   const [loading, setLoading] = useState(true)
   const [editingPermission, setEditingPermission] = useState<Permission | null>(null)
   const [showCreateDialog, setShowCreateDialog] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
   const { showError, showSuccess, showConfirm } = useAlert()
 
   useEffect(() => {
@@ -103,6 +104,15 @@ export default function PermissionsPage() {
           <CardDescription>
             Permissions are assigned to roles to control access
           </CardDescription>
+          <div className="mt-4">
+            <input
+              type="text"
+              placeholder="Search permissions by key or description..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
@@ -114,7 +124,10 @@ export default function PermissionsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {permissions.map((permission) => (
+              {permissions.filter(permission =>
+                permission.key.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                (permission.description && permission.description.toLowerCase().includes(searchQuery.toLowerCase()))
+              ).map((permission) => (
                 <TableRow key={permission.id}>
                   <TableCell className="font-mono text-sm">
                     {permission.key}
