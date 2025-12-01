@@ -12,7 +12,7 @@ from fastapi.exceptions import RequestValidationError
 import logging
 
 from app.config.settings import settings
-from app.routers import auth, users, roles, permissions, admin, health
+from app.routers import auth, users, roles, permissions, admin, health, business_management
 from app.utils.logger import setup_logging
 from app.middleware.session_tracker import SessionTrackerMiddleware
 
@@ -152,6 +152,7 @@ app.include_router(roles.router, prefix="/api/v1/roles", tags=["Roles"])
 app.include_router(permissions.router, prefix="/api/v1/permissions", tags=["Permissions"])
 app.include_router(admin.router, prefix="/api/v1/admin", tags=["Admin"])
 app.include_router(health.router, prefix="/api/v1/health", tags=["Health"])
+app.include_router(business_management.router, prefix="/api/v1/business-management", tags=["Business Management"])
 
 
 # =============================================================================

@@ -5,6 +5,153 @@ All notable changes to Venus Chicken will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.17.0] - 2025-11-30
+
+### Added
+- **Functional System Settings**
+  - System settings now persist to database (`system_settings` table)
+  - Database migration `026_create_system_settings_table.sql`
+  - Settings table stores: `app_name`, `support_email`, `maintenance_mode`, `registration_enabled`, `api_version`
+  - Type-safe value storage with `value_type` column (string, boolean, number, json)
+  - Auto-updating `updated_at` trigger
+
+- **User Registration Toggle**
+  - "Allow new users to sign up" toggle in Settings page is now functional
+  - Backend endpoint `GET /api/v1/auth/registration-status` (public)
+  - Signup page checks registration status before showing form
+  - Shows "Registration Disabled" message when turned off
+  - Backend validates on signup POST (double protection)
+
+- **Maintenance Mode**
+  - "Disable access for non-admin users" toggle in Settings page is now functional
+  - Backend endpoint `GET /api/v1/auth/maintenance-status` (public)
+  - `MaintenanceGuard` component wraps admin layout
+  - Non-admin users see maintenance page when enabled
+  - Admin users can always access (bypass maintenance)
+  - Auto-checks every 30 seconds for real-time status updates
+  - Orange "MAINTENANCE" badge in header status indicators when active
+  - Clean maintenance page with "Check Again" and "Sign Out" options
+
+- **Global Search Bar**
+  - Added search bar in header to quickly navigate pages
+  - Keyboard shortcuts: `⌘K` (Mac) / `Ctrl+K` (Windows)
+  - Permission-aware: only shows pages user can access
+  - Grouped results by category (System Administration, Business, etc.)
+  - Arrow key navigation and Enter to select
+  - Database migration `025_add_gsearchbar_permission.sql`
+  - `gsearchbar.view` permission controls visibility
+
+### Changed
+- Settings page completely rewritten with functional toggles
+- Admin layout now includes `MaintenanceGuard` wrapper
+- Status indicators show maintenance mode badge for admins
+
+### Technical
+- New component: `MaintenanceGuard.tsx` - Blocks non-admins during maintenance
+- New component: `GlobalSearch.tsx` - Quick page navigation
+- Updated: `StatusIndicators.tsx` - Shows maintenance badge
+- Updated: `auth.py` - Registration and maintenance status endpoints
+- Updated: `admin.py` - Settings CRUD from database
+
+## [1.16.0] - 2025-11-30
+
+### Added
+- **Inventory Items Management Page**
+  - Full CRUD operations for inventory items under Business > Inventory Management > Items
+  - Search by name, SKU, or category
+  - Filter by category and active status
+  - Create new items with name, SKU, category, base price, and unit
+  - Edit existing items
+  - Delete items (with protection for items with price configurations)
+  - Stats dashboard showing total, active, inactive items and categories
+
+- **Database Migration (024)**
+  - 5 new permissions: `inventoryitems.view`, `inventoryitems.read`, `inventoryitems.write`, `inventoryitems.update`, `inventoryitems.delete`
+  - Assigned to Admin and Manager roles (full access)
+  - Store Manager gets view and read only
+
+- **Backend API Enhancements**
+  - `GET /api/v1/business-management/inventory/{id}` - Get item by ID
+  - `PUT /api/v1/business-management/inventory/{id}` - Update item
+  - `DELETE /api/v1/business-management/inventory/{id}` - Delete item (with usage protection)
+  - Updated existing inventory endpoints to use `inventoryitems.*` permissions
+
+- **Frontend API Client**
+  - Added `inventory.getById()`, `inventory.update()`, `inventory.delete()` methods
+
+- **Sidebar Navigation**
+  - Added "Items" link under Inventory Management dropdown
+
+## [1.15.0] - 2025-11-30
+
+### Added
+- **Full Business Management Implementation**
+  - Complete multi-tenant shop isolation with Row Level Security (RLS)
+  - Manager onboarding workflow with atomic transactions
+  - Day-wise price configuration per shop
+
+- **Database Schema (Migration 023)**
+  - `shops` table: Multi-location shop management
+  - `manager_details` table: Manager qualifications and contact info
+  - `user_shops` table: Manager-Shop assignments with composite PK
+  - `inventory_items` table: Base inventory with SKU, category, pricing
+  - `daily_shop_prices` table: Day-wise pricing per shop with unique constraint
+  - RLS policies for strict shop data isolation (managers see only their shops)
+  - "Store Manager" role with limited permissions
+  - Seed data: 5 sample shops, 15 inventory items
+
+- **New Permission**
+  - `managers.onboard` - Admin-only permission for onboarding managers to shops
+
+- **Backend API (`/api/v1/business-management/`)**
+  - **Shops**: Full CRUD endpoints with shop isolation
+  - **Managers**: 
+    - `GET /managers` - List onboarded managers with shop info
+    - `GET /managers/unassigned` - Users with Store Manager role not yet onboarded
+    - `POST /managers/onboard` - Atomic transaction to create manager_details + user_shops
+    - `DELETE /managers/{user_id}` - Remove manager (Admin only)
+  - **Prices**:
+    - `GET /prices/daily` - Get all items with daily/base prices for shop+date
+    - `POST /prices/bulk-update` - Upsert multiple prices (Admin only)
+    - `DELETE /prices/daily` - Remove daily price (reverts to base)
+  - **Inventory**: List items with category filter
+
+- **Frontend Pages (Fully Functional)**
+  - **Shops Page** (`/admin/business-management/shops`)
+    - CRUD operations with modal forms
+    - Active/Inactive status toggle
+    - Permission-based action buttons
+  - **Managers Page** (`/admin/business-management/managers`)
+    - Onboarded managers table with shop assignments
+    - "Onboard Manager" modal with dropdown selectors
+    - Fetches unassigned Store Manager role users
+    - Remove manager functionality
+  - **Price Config Page** (`/admin/business-management/price-config`)
+    - Shop selector + Date picker filters
+    - Grid display with base price and editable daily price
+    - Bulk save with upsert logic
+    - "Custom" badge for items with daily pricing
+    - Read-only mode for users without write permission
+
+- **API Client Extensions**
+  - `api.businessManagement.shops.*` - Shop CRUD methods
+  - `api.businessManagement.managers.*` - Manager onboarding methods
+  - `api.businessManagement.prices.*` - Daily pricing methods
+  - `api.businessManagement.inventory.*` - Inventory list methods
+
+### Security
+- Row Level Security (RLS) on `user_shops` and `daily_shop_prices`
+- Admins bypass RLS, managers see only their assigned shop data
+- `priceconfig.write` permission required for price modifications
+- `managers.onboard` permission restricted to Admin role
+
+### Technical
+- Pydantic models: Shop, Manager, InventoryItem, DailyPrice, BulkPriceUpdate
+- Atomic transactions for manager onboarding (rollback on failure)
+- Decimal precision for prices (10,2)
+- Updated_at triggers on all new tables
+- Frontend API client with TypeScript types
+
 ## [1.14.0] - 2025-11-26
 
 ### Added

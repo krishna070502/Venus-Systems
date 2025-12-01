@@ -2,7 +2,7 @@
 
 > **Enterprise SaaS Starter Kit with Comprehensive RBAC**
 > 
-> Version: 1.14.0 | Last Updated: 30 November 2025
+> Version: 1.15.0 | Last Updated: 30 November 2025
 > 
 > Repository: https://github.com/krishna070502/Venus-BusinessApp-StarterKit-.git
 
@@ -69,8 +69,8 @@ Venus Chicken is a **production-ready Enterprise SaaS Starter Kit** that provide
 - **Total Permissions**: 100+ CRUD permissions
 - **Admin Pages**: 25+ pages
 - **UI Components**: 50+ reusable components
-- **Migrations**: 22 database migrations
-- **Business Modules**: 5 nested dropdown sections
+- **Migrations**: 23 database migrations
+- **Business Modules**: 6 nested dropdown sections (including Business Management)
 
 ---
 
@@ -1236,7 +1236,73 @@ Business Management (businessmanagement.view)
     └── Price Config (priceconfig.*)
 ```
 
-### 12.2 CRUD Permission Pattern
+### 12.2 Business Management Module (v1.15.0)
+
+#### Multi-Tenancy Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    MULTI-TENANT ARCHITECTURE                     │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐  │
+│  │  Shop 1  │    │  Shop 2  │    │  Shop 3  │    │  Shop N  │  │
+│  │(Tenant 1)│    │(Tenant 2)│    │(Tenant 3)│    │(Tenant N)│  │
+│  └────┬─────┘    └────┬─────┘    └────┬─────┘    └────┬─────┘  │
+│       │               │               │               │         │
+│       ▼               ▼               ▼               ▼         │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │              ROW LEVEL SECURITY (RLS)                    │  │
+│  │   - Users only see data from their assigned shops        │  │
+│  │   - Admins bypass RLS for full access                    │  │
+│  │   - Enforced at database level                           │  │
+│  └──────────────────────────────────────────────────────────┘  │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+#### Database Tables
+
+| Table | Purpose | Key Fields |
+|-------|---------|------------|
+| `shops` | Store/tenant definitions | id, name, location, contact_number, is_active |
+| `manager_details` | Extended manager profiles | user_id, employee_id, qualifications |
+| `user_shops` | User-shop assignments | user_id, shop_id (junction table) |
+| `inventory_items` | Shop inventory items | id, shop_id, name, base_price, is_available |
+| `daily_shop_prices` | Day-wise pricing | shop_id, item_id, date, daily_price |
+
+#### RLS Policies
+
+```sql
+-- Users can only access shops they are assigned to
+CREATE POLICY shop_access_policy ON shops
+  USING (
+    is_admin() OR
+    id IN (SELECT shop_id FROM user_shops WHERE user_id = auth.uid())
+  );
+
+-- Prices follow shop access rules
+CREATE POLICY price_access_policy ON daily_shop_prices
+  USING (
+    is_admin() OR
+    shop_id IN (SELECT shop_id FROM user_shops WHERE user_id = auth.uid())
+  );
+```
+
+#### Key API Endpoints
+
+| Method | Endpoint | Permission | Description |
+|--------|----------|------------|-------------|
+| GET | `/api/v1/business/shops` | shops.read | List accessible shops |
+| POST | `/api/v1/business/shops` | shops.write | Create new shop |
+| GET | `/api/v1/business/managers/unassigned` | managers.read | List unassigned users |
+| POST | `/api/v1/business/managers/onboard` | managers.onboard | Onboard manager to shop |
+| GET | `/api/v1/business/prices/daily` | priceconfig.read | Get daily prices |
+| POST | `/api/v1/business/prices/bulk-update` | priceconfig.update | Bulk update prices |
+
+> **See [BUSINESS_MANAGEMENT.md](Documentation/BUSINESS_MANAGEMENT.md) for complete documentation.**
+
+### 12.3 CRUD Permission Pattern
 
 Each module follows this pattern:
 - `.view` - See page in sidebar
@@ -1535,6 +1601,18 @@ app.add_middleware(
 ---
 
 ## 19. Version History
+
+### v1.15.0 (2025-11-30)
+- **Business Management Module - Full Implementation**
+  - 5 new database tables: shops, manager_details, user_shops, inventory_items, daily_shop_prices
+  - Row Level Security (RLS) for strict shop isolation
+  - Manager onboarding workflow
+  - Day-wise price configuration per shop
+  - Multi-tenancy with user-shop assignments
+- New API endpoints: 12+ endpoints for business management
+- New permission: managers.onboard (Admin only)
+- Frontend pages fully implemented with CRUD operations
+- Comprehensive documentation in BUSINESS_MANAGEMENT.md
 
 ### v1.14.0 (2025-11-26)
 - Added Shop Management module (shops, managers, price config)

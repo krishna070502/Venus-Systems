@@ -100,6 +100,7 @@ const inventoryManagementGroup: NavigationGroup = {
   icon: Package,
   permission: 'inventory.view',
   items: [
+    { name: 'Items', href: '/admin/business/inventory/items', icon: Package, permission: 'inventoryitems.view' },
     { name: 'Stock', href: '/admin/business/inventory/stock', icon: Box, permission: 'stock.view' },
     { name: 'Wastage', href: '/admin/business/inventory/wastage', icon: Trash2, permission: 'wastage.view' },
     { name: 'Adjustments', href: '/admin/business/inventory/adjustments', icon: ClipboardEdit, permission: 'adjustments.view' },
@@ -198,7 +199,7 @@ export function AdminSidebar() {
   const { permissions: userPermissions, loading: permissionsLoading } = usePermissions()
   const [expandedGroups, setExpandedGroups] = useState<string[]>([])
   const [isCollapsed, setIsCollapsed] = useState(false)
-  const [sidebarWidth, setSidebarWidth] = useState(256) // 256px = w-64
+  const [sidebarWidth, setSidebarWidth] = useState(300) // 300px default width
   const [isResizing, setIsResizing] = useState(false)
   const sidebarRef = useRef<HTMLDivElement>(null)
 

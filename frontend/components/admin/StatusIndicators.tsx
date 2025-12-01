@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { api } from '@/lib/api/client'
-import { Activity, Database, Zap } from 'lucide-react'
+import { Activity, Database, Zap, Wrench } from 'lucide-react'
 import {
   Tooltip,
   TooltipContent,
@@ -11,6 +11,8 @@ import {
 } from '@/components/ui/tooltip'
 import { useRouter } from 'next/navigation'
 import { usePermissions } from '@/lib/auth/usePermissions'
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
 interface QuickStatus {
   backend: {
@@ -26,6 +28,7 @@ interface QuickStatus {
 
 export function StatusIndicators() {
   const [status, setStatus] = useState<QuickStatus | null>(null)
+  const [maintenanceMode, setMaintenanceMode] = useState(false)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
   const { permissions, loading: permLoading } = usePermissions()
@@ -49,8 +52,24 @@ export function StatusIndicators() {
       }
     }
 
+    const checkMaintenanceMode = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/v1/auth/maintenance-status`)
+        if (response.ok) {
+          const data = await response.json()
+          setMaintenanceMode(data.maintenance_mode)
+        }
+      } catch (error) {
+        console.error('Error checking maintenance mode:', error)
+      }
+    }
+
     fetchStatus()
-    const interval = setInterval(fetchStatus, 30000) // Refresh every 30s
+    checkMaintenanceMode()
+    const interval = setInterval(() => {
+      fetchStatus()
+      checkMaintenanceMode()
+    }, 30000) // Refresh every 30s
 
     return () => clearInterval(interval)
   }, [])
@@ -123,6 +142,25 @@ export function StatusIndicators() {
         className="flex items-center gap-2 mr-4 cursor-pointer group"
         onClick={handleClick}
       >
+        {/* Maintenance Mode Indicator */}
+        {maintenanceMode && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-orange-50 border border-orange-200 rounded-lg animate-pulse">
+                <Wrench className="h-3.5 w-3.5 text-orange-600" />
+                <span className="text-xs font-semibold text-orange-700">MAINTENANCE</span>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="bg-orange-900 text-white border-orange-700">
+              <div className="text-xs space-y-1">
+                <div className="font-semibold">⚠️ Maintenance Mode Active</div>
+                <div className="text-orange-200">Non-admin users cannot access the system</div>
+                <div className="text-orange-300 mt-1">Go to Settings to disable</div>
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        )}
+
         <Tooltip>
           <TooltipTrigger asChild>
             <div className={`flex items-center gap-2 px-3 py-1.5 ${apiColors.bg} border ${apiColors.border} rounded-lg transition-all duration-200 group-hover:shadow-md`}>

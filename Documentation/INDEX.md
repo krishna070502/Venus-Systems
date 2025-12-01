@@ -23,7 +23,27 @@ Welcome to Venus Chicken documentation! This folder contains comprehensive guide
 
 ---
 
-### 2. [Permission System](./PERMISSION_SYSTEM.md)
+### 2. [Business Management](./BUSINESS_MANAGEMENT.md)
+**Multi-tenant shop management with manager onboarding and day-wise pricing**
+
+- Manager Onboarding workflow
+- Shop Management (CRUD)
+- Day-wise Price Configuration
+- Row Level Security (RLS) for data isolation
+- Store Manager role and permissions
+
+**Key Topics:**
+- Multi-tenancy architecture
+- `user_shops` assignment table
+- `daily_shop_prices` with unique constraints
+- RLS policies for strict shop isolation
+- Atomic transactions for onboarding
+
+**When to read:** Before working with shop data, manager assignments, or pricing
+
+---
+
+### 3. [Permission System](./PERMISSION_SYSTEM.md)
 **Complete guide to Role-Based Access Control (RBAC)**
 
 - Architecture and design
@@ -44,7 +64,7 @@ Welcome to Venus Chicken documentation! This folder contains comprehensive guide
 
 ---
 
-### 3. [Authentication System](./AUTHENTICATION.md)
+### 4. [Authentication System](./AUTHENTICATION.md)
 **JWT-based authentication with Supabase**
 
 - Authentication flow diagrams
@@ -65,7 +85,7 @@ Welcome to Venus Chicken documentation! This folder contains comprehensive guide
 
 ---
 
-### 4. [UI Components](./UI_COMPONENTS.md)
+### 5. [UI Components](./UI_COMPONENTS.md)
 **Complete reference for all UI components**
 
 - Alert modal system
@@ -85,7 +105,7 @@ Welcome to Venus Chicken documentation! This folder contains comprehensive guide
 
 ---
 
-### 5. [Database Schema](./DATABASE_SCHEMA.md)
+### 6. [Database Schema](./DATABASE_SCHEMA.md)
 **PostgreSQL database structure and relationships**
 
 - Complete schema diagrams
@@ -114,6 +134,7 @@ Welcome to Venus Chicken documentation! This folder contains comprehensive guide
 1. [Getting Started](./GETTING_STARTED.md) - Set up environment
 2. [Permission System](./PERMISSION_SYSTEM.md) - Understand access control
 3. [UI Components](./UI_COMPONENTS.md) - Learn component library
+4. [Business Management](./BUSINESS_MANAGEMENT.md) - Shop operations
 
 ### For Adding Features
 
@@ -121,6 +142,10 @@ Welcome to Venus Chicken documentation! This folder contains comprehensive guide
 1. [Permission System](./PERMISSION_SYSTEM.md#adding-new-permissions) - Add permission
 2. [UI Components](./UI_COMPONENTS.md#permissionguard) - Use PermissionGuard
 3. [Database Schema](./DATABASE_SCHEMA.md#permissions) - Update schema if needed
+
+**Adding shop/manager features:**
+1. [Business Management](./BUSINESS_MANAGEMENT.md) - Full module guide
+2. [Business Management](./BUSINESS_MANAGEMENT.md#row-level-security-rls) - RLS policies
 
 **Customizing authentication:**
 1. [Authentication](./AUTHENTICATION.md) - Understand auth flow
@@ -140,6 +165,9 @@ Welcome to Venus Chicken documentation! This folder contains comprehensive guide
 
 **Database problems:**
 - [Database Schema](./DATABASE_SCHEMA.md#best-practices)
+
+**Shop/Manager issues:**
+- [Business Management](./BUSINESS_MANAGEMENT.md#troubleshooting)
 
 **General issues:**
 - [Getting Started](./GETTING_STARTED.md#common-issues)

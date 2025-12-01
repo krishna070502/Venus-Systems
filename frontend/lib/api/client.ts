@@ -149,4 +149,110 @@ export const api = {
     getStatus: () => apiRequest('/api/v1/health/status'),
     getDetailed: () => apiRequest('/api/v1/health/detailed'),
   },
+
+  // Business Management endpoints
+  businessManagement: {
+    // Shops
+    shops: {
+      getAll: (isActive?: boolean) => {
+        const params = isActive !== undefined ? `?is_active=${isActive}` : ''
+        return apiRequest(`/api/v1/business-management/shops${params}`)
+      },
+      getById: (id: number) => apiRequest(`/api/v1/business-management/shops/${id}`),
+      create: (data: { name: string; location?: string; is_active?: boolean }) =>
+        apiRequest('/api/v1/business-management/shops', {
+          method: 'POST',
+          body: JSON.stringify(data),
+        }),
+      update: (id: number, data: { name?: string; location?: string; is_active?: boolean }) =>
+        apiRequest(`/api/v1/business-management/shops/${id}`, {
+          method: 'PUT',
+          body: JSON.stringify(data),
+        }),
+      delete: (id: number) =>
+        apiRequest(`/api/v1/business-management/shops/${id}`, {
+          method: 'DELETE',
+        }),
+    },
+
+    // Managers
+    managers: {
+      getAll: () => apiRequest('/api/v1/business-management/managers'),
+      getUnassigned: () => apiRequest('/api/v1/business-management/managers/unassigned'),
+      onboard: (data: {
+        user_id: string
+        shop_id: number
+        qualifications?: string
+        contact_number?: string
+      }) =>
+        apiRequest('/api/v1/business-management/managers/onboard', {
+          method: 'POST',
+          body: JSON.stringify(data),
+        }),
+      remove: (userId: string) =>
+        apiRequest(`/api/v1/business-management/managers/${userId}`, {
+          method: 'DELETE',
+        }),
+    },
+
+    // Inventory Items
+    inventory: {
+      getAll: (isActive?: boolean, category?: string) => {
+        const params = new URLSearchParams()
+        if (isActive !== undefined) params.append('is_active', String(isActive))
+        if (category) params.append('category', category)
+        const queryString = params.toString() ? `?${params.toString()}` : ''
+        return apiRequest(`/api/v1/business-management/inventory${queryString}`)
+      },
+      getById: (id: number) => apiRequest(`/api/v1/business-management/inventory/${id}`),
+      create: (data: {
+        name: string
+        sku?: string
+        category?: string
+        base_price: number
+        unit?: string
+        is_active?: boolean
+      }) =>
+        apiRequest('/api/v1/business-management/inventory', {
+          method: 'POST',
+          body: JSON.stringify(data),
+        }),
+      update: (id: number, data: {
+        name?: string
+        sku?: string
+        category?: string
+        base_price?: number
+        unit?: string
+        is_active?: boolean
+      }) =>
+        apiRequest(`/api/v1/business-management/inventory/${id}`, {
+          method: 'PUT',
+          body: JSON.stringify(data),
+        }),
+      delete: (id: number) =>
+        apiRequest(`/api/v1/business-management/inventory/${id}`, {
+          method: 'DELETE',
+        }),
+    },
+
+    // Prices
+    prices: {
+      getDaily: (shopId: number, date: string) =>
+        apiRequest(`/api/v1/business-management/prices/daily?shop_id=${shopId}&date=${date}`),
+      bulkUpdate: (data: {
+        shop_id: number
+        date: string
+        items: Array<{ item_id: number; price: number }>
+      }) =>
+        apiRequest('/api/v1/business-management/prices/bulk-update', {
+          method: 'POST',
+          body: JSON.stringify(data),
+        }),
+      deleteDaily: (shopId: number, itemId: number, date: string) =>
+        apiRequest(
+          `/api/v1/business-management/prices/daily?shop_id=${shopId}&item_id=${itemId}&date=${date}`,
+          { method: 'DELETE' }
+        ),
+    },
+  },
 }

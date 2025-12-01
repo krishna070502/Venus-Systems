@@ -18,6 +18,60 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
+async def is_registration_enabled() -> bool:
+    """Check if user registration is enabled in system settings"""
+    try:
+        result = supabase_client.table("system_settings")\
+            .select("value")\
+            .eq("key", "registration_enabled")\
+            .single()\
+            .execute()
+        
+        if result.data:
+            return result.data["value"].lower() == "true"
+        return True  # Default to enabled if setting not found
+    except Exception as e:
+        logger.warning(f"Could not check registration setting: {e}")
+        return True  # Default to enabled on error
+
+
+async def is_maintenance_mode() -> bool:
+    """Check if maintenance mode is enabled in system settings"""
+    try:
+        result = supabase_client.table("system_settings")\
+            .select("value")\
+            .eq("key", "maintenance_mode")\
+            .single()\
+            .execute()
+        
+        if result.data:
+            return result.data["value"].lower() == "true"
+        return False  # Default to disabled if setting not found
+    except Exception as e:
+        logger.warning(f"Could not check maintenance mode setting: {e}")
+        return False  # Default to disabled on error
+
+
+@router.get("/registration-status")
+async def get_registration_status() -> Dict:
+    """Check if user registration is currently enabled (public endpoint)"""
+    enabled = await is_registration_enabled()
+    return {
+        "registration_enabled": enabled,
+        "message": "Registration is enabled" if enabled else "Registration is currently disabled"
+    }
+
+
+@router.get("/maintenance-status")
+async def get_maintenance_status() -> Dict:
+    """Check if maintenance mode is enabled (public endpoint)"""
+    enabled = await is_maintenance_mode()
+    return {
+        "maintenance_mode": enabled,
+        "message": "System is under maintenance" if enabled else "System is operational"
+    }
+
+
 @router.post("/signup", status_code=status.HTTP_201_CREATED)
 async def signup(user_data: UserCreate) -> Dict:
     """
@@ -26,6 +80,13 @@ async def signup(user_data: UserCreate) -> Dict:
     Creates a new user account with Supabase Auth and creates a profile entry.
     The profile is automatically created via database trigger.
     """
+    # Check if registration is enabled
+    if not await is_registration_enabled():
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User registration is currently disabled. Please contact an administrator."
+        )
+    
     try:
         # Sign up with Supabase Auth
         response = supabase_client.auth.sign_up({

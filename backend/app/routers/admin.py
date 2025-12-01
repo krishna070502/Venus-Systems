@@ -170,28 +170,161 @@ async def admin_get_all_roles():
 )
 async def admin_get_settings():
     """Get system settings (Admin only)"""
-    return {
-        "message": "System settings endpoint",
-        "settings": {
-            "maintenance_mode": False,
-            "registration_enabled": True,
-            "api_version": "1.0.0"
+    try:
+        result = supabase_client.table("system_settings")\
+            .select("*")\
+            .execute()
+        
+        settings_list = result.data if result.data else []
+        
+        # Convert to a dictionary for easier use
+        settings_dict = {}
+        for setting in settings_list:
+            key = setting["key"]
+            value = setting["value"]
+            value_type = setting.get("value_type", "string")
+            
+            # Convert value based on type
+            if value_type == "boolean":
+                settings_dict[key] = value.lower() == "true"
+            elif value_type == "number":
+                settings_dict[key] = float(value) if "." in value else int(value)
+            elif value_type == "json":
+                import json
+                settings_dict[key] = json.loads(value)
+            else:
+                settings_dict[key] = value
+        
+        return {
+            "message": "System settings retrieved",
+            "settings": settings_dict,
+            "raw": settings_list  # Include raw for descriptions
         }
-    }
+    except Exception as e:
+        logger.error(f"Error fetching settings: {e}")
+        return {
+            "message": "System settings endpoint",
+            "settings": {
+                "maintenance_mode": False,
+                "registration_enabled": True,
+                "app_name": "Venus Chicken",
+                "api_version": "1.0.0"
+            }
+        }
 
 
 @router.put(
     "/settings",
     dependencies=[Depends(require_admin)]
 )
-async def admin_update_settings(settings: Dict):
+async def admin_update_settings(
+    settings: Dict,
+    current_user: Dict = Depends(get_current_user)
+):
     """Update system settings (Admin only)"""
-    # In a real application, you would persist these settings
-    logger.info(f"Settings updated: {settings}")
-    return {
-        "message": "Settings updated successfully",
-        "settings": settings
-    }
+    from app.services.audit_service import audit_logger
+    
+    try:
+        updated_keys = []
+        
+        for key, value in settings.items():
+            # Convert value to string for storage
+            if isinstance(value, bool):
+                str_value = "true" if value else "false"
+                value_type = "boolean"
+            elif isinstance(value, (int, float)):
+                str_value = str(value)
+                value_type = "number"
+            elif isinstance(value, dict):
+                import json
+                str_value = json.dumps(value)
+                value_type = "json"
+            else:
+                str_value = str(value)
+                value_type = "string"
+            
+            # Upsert the setting
+            supabase_client.table("system_settings")\
+                .upsert({
+                    "key": key,
+                    "value": str_value,
+                    "value_type": value_type,
+                    "updated_by": current_user["id"]
+                })\
+                .execute()
+            
+            updated_keys.append(key)
+        
+        # Audit log
+        await audit_logger.log_action(
+            user_id=current_user["id"],
+            action="UPDATE_SETTINGS",
+            resource_type="system_settings",
+            resource_id="system",
+            changes=settings,
+            metadata={"updated_keys": updated_keys}
+        )
+        
+        logger.info(f"Settings updated by {current_user['id']}: {updated_keys}")
+        
+        return {
+            "message": "Settings updated successfully",
+            "updated_keys": updated_keys
+        }
+    except Exception as e:
+        logger.error(f"Error updating settings: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to update settings: {str(e)}"
+        )
+
+
+@router.get(
+    "/settings/{key}",
+    dependencies=[Depends(require_admin)]
+)
+async def admin_get_setting(key: str):
+    """Get a specific system setting (Admin only)"""
+    try:
+        result = supabase_client.table("system_settings")\
+            .select("*")\
+            .eq("key", key)\
+            .single()\
+            .execute()
+        
+        if not result.data:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Setting '{key}' not found"
+            )
+        
+        setting = result.data
+        value = setting["value"]
+        value_type = setting.get("value_type", "string")
+        
+        # Convert value based on type
+        if value_type == "boolean":
+            value = value.lower() == "true"
+        elif value_type == "number":
+            value = float(value) if "." in value else int(value)
+        elif value_type == "json":
+            import json
+            value = json.loads(value)
+        
+        return {
+            "key": key,
+            "value": value,
+            "description": setting.get("description"),
+            "updated_at": setting.get("updated_at")
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching setting {key}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch setting: {str(e)}"
+        )
 
 
 # =============================================================================
