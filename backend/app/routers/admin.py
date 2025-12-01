@@ -350,6 +350,37 @@ async def admin_get_logs(
         
         logs = result.data if result.data else []
         
+        # Get unique user IDs from logs
+        user_ids = list(set(log.get('user_id') for log in logs if log.get('user_id')))
+        
+        # Fetch user details if there are any user_ids
+        user_map = {}
+        if user_ids:
+            try:
+                users_result = supabase_client.table("profiles")\
+                    .select("id, email, full_name")\
+                    .in_("id", user_ids)\
+                    .execute()
+                
+                if users_result.data:
+                    for user in users_result.data:
+                        user_map[user['id']] = {
+                            'email': user.get('email'),
+                            'full_name': user.get('full_name')
+                        }
+            except Exception as user_err:
+                logger.warning(f"Could not fetch user details: {str(user_err)}")
+        
+        # Add user info to logs
+        for log in logs:
+            user_id = log.get('user_id')
+            if user_id and user_id in user_map:
+                log['user_email'] = user_map[user_id].get('email')
+                log['user_name'] = user_map[user_id].get('full_name')
+            else:
+                log['user_email'] = None
+                log['user_name'] = None
+        
         return {
             "logs": logs,
             "total": len(logs),

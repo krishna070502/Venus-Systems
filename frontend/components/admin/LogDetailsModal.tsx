@@ -7,6 +7,8 @@ import { Badge } from '@/components/ui/badge'
 interface AuditLog {
   id: number
   user_id: string
+  user_email?: string
+  user_name?: string
   action: string
   resource_type: string
   resource_id?: string
@@ -111,9 +113,24 @@ export default function LogDetailsModal({ log, onClose }: LogDetailsModalProps) 
               </div>
             </div>
             <div>
-              <div className="text-sm font-medium text-muted-foreground">User ID</div>
-              <div className="mt-1 font-mono text-sm">
-                {log.user_id || 'System'}
+              <div className="text-sm font-medium text-muted-foreground">User</div>
+              <div className="mt-1">
+                {log.user_name ? (
+                  <div>
+                    <div className="font-medium">{log.user_name}</div>
+                    <div className="text-sm text-muted-foreground">{log.user_email}</div>
+                    <div className="text-xs font-mono text-muted-foreground mt-1">{log.user_id}</div>
+                  </div>
+                ) : log.user_email ? (
+                  <div>
+                    <div className="font-medium">{log.user_email}</div>
+                    <div className="text-xs font-mono text-muted-foreground mt-1">{log.user_id}</div>
+                  </div>
+                ) : log.user_id ? (
+                  <div className="font-mono text-sm">{log.user_id}</div>
+                ) : (
+                  <div className="text-muted-foreground">System</div>
+                )}
               </div>
             </div>
             <div>

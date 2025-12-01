@@ -31,6 +31,8 @@ import { cn } from '@/lib/utils'
 interface AuditLog {
   id: number
   user_id: string
+  user_email?: string
+  user_name?: string
   action: string
   resource_type: string
   resource_id?: string
@@ -440,8 +442,23 @@ function LogsPageContent() {
                       </TableCell>
                     )}
                     {visibleFields.has('user') && (
-                      <TableCell className="font-mono text-xs">
-                        {log.user_id ? log.user_id.substring(0, 8) + '...' : 'System'}
+                      <TableCell>
+                        <div className="flex flex-col">
+                          {log.user_name ? (
+                            <>
+                              <span className="font-medium text-sm">{log.user_name}</span>
+                              <span className="text-xs text-muted-foreground">{log.user_email}</span>
+                            </>
+                          ) : log.user_email ? (
+                            <span className="text-sm">{log.user_email}</span>
+                          ) : log.user_id ? (
+                            <span className="font-mono text-xs text-muted-foreground">
+                              {log.user_id.substring(0, 8)}...
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">System</span>
+                          )}
+                        </div>
                       </TableCell>
                     )}
                     {canViewDetails && (
