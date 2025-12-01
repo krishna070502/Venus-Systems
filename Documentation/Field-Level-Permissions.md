@@ -433,6 +433,159 @@ const canEdit = !permissionsLoading && hasPermission(userPermissions, 'module.ac
 
 ---
 
+## Additional Features
+
+### Audit Logs - User Information Display
+
+The Logs page displays user information (name, email) instead of just user IDs.
+
+**Backend Implementation** (`backend/app/routers/admin.py`):
+```python
+@router.get("/logs")
+async def admin_get_logs(limit: int = 100, offset: int = 0):
+    # Fetch logs
+    result = supabase_client.table("audit_logs")\
+        .select("*")\
+        .order("timestamp", desc=True)\
+        .range(offset, offset + limit - 1)\
+        .execute()
+    
+    logs = result.data if result.data else []
+    
+    # Get unique user IDs
+    user_ids = list(set(log.get('user_id') for log in logs if log.get('user_id')))
+    
+    # Fetch user details from profiles table
+    user_map = {}
+    if user_ids:
+        users_result = supabase_client.table("profiles")\
+            .select("id, email, full_name")\
+            .in_("id", user_ids)\
+            .execute()
+        
+        if users_result.data:
+            for user in users_result.data:
+                user_map[user['id']] = {
+                    'email': user.get('email'),
+                    'full_name': user.get('full_name')
+                }
+    
+    # Add user info to logs
+    for log in logs:
+        user_id = log.get('user_id')
+        if user_id and user_id in user_map:
+            log['user_email'] = user_map[user_id].get('email')
+            log['user_name'] = user_map[user_id].get('full_name')
+        else:
+            log['user_email'] = None
+            log['user_name'] = None
+    
+    return {"logs": logs, "total": len(logs)}
+```
+
+**Frontend Display** (`frontend/app/admin/logs/page.tsx`):
+```tsx
+interface AuditLog {
+  id: number
+  user_id: string
+  user_email?: string   // Added
+  user_name?: string    // Added
+  action: string
+  // ... other fields
+}
+
+// In table cell
+{visibleFields.has('user') && (
+  <TableCell>
+    <div className="flex flex-col">
+      {log.user_name ? (
+        <>
+          <span className="font-medium text-sm">{log.user_name}</span>
+          <span className="text-xs text-muted-foreground">{log.user_email}</span>
+        </>
+      ) : log.user_email ? (
+        <span className="text-sm">{log.user_email}</span>
+      ) : log.user_id ? (
+        <span className="font-mono text-xs text-muted-foreground">
+          {log.user_id.substring(0, 8)}...
+        </span>
+      ) : (
+        <span className="text-muted-foreground text-sm">System</span>
+      )}
+    </div>
+  </TableCell>
+)}
+```
+
+**Key Points:**
+- User data is stored in `profiles` table, NOT `users` table
+- Fetch logs first, then fetch user details separately (more resilient)
+- Gracefully handle missing user data (fallback to user_id or "System")
+
+---
+
+### Price Configuration - INR Currency & Base Price Editing
+
+The Price Config page uses INR (₹) currency and allows inline editing of base prices.
+
+**Currency Change:**
+```tsx
+// Changed from $ to ₹
+<span className="font-mono">₹{basePrice.toFixed(2)}</span>
+```
+
+**Inline Base Price Editing:**
+```tsx
+// State for editing
+const [editedBasePrices, setEditedBasePrices] = useState<Record<number, string>>({})
+const [editingBasePrice, setEditingBasePrice] = useState<number | null>(null)
+
+// Pencil icon to trigger edit
+{canWrite && (
+  <Button
+    size="sm"
+    variant="ghost"
+    onClick={() => startEditingBasePrice(item.item_id, item.base_price)}
+  >
+    <Pencil className="h-3 w-3" />
+  </Button>
+)}
+
+// Inline input with save/cancel
+{isEditingBase && (
+  <div className="flex items-center justify-end gap-1">
+    <Input
+      type="number"
+      step="0.01"
+      min="0"
+      value={editedBasePrices[item.item_id] || ''}
+      onChange={(e) => handleBasePriceChange(item.item_id, e.target.value)}
+    />
+    <Button onClick={() => saveBasePrice(item.item_id)}>
+      <CheckCircle2 className="h-4 w-4 text-green-600" />
+    </Button>
+    <Button onClick={() => cancelEditingBasePrice(item.item_id)}>
+      <XCircle className="h-4 w-4 text-red-600" />
+    </Button>
+  </div>
+)}
+```
+
+**Handling Decimal Precision:**
+```typescript
+// API may return price as string (for precision). Always parse explicitly:
+const getDisplayBasePrice = (item: PriceItem): number => {
+  const editedPrice = editedBasePrices[item.item_id]
+  if (editedPrice !== undefined) {
+    const parsed = parseFloat(editedPrice)
+    return isNaN(parsed) ? parseFloat(String(item.base_price)) : parsed
+  }
+  return parseFloat(String(item.base_price))  // Handle string from API
+}
+```
+
+---
+
 ## Files Modified/Created
 
 | File | Type | Purpose |
@@ -442,6 +595,10 @@ const canEdit = !permissionsLoading && hasPermission(userPermissions, 'module.ac
 | `supabase/migrations/029_add_users_field_permissions.sql` | Migration | Users field/action permissions |
 | `supabase/migrations/030_add_permissions_field_permissions.sql` | Migration | Permissions field/action permissions |
 | `frontend/app/admin/roles/page.tsx` | Page | Added field-level permissions |
-| `frontend/app/admin/logs/page.tsx` | Page | Added field-level permissions |
+| `frontend/app/admin/logs/page.tsx` | Page | Added field-level permissions + user name display |
 | `frontend/app/admin/users/page.tsx` | Page | Added field-level permissions |
 | `frontend/app/admin/permissions/page.tsx` | Page | Added field-level permissions + GROUP_CONFIG updates |
+| `frontend/components/admin/LogDetailsModal.tsx` | Component | Updated to show user name/email |
+| `frontend/app/admin/business-management/price-config/page.tsx` | Page | INR currency + base price editing |
+| `frontend/lib/api/client.ts` | API | Added `updateBasePrice` method |
+| `backend/app/routers/admin.py` | API | Fetch user details for logs |
