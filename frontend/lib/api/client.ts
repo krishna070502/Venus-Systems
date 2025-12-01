@@ -253,6 +253,11 @@ export const api = {
           `/api/v1/business-management/prices/daily?shop_id=${shopId}&item_id=${itemId}&date=${date}`,
           { method: 'DELETE' }
         ),
+      updateBasePrice: (itemId: number, price: number) =>
+        apiRequest(`/api/v1/business-management/inventory/${itemId}`, {
+          method: 'PUT',
+          body: JSON.stringify({ base_price: price }),
+        }),
     },
   },
 }

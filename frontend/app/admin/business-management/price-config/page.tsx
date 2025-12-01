@@ -14,7 +14,8 @@ import {
   Calendar,
   Store,
   RefreshCw,
-  DollarSign
+  IndianRupee,
+  Pencil
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -81,6 +82,10 @@ export default function PriceConfigPage() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   
+  // Base price editing
+  const [editedBasePrices, setEditedBasePrices] = useState<Record<number, string>>({})
+  const [editingBasePrice, setEditingBasePrice] = useState<number | null>(null)
+  
   // Permissions
   const canRead = hasPermission(permissions, 'priceconfig.read')
   const canWrite = hasPermission(permissions, 'priceconfig.write')
@@ -131,7 +136,7 @@ export default function PriceConfigPage() {
     }
   }
 
-  // Handle price change
+  // Handle daily price change
   const handlePriceChange = (itemId: number, value: string) => {
     setEditedPrices(prev => ({
       ...prev,
@@ -140,7 +145,69 @@ export default function PriceConfigPage() {
     setSuccess(null)
   }
 
-  // Check if there are changes
+  // Handle base price change
+  const handleBasePriceChange = (itemId: number, value: string) => {
+    setEditedBasePrices(prev => ({
+      ...prev,
+      [itemId]: value
+    }))
+    setSuccess(null)
+  }
+
+  // Start editing base price
+  const startEditingBasePrice = (itemId: number, currentPrice: number) => {
+    setEditingBasePrice(itemId)
+    setEditedBasePrices(prev => ({
+      ...prev,
+      [itemId]: currentPrice.toString()
+    }))
+  }
+
+  // Cancel editing base price
+  const cancelEditingBasePrice = (itemId: number) => {
+    setEditingBasePrice(null)
+    setEditedBasePrices(prev => {
+      const newPrices = { ...prev }
+      delete newPrices[itemId]
+      return newPrices
+    })
+  }
+
+  // Save base price
+  const saveBasePrice = async (itemId: number) => {
+    const newPrice = editedBasePrices[itemId]
+    if (!newPrice) return
+    
+    const price = parseFloat(newPrice)
+    if (isNaN(price) || price < 0) {
+      setError('Invalid price value')
+      return
+    }
+    
+    try {
+      setSaving(true)
+      setError(null)
+      
+      await api.businessManagement.prices.updateBasePrice(itemId, price)
+      
+      setSuccess('Base price updated successfully')
+      setEditingBasePrice(null)
+      setEditedBasePrices(prev => {
+        const newPrices = { ...prev }
+        delete newPrices[itemId]
+        return newPrices
+      })
+      
+      // Refresh prices
+      await fetchPrices()
+    } catch (err: any) {
+      setError(err.message || 'Failed to update base price')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  // Check if there are daily price changes
   const hasChanges = useMemo(() => {
     if (!priceData) return false
     
@@ -159,6 +226,16 @@ export default function PriceConfigPage() {
       return false
     })
   }, [priceData, editedPrices])
+
+  // Get display base price for an item
+  const getDisplayBasePrice = (item: PriceItem): number => {
+    const editedPrice = editedBasePrices[item.item_id]
+    if (editedPrice !== undefined) {
+      const parsed = parseFloat(editedPrice)
+      return isNaN(parsed) ? parseFloat(String(item.base_price)) : parsed
+    }
+    return parseFloat(String(item.base_price))
+  }
 
   // Save changes
   const handleSave = async () => {
@@ -381,11 +458,11 @@ export default function PriceConfigPage() {
           <div className="bg-card rounded-lg border">
             <div className="p-4 border-b">
               <h3 className="font-semibold flex items-center gap-2">
-                <DollarSign className="h-5 w-5" />
+                <IndianRupee className="h-5 w-5" />
                 Prices for {priceData.shop_name} - {new Date(priceData.date).toLocaleDateString()}
               </h3>
               <p className="text-sm text-muted-foreground mt-1">
-                Leave daily price empty to use base price. {!canWrite && '(Read-only mode)'}
+                Leave daily price empty to use base price. Click on base price to edit. {!canWrite && '(Read-only mode)'}
               </p>
             </div>
             <Table>
@@ -402,11 +479,12 @@ export default function PriceConfigPage() {
               <TableBody>
                 {priceData.items.map((item) => {
                   const displayPrice = getDisplayPrice(item)
-                  const basePrice = parseFloat(String(item.base_price))
+                  const basePrice = getDisplayBasePrice(item)
                   const effectivePrice = displayPrice 
                     ? parseFloat(displayPrice) 
                     : basePrice
                   const isCustom = hasCustomPrice(item)
+                  const isEditingBase = editingBasePrice === item.item_id
                   
                   return (
                     <TableRow key={item.item_id}>
@@ -421,7 +499,51 @@ export default function PriceConfigPage() {
                         <span className="text-sm">{item.category || '-'}</span>
                       </TableCell>
                       <TableCell className="text-right">
-                        <span className="font-mono">${basePrice.toFixed(2)}</span>
+                        {isEditingBase ? (
+                          <div className="flex items-center justify-end gap-1">
+                            <Input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              value={editedBasePrices[item.item_id] || ''}
+                              onChange={(e) => handleBasePriceChange(item.item_id, e.target.value)}
+                              className="w-[100px] text-right font-mono h-8"
+                              autoFocus
+                            />
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 w-8 p-0"
+                              onClick={() => saveBasePrice(item.item_id)}
+                              disabled={saving}
+                            >
+                              <CheckCircle2 className="h-4 w-4 text-green-600" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 w-8 p-0"
+                              onClick={() => cancelEditingBasePrice(item.item_id)}
+                              disabled={saving}
+                            >
+                              <XCircle className="h-4 w-4 text-red-600" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-end gap-1">
+                            <span className="font-mono">₹{basePrice.toFixed(2)}</span>
+                            {canWrite && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 w-6 p-0 opacity-50 hover:opacity-100"
+                                onClick={() => startEditingBasePrice(item.item_id, item.base_price)}
+                              >
+                                <Pencil className="h-3 w-3" />
+                              </Button>
+                            )}
+                          </div>
+                        )}
                       </TableCell>
                       <TableCell className="text-right">
                         {canWrite ? (
@@ -437,14 +559,14 @@ export default function PriceConfigPage() {
                         ) : (
                           <span className="font-mono">
                             {item.daily_price !== null 
-                              ? `$${parseFloat(String(item.daily_price)).toFixed(2)}` 
+                              ? `₹${parseFloat(String(item.daily_price)).toFixed(2)}` 
                               : '-'}
                           </span>
                         )}
                       </TableCell>
                       <TableCell className="text-right">
                         <span className={`font-mono font-semibold ${isCustom ? 'text-primary' : ''}`}>
-                          ${effectivePrice.toFixed(2)}
+                          ₹{effectivePrice.toFixed(2)}
                         </span>
                         {isCustom && (
                           <span className="ml-2 text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">
