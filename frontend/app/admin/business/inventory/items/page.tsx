@@ -6,7 +6,7 @@ import { usePermissions, hasPermission } from '@/lib/auth/usePermissions'
 import { api } from '@/lib/api/client'
 import { 
   Package, Plus, Edit, Trash2, Search, Filter, X, 
-  Check, AlertCircle, Loader2, Tag, DollarSign, Archive 
+  Check, AlertCircle, Loader2, Tag, IndianRupee, Archive 
 } from 'lucide-react'
 
 // Types
@@ -233,7 +233,7 @@ export default function ItemsPage() {
 
   // Format price
   const formatPrice = (price: number | string) => {
-    return `$${parseFloat(String(price)).toFixed(2)}`
+    return `₹${parseFloat(String(price)).toFixed(2)}`
   }
 
   return (
@@ -529,10 +529,10 @@ export default function ItemsPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">
-                      Base Price ($) <span className="text-destructive">*</span>
+                      Base Price (₹) <span className="text-destructive">*</span>
                     </label>
                     <div className="relative">
-                      <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <input
                         type="number"
                         step="0.01"
@@ -662,10 +662,10 @@ export default function ItemsPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">
-                      Base Price ($) <span className="text-destructive">*</span>
+                      Base Price (₹) <span className="text-destructive">*</span>
                     </label>
                     <div className="relative">
-                      <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <input
                         type="number"
                         step="0.01"
