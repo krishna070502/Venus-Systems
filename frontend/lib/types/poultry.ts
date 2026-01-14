@@ -678,3 +678,20 @@ export interface CustomerLedgerSummary {
     total_receipts: number
 }
 
+// ============ Fraud Monitoring ============
+
+export type RiskLevel = 'HIGH' | 'MEDIUM'
+
+export interface FraudFlagUser extends StaffMonthlyPerformance {
+    user_email: string
+    user_name: string
+    risk_level: RiskLevel
+    has_fraud_flag: boolean
+    is_suspended: boolean
+}
+
+export interface FraudFlagsResponse {
+    period: string
+    at_risk_count: number
+    users: FraudFlagUser[]
+}

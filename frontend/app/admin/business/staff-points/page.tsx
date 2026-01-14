@@ -22,7 +22,8 @@ import {
     Calendar,
     ChevronRight,
     ArrowUpRight,
-    Target
+    Target,
+    ShieldAlert
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
@@ -111,6 +112,15 @@ export default function StaffPointsPage() {
                                     title="All Managers Performance"
                                 >
                                     <Users className="h-4 w-4 text-primary" />
+                                </Link>
+                            )}
+                            {hasPermission(permissions, 'staffgrading.view') && (
+                                <Link
+                                    href="/admin/business/staff-points/risk-monitoring"
+                                    className="p-2 border rounded-lg bg-card hover:bg-accent transition-colors shadow-sm"
+                                    title="Risk Monitoring"
+                                >
+                                    <ShieldAlert className="h-4 w-4 text-red-600" />
                                 </Link>
                             )}
                             <Link

@@ -63,7 +63,8 @@ All point changes are tracked with a reason code for transparency:
 | `LATE_SETTLEMENT` | Late submission (<24h) | -3 | Discipline |
 | `MANUAL_CORRECTION` | Admin manual fix | -5 | Discipline |
 | `REPEATED_NEGATIVE_3DAYS` | 3 consecutive shortages | -20 | Discipline |
-| `SETTLEMENT_LOCKED_NO_SUBMIT` | Missed settlement | -30 | Discipline |
+| `MISSED_SETTLEMENT` | Failed to submit on day with sales | -15 | Discipline |
+| `SETTLEMENT_LOCKED_NO_SUBMIT` | Draft locked by system | -30 | Discipline |
 | `SELLING_BLOCKED_STOCK` | Attempted fraud | -50 | Fraud |
 | `INVENTORY_TAMPERING` | Tampering detected | -100 | Fraud |
 | `BYPASSING_POS` | Bypassing POS system | -100 | Fraud |
@@ -269,7 +270,9 @@ When a staff member's cumulative points drop below **-200**, they are automatica
 | Bonus/Penalty Calculation | ✅ Complete | `055_staff_grading_system.sql` |
 | Generate Monthly Snapshot | ✅ Complete | `055_staff_grading_system.sql` |
 | Lock Monthly Performance | ✅ Complete | `055_staff_grading_system.sql` |
-| Variance Resolution Trigger | ✅ Complete | `051_staff_points.sql` |
+| Variance Resolution Trigger | ✅ Complete | `077_automatic_point_triggers.sql` |
+| Settlement Submit Points | ✅ Complete | `077_automatic_point_triggers.sql` |
+| Repeated Negative Check | ✅ Complete | `077_automatic_point_triggers.sql` |
 | Leaderboard RPC | ✅ Complete | `077_automatic_point_triggers.sql` |
 | Calculate Staff Points RPC | ✅ Complete | `072_staff_performance_rpc.sql` |
 
@@ -297,18 +300,16 @@ When a staff member's cumulative points drop below **-200**, they are automatica
 | My Performance | `/admin/business/staff-points` | ✅ Complete |
 | Leaderboard | `/admin/business/staff-points/leaderboard` | ✅ Complete |
 | Admin Performance Management | `/admin/business/staff-points/performance` | ✅ Complete |
+| Risk Monitoring Dashboard | `/admin/business/staff-points/risk-monitoring` | ✅ Complete |
+| Grading Config Editor | `/admin/business/staff-points/config` | ✅ Complete |
+| Reason Codes Editor | `/admin/business/staff-points/config` | ✅ Complete |
 
 ### ⏳ Pending Implementation
 
 | Feature | Priority | Notes |
 |---------|----------|-------|
-| Grading Config Editor | Medium | UI to modify thresholds and rates |
-| Generate Monthly Button | Medium | One-click month generation |
-| Lock Monthly Button | Medium | Lock with confirmation dialog |
-| Reason Codes Editor | Low | Allow modifying point values |
-| Fraud Flags Dashboard | Medium | Visual alert for at-risk users |
-| Auto-generated Point Triggers | High | `ON_TIME_SETTLEMENT`, `LATE_SETTLEMENT` not yet automated |
-| Email Notifications | Low | Notify staff of grade changes |
+| Email Notifications | Low | Notify staff when monthly grades are locked |
+| System Cron Integration | Low | Ensure backend `/scheduled-tasks` are called daily |
 
 ---
 
