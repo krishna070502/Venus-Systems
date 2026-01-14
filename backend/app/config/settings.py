@@ -44,6 +44,9 @@ class Settings(BaseSettings):
     # Logging
     LOG_LEVEL: str = "INFO"
     
+    # Scheduled Tasks
+    CRON_SECRET: Optional[str] = None
+    
     # NVIDIA NIM AI Service
     NVIDIA_NIM_API_KEY: Optional[str] = None
     NVIDIA_NIM_BASE_URL: str = "https://integrate.api.nvidia.com/v1"
