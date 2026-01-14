@@ -27,7 +27,7 @@ def validate_store_access(store_id: int, user: dict) -> bool:
 
 
 # =============================================================================
-# SKU ENDPOINTS
+# SKU LIST ENDPOINT (must come first - no path params)
 # =============================================================================
 
 @router.get("", response_model=list[SKU])
@@ -60,24 +60,6 @@ async def list_skus(
     return result.data
 
 
-@router.get("/{sku_id}", response_model=SKU)
-async def get_sku(
-    sku_id: UUID,
-    current_user: dict = Depends(require_permission(["skus.view"]))
-):
-    """Get SKU by ID."""
-    from app.config.database import get_supabase
-    
-    supabase = get_supabase()
-    
-    result = supabase.table("skus").select("*").eq("id", str(sku_id)).execute()
-    
-    if not result.data:
-        raise HTTPException(status_code=404, detail="SKU not found")
-    
-    return result.data[0]
-
-
 @router.post("", response_model=SKU, status_code=201)
 async def create_sku(
     sku: SKUCreate,
@@ -105,34 +87,8 @@ async def create_sku(
     return result.data[0]
 
 
-@router.patch("/{sku_id}", response_model=SKU)
-async def update_sku(
-    sku_id: UUID,
-    sku: SKUUpdate,
-    current_user: dict = Depends(require_permission(["skus.manage"]))
-):
-    """Update SKU details (Admin only)."""
-    from app.config.database import get_supabase
-    
-    supabase = get_supabase()
-    
-    # Check SKU exists
-    existing = supabase.table("skus").select("id").eq("id", str(sku_id)).execute()
-    if not existing.data:
-        raise HTTPException(status_code=404, detail="SKU not found")
-    
-    update_data = sku.model_dump(exclude_unset=True)
-    
-    if not update_data:
-        raise HTTPException(status_code=400, detail="No fields to update")
-    
-    result = supabase.table("skus").update(update_data).eq("id", str(sku_id)).execute()
-    
-    return result.data[0]
-
-
 # =============================================================================
-# STORE PRICING ENDPOINTS
+# STORE PRICING ENDPOINTS (must come BEFORE /{sku_id} routes!)
 # =============================================================================
 
 @router.get("/prices/store", response_model=StorePriceListResponse)
@@ -260,3 +216,51 @@ async def set_bulk_prices(
     ).execute()
     
     return {"updated_count": len(result.data), "message": "Prices updated successfully"}
+
+
+# =============================================================================
+# SKU DETAIL ENDPOINTS (path params - must come LAST)
+# =============================================================================
+
+@router.get("/{sku_id}", response_model=SKU)
+async def get_sku(
+    sku_id: UUID,
+    current_user: dict = Depends(require_permission(["skus.view"]))
+):
+    """Get SKU by ID."""
+    from app.config.database import get_supabase
+    
+    supabase = get_supabase()
+    
+    result = supabase.table("skus").select("*").eq("id", str(sku_id)).execute()
+    
+    if not result.data:
+        raise HTTPException(status_code=404, detail="SKU not found")
+    
+    return result.data[0]
+
+
+@router.patch("/{sku_id}", response_model=SKU)
+async def update_sku(
+    sku_id: UUID,
+    sku: SKUUpdate,
+    current_user: dict = Depends(require_permission(["skus.manage"]))
+):
+    """Update SKU details (Admin only)."""
+    from app.config.database import get_supabase
+    
+    supabase = get_supabase()
+    
+    # Check SKU exists
+    existing = supabase.table("skus").select("id").eq("id", str(sku_id)).execute()
+    if not existing.data:
+        raise HTTPException(status_code=404, detail="SKU not found")
+    
+    update_data = sku.model_dump(exclude_unset=True)
+    
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No fields to update")
+    
+    result = supabase.table("skus").update(update_data).eq("id", str(sku_id)).execute()
+    
+    return result.data[0]

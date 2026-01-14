@@ -4,18 +4,16 @@ import { useState, useEffect, useMemo } from 'react'
 import { PermissionGuard } from '@/components/admin/PermissionGuard'
 import { usePermissions, hasPermission } from '@/lib/auth/usePermissions'
 import { api } from '@/lib/api/client'
-import { 
-  Tags, 
-  Save, 
-  CheckCircle2, 
-  XCircle, 
+import {
+  Tags,
+  Save,
+  CheckCircle2,
   Loader2,
   AlertCircle,
   Calendar,
   Store,
   RefreshCw,
   IndianRupee,
-  Pencil
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -36,7 +34,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 
-// Types
 interface Shop {
   id: number
   name: string
@@ -44,51 +41,49 @@ interface Shop {
   is_active: boolean
 }
 
-interface PriceItem {
-  item_id: number
-  item_name: string
-  sku: string | null
-  category: string | null
-  base_price: number
-  daily_price: number | null
+interface SKUWithPrice {
+  id: string
+  name: string
+  code: string
+  bird_type: string
+  inventory_type: string
   unit: string
+  is_active: boolean
+  current_price: number | null
+  effective_date: string | null
 }
 
-interface DailyPricesResponse {
-  shop_id: number
-  shop_name: string
+interface StorePriceListResponse {
+  store_id: number
+  store_name: string
   date: string
-  items: PriceItem[]
+  items: SKUWithPrice[]
 }
 
 export default function PriceConfigPage() {
   const { permissions, loading: permissionsLoading } = usePermissions()
-  
+
   // State
   const [shops, setShops] = useState<Shop[]>([])
   const [selectedShopId, setSelectedShopId] = useState<string>('')
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().split('T')[0]
   )
-  const [priceData, setPriceData] = useState<DailyPricesResponse | null>(null)
-  const [editedPrices, setEditedPrices] = useState<Record<number, string>>({})
-  
+  const [priceData, setPriceData] = useState<StorePriceListResponse | null>(null)
+  const [editedPrices, setEditedPrices] = useState<Record<string, string>>({})
+
   // Loading states
   const [loadingShops, setLoadingShops] = useState(true)
   const [loadingPrices, setLoadingPrices] = useState(false)
   const [saving, setSaving] = useState(false)
-  
+
   // Error/Success states
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
-  
-  // Base price editing
-  const [editedBasePrices, setEditedBasePrices] = useState<Record<number, string>>({})
-  const [editingBasePrice, setEditingBasePrice] = useState<number | null>(null)
-  
+
   // Permissions
-  const canRead = hasPermission(permissions, 'priceconfig.read')
-  const canWrite = hasPermission(permissions, 'priceconfig.write')
+  const canRead = hasPermission(permissions, 'storeprices.view')
+  const canWrite = hasPermission(permissions, 'storeprices.edit')
 
   // Fetch shops
   const fetchShops = async () => {
@@ -96,7 +91,6 @@ export default function PriceConfigPage() {
       setLoadingShops(true)
       const data = await api.businessManagement.shops.getAll(true) as Shop[]
       setShops(data)
-      // Auto-select first shop if available
       if (data.length > 0 && !selectedShopId) {
         setSelectedShopId(data[0].id.toString())
       }
@@ -107,24 +101,23 @@ export default function PriceConfigPage() {
     }
   }
 
-  // Fetch daily prices
+  // Fetch SKU prices for store
   const fetchPrices = async () => {
-    if (!selectedShopId || !selectedDate) return
-    
+    if (!selectedShopId) return
+
     try {
       setLoadingPrices(true)
       setError(null)
-      const data = await api.businessManagement.prices.getDaily(
-        parseInt(selectedShopId),
-        selectedDate
-      ) as DailyPricesResponse
+
+      // Use the API client which handles auth properly
+      const data = await api.poultry.skus.getPrices(parseInt(selectedShopId)) as StorePriceListResponse
       setPriceData(data)
-      
-      // Initialize edited prices with current daily prices
-      const initialPrices: Record<number, string> = {}
+
+      // Initialize edited prices with current prices
+      const initialPrices: Record<string, string> = {}
       data.items.forEach(item => {
-        if (item.daily_price !== null) {
-          initialPrices[item.item_id] = item.daily_price.toString()
+        if (item.current_price !== null) {
+          initialPrices[item.id] = item.current_price.toString()
         }
       })
       setEditedPrices(initialPrices)
@@ -136,145 +129,69 @@ export default function PriceConfigPage() {
     }
   }
 
-  // Handle daily price change
-  const handlePriceChange = (itemId: number, value: string) => {
+  // Handle price change
+  const handlePriceChange = (skuId: string, value: string) => {
     setEditedPrices(prev => ({
       ...prev,
-      [itemId]: value
+      [skuId]: value
     }))
     setSuccess(null)
   }
 
-  // Handle base price change
-  const handleBasePriceChange = (itemId: number, value: string) => {
-    setEditedBasePrices(prev => ({
-      ...prev,
-      [itemId]: value
-    }))
-    setSuccess(null)
-  }
-
-  // Start editing base price
-  const startEditingBasePrice = (itemId: number, currentPrice: number) => {
-    setEditingBasePrice(itemId)
-    setEditedBasePrices(prev => ({
-      ...prev,
-      [itemId]: currentPrice.toString()
-    }))
-  }
-
-  // Cancel editing base price
-  const cancelEditingBasePrice = (itemId: number) => {
-    setEditingBasePrice(null)
-    setEditedBasePrices(prev => {
-      const newPrices = { ...prev }
-      delete newPrices[itemId]
-      return newPrices
-    })
-  }
-
-  // Save base price
-  const saveBasePrice = async (itemId: number) => {
-    const newPrice = editedBasePrices[itemId]
-    if (!newPrice) return
-    
-    const price = parseFloat(newPrice)
-    if (isNaN(price) || price < 0) {
-      setError('Invalid price value')
-      return
-    }
-    
-    try {
-      setSaving(true)
-      setError(null)
-      
-      await api.businessManagement.prices.updateBasePrice(itemId, price)
-      
-      setSuccess('Base price updated successfully')
-      setEditingBasePrice(null)
-      setEditedBasePrices(prev => {
-        const newPrices = { ...prev }
-        delete newPrices[itemId]
-        return newPrices
-      })
-      
-      // Refresh prices
-      await fetchPrices()
-    } catch (err: any) {
-      setError(err.message || 'Failed to update base price')
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  // Check if there are daily price changes
+  // Check if there are changes
   const hasChanges = useMemo(() => {
     if (!priceData) return false
-    
+
     return priceData.items.some(item => {
-      const editedPrice = editedPrices[item.item_id]
-      const currentPrice = item.daily_price?.toString() || ''
-      
-      // Has value and it's different from current
+      const editedPrice = editedPrices[item.id]
+      const currentPrice = item.current_price?.toString() || ''
+
       if (editedPrice && editedPrice !== currentPrice) {
-        return true
-      }
-      // Had value but now empty (will revert to base)
-      if (!editedPrice && currentPrice) {
         return true
       }
       return false
     })
   }, [priceData, editedPrices])
 
-  // Get display base price for an item
-  const getDisplayBasePrice = (item: PriceItem): number => {
-    const editedPrice = editedBasePrices[item.item_id]
-    if (editedPrice !== undefined) {
-      const parsed = parseFloat(editedPrice)
-      return isNaN(parsed) ? parseFloat(String(item.base_price)) : parsed
-    }
-    return parseFloat(String(item.base_price))
-  }
-
   // Save changes
   const handleSave = async () => {
     if (!priceData || !selectedShopId) return
-    
-    // Collect items with changed prices
-    const changedItems: Array<{ item_id: number; price: number }> = []
-    
+
+    // Collect items with prices
+    const changedItems: Array<{ sku_id: string; price: number }> = []
+
     priceData.items.forEach(item => {
-      const editedPrice = editedPrices[item.item_id]
+      const editedPrice = editedPrices[item.id]
       if (editedPrice) {
         const price = parseFloat(editedPrice)
         if (!isNaN(price) && price >= 0) {
           changedItems.push({
-            item_id: item.item_id,
+            sku_id: item.id,
             price: price
           })
         }
       }
     })
-    
+
     if (changedItems.length === 0) {
       setError('No valid price changes to save')
       return
     }
-    
+
     try {
       setSaving(true)
       setError(null)
       setSuccess(null)
-      
-      await api.businessManagement.prices.bulkUpdate({
-        shop_id: parseInt(selectedShopId),
-        date: selectedDate,
-        items: changedItems
+
+      // Use API client for proper auth
+      await api.poultry.skus.bulkPrices({
+        store_id: parseInt(selectedShopId),
+        effective_date: selectedDate,
+        prices: changedItems
       })
-      
+
       setSuccess(`Successfully updated ${changedItems.length} price(s)`)
-      
+
       // Refresh prices
       await fetchPrices()
     } catch (err: any) {
@@ -284,20 +201,27 @@ export default function PriceConfigPage() {
     }
   }
 
-  // Reset to base prices (clear edited)
+  // Reset to current prices
   const handleReset = () => {
-    setEditedPrices({})
+    if (!priceData) return
+    const initialPrices: Record<string, string> = {}
+    priceData.items.forEach(item => {
+      if (item.current_price !== null) {
+        initialPrices[item.id] = item.current_price.toString()
+      }
+    })
+    setEditedPrices(initialPrices)
     setSuccess(null)
   }
 
-  // Initial fetch
+  // Fetch shops on mount
   useEffect(() => {
     if (canRead) {
       fetchShops()
     }
   }, [canRead])
 
-  // Fetch prices when shop or date changes
+  // Fetch prices when store or date changes
   useEffect(() => {
     if (selectedShopId && selectedDate) {
       fetchPrices()
@@ -305,30 +229,30 @@ export default function PriceConfigPage() {
   }, [selectedShopId, selectedDate])
 
   // Get display price for an item
-  const getDisplayPrice = (item: PriceItem): string => {
-    const editedPrice = editedPrices[item.item_id]
+  const getDisplayPrice = (item: SKUWithPrice): string => {
+    const editedPrice = editedPrices[item.id]
     if (editedPrice !== undefined) {
       return editedPrice
     }
-    return item.daily_price?.toString() || ''
+    return item.current_price?.toString() || ''
   }
 
-  // Check if item has custom price
-  const hasCustomPrice = (item: PriceItem): boolean => {
-    const editedPrice = editedPrices[item.item_id]
-    return editedPrice !== undefined && editedPrice !== '' || item.daily_price !== null
+  const inventoryTypeColors: Record<string, string> = {
+    'LIVE': 'bg-blue-100 text-blue-800',
+    'SKIN': 'bg-orange-100 text-orange-800',
+    'SKINLESS': 'bg-green-100 text-green-800'
   }
 
   return (
-    <PermissionGuard permission="priceconfig.view">
+    <PermissionGuard permission="storeprices.view">
       <div className="p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <Tags className="h-8 w-8 text-primary" />
             <div>
-              <h1 className="text-3xl font-bold">Price Configuration</h1>
-              <p className="text-muted-foreground">Configure daily prices per shop</p>
+              <h1 className="text-3xl font-bold">SKU Price Configuration</h1>
+              <p className="text-muted-foreground">Configure product prices per store</p>
             </div>
           </div>
           {canWrite && hasChanges && (
@@ -352,33 +276,6 @@ export default function PriceConfigPage() {
               </Button>
             </div>
           )}
-        </div>
-
-        {/* Permission badges */}
-        <div className="bg-card rounded-lg p-4 mb-6 border">
-          <h3 className="font-semibold mb-2 text-sm text-muted-foreground">Your Permissions:</h3>
-          <div className="flex flex-wrap gap-3">
-            <div className="flex items-center gap-2">
-              {canRead ? (
-                <CheckCircle2 className="h-4 w-4 text-green-600" />
-              ) : (
-                <XCircle className="h-4 w-4 text-red-600" />
-              )}
-              <span className={`text-sm ${canRead ? 'text-green-700' : 'text-red-700'}`}>
-                Read Prices
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              {canWrite ? (
-                <CheckCircle2 className="h-4 w-4 text-green-600" />
-              ) : (
-                <XCircle className="h-4 w-4 text-red-600" />
-              )}
-              <span className={`text-sm ${canWrite ? 'text-green-700' : 'text-red-700'}`}>
-                Write Prices
-              </span>
-            </div>
-          </div>
         </div>
 
         {/* Filters */}
@@ -418,7 +315,7 @@ export default function PriceConfigPage() {
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
-                Select Date
+                Effective Date
               </Label>
               <Input
                 type="date"
@@ -459,91 +356,41 @@ export default function PriceConfigPage() {
             <div className="p-4 border-b">
               <h3 className="font-semibold flex items-center gap-2">
                 <IndianRupee className="h-5 w-5" />
-                Prices for {priceData.shop_name} - {new Date(priceData.date).toLocaleDateString()}
+                Prices for {priceData.store_name} - {new Date(priceData.date).toLocaleDateString()}
               </h3>
               <p className="text-sm text-muted-foreground mt-1">
-                Leave daily price empty to use base price. Click on base price to edit. {!canWrite && '(Read-only mode)'}
+                {priceData.items.length} SKUs available. {!canWrite && '(Read-only mode)'}
               </p>
             </div>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Item</TableHead>
                   <TableHead>SKU</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead className="text-right">Base Price</TableHead>
-                  <TableHead className="text-right w-[180px]">Daily Price</TableHead>
-                  <TableHead className="text-right">Effective</TableHead>
+                  <TableHead>Code</TableHead>
+                  <TableHead>Bird Type</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead className="text-right w-[180px]">Price (₹/{priceData.items[0]?.unit || 'kg'})</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {priceData.items.map((item) => {
                   const displayPrice = getDisplayPrice(item)
-                  const basePrice = getDisplayBasePrice(item)
-                  const effectivePrice = displayPrice 
-                    ? parseFloat(displayPrice) 
-                    : basePrice
-                  const isCustom = hasCustomPrice(item)
-                  const isEditingBase = editingBasePrice === item.item_id
-                  
+
                   return (
-                    <TableRow key={item.item_id}>
+                    <TableRow key={item.id}>
                       <TableCell>
-                        <div className="font-medium">{item.item_name}</div>
-                        <div className="text-xs text-muted-foreground">/{item.unit}</div>
+                        <div className="font-medium">{item.name}</div>
                       </TableCell>
                       <TableCell>
-                        <span className="text-sm font-mono">{item.sku || '-'}</span>
+                        <span className="text-sm font-mono bg-muted px-2 py-0.5 rounded">{item.code}</span>
                       </TableCell>
                       <TableCell>
-                        <span className="text-sm">{item.category || '-'}</span>
+                        <span className="text-sm">{item.bird_type === 'BROILER' ? '🐔 Broiler' : '🐓 Parent Cull'}</span>
                       </TableCell>
-                      <TableCell className="text-right">
-                        {isEditingBase ? (
-                          <div className="flex items-center justify-end gap-1">
-                            <Input
-                              type="number"
-                              step="0.01"
-                              min="0"
-                              value={editedBasePrices[item.item_id] || ''}
-                              onChange={(e) => handleBasePriceChange(item.item_id, e.target.value)}
-                              className="w-[100px] text-right font-mono h-8"
-                              autoFocus
-                            />
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-8 w-8 p-0"
-                              onClick={() => saveBasePrice(item.item_id)}
-                              disabled={saving}
-                            >
-                              <CheckCircle2 className="h-4 w-4 text-green-600" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-8 w-8 p-0"
-                              onClick={() => cancelEditingBasePrice(item.item_id)}
-                              disabled={saving}
-                            >
-                              <XCircle className="h-4 w-4 text-red-600" />
-                            </Button>
-                          </div>
-                        ) : (
-                          <div className="flex items-center justify-end gap-1">
-                            <span className="font-mono">₹{basePrice.toFixed(2)}</span>
-                            {canWrite && (
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="h-6 w-6 p-0 opacity-50 hover:opacity-100"
-                                onClick={() => startEditingBasePrice(item.item_id, item.base_price)}
-                              >
-                                <Pencil className="h-3 w-3" />
-                              </Button>
-                            )}
-                          </div>
-                        )}
+                      <TableCell>
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${inventoryTypeColors[item.inventory_type] || 'bg-gray-100'}`}>
+                          {item.inventory_type}
+                        </span>
                       </TableCell>
                       <TableCell className="text-right">
                         {canWrite ? (
@@ -551,26 +398,14 @@ export default function PriceConfigPage() {
                             type="number"
                             step="0.01"
                             min="0"
-                            placeholder="Use base"
+                            placeholder="Set price"
                             value={displayPrice}
-                            onChange={(e) => handlePriceChange(item.item_id, e.target.value)}
-                            className="w-[120px] ml-auto text-right font-mono"
+                            onChange={(e) => handlePriceChange(item.id, e.target.value)}
+                            className="w-[140px] ml-auto text-right font-mono"
                           />
                         ) : (
-                          <span className="font-mono">
-                            {item.daily_price !== null 
-                              ? `₹${parseFloat(String(item.daily_price)).toFixed(2)}` 
-                              : '-'}
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <span className={`font-mono font-semibold ${isCustom ? 'text-primary' : ''}`}>
-                          ₹{effectivePrice.toFixed(2)}
-                        </span>
-                        {isCustom && (
-                          <span className="ml-2 text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">
-                            Custom
+                          <span className="font-mono font-semibold">
+                            {item.current_price !== null ? `₹${item.current_price.toFixed(2)}` : '-'}
                           </span>
                         )}
                       </TableCell>
@@ -604,13 +439,13 @@ export default function PriceConfigPage() {
           </div>
         )}
 
-        {/* Empty state - no items */}
+        {/* Empty state - no SKUs */}
         {!loadingPrices && priceData && priceData.items.length === 0 && (
           <div className="bg-card rounded-lg border p-12 text-center">
             <Tags className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No Inventory Items</h3>
+            <h3 className="text-lg font-semibold mb-2">No SKUs Found</h3>
             <p className="text-muted-foreground">
-              No inventory items found. Add items to start configuring prices.
+              Create SKUs first in the SKU management page.
             </p>
           </div>
         )}

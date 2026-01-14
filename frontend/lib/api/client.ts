@@ -448,10 +448,11 @@ export const api = {
         method: 'POST',
         body: JSON.stringify(data),
       }),
-      bulkPrices: (data: any) => apiRequest('/api/v1/poultry/skus/prices/bulk', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      }),
+      bulkPrices: (data: { store_id: number; effective_date: string; prices: Array<{ sku_id: string; price: number }> }) =>
+        apiRequest(`/api/v1/poultry/skus/prices/bulk?store_id=${data.store_id}&effective_date=${data.effective_date}`, {
+          method: 'POST',
+          body: JSON.stringify(data.prices),
+        }),
     },
 
     // Sales
