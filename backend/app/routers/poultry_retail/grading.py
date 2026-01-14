@@ -282,8 +282,9 @@ async def get_monthly_performance(
     
     supabase = get_supabase()
     
+    # Query performance data
     query = supabase.table("staff_monthly_performance").select(
-        "*, profiles!inner(email, full_name)"
+        "*"
     ).eq("store_id", x_store_id).eq("year", year).eq("month", month)
     
     if grade:
@@ -291,9 +292,16 @@ async def get_monthly_performance(
     
     result = query.order("normalized_score", desc=True).execute()
     
+    # Get user info for each performance record
     performances = []
     for row in result.data:
-        profile = row.pop("profiles", {})
+        # Fetch profile info separately
+        profile_result = supabase.table("profiles").select(
+            "email, full_name"
+        ).eq("id", row["user_id"]).execute()
+        
+        profile = profile_result.data[0] if profile_result.data else {}
+        
         performances.append(PerformanceWithUser(
             **row,
             user_email=profile.get("email", ""),
@@ -438,7 +446,7 @@ async def get_fraud_flags(
     current_month = datetime.now().month
     
     query = supabase.table("staff_monthly_performance").select(
-        "*, profiles!inner(email, full_name)"
+        "*"
     ).eq("year", current_year).eq("month", current_month)
     
     if x_store_id:
@@ -453,12 +461,18 @@ async def get_fraud_flags(
     
     at_risk = []
     for row in result.data:
-        profile = row.pop("profiles", {})
+        # Fetch profile info separately
+        profile_result = supabase.table("profiles").select(
+            "email, full_name"
+        ).eq("id", row["user_id"]).execute()
+        
+        profile = profile_result.data[0] if profile_result.data else {}
+        
         at_risk.append({
             **row,
             "user_email": profile.get("email"),
             "user_name": profile.get("full_name"),
-            "risk_level": "HIGH" if row["grade"] == "E" or row["has_fraud_flag"] else "MEDIUM"
+            "risk_level": "HIGH" if row["grade"] == "E" or row.get("has_fraud_flag") else "MEDIUM"
         })
     
     return {

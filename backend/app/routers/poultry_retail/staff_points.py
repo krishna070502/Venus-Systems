@@ -276,6 +276,9 @@ async def get_leaderboard(
     for row in result.data:
         # Get grade for each leaderboard entry
         grade = "C" # Default
+        store_id = None
+        store_name = None
+        
         try:
             perf = supabase.rpc("calculate_staff_points", {
                 "p_user_id": row["user_id"],
@@ -286,6 +289,20 @@ async def get_leaderboard(
                 grade = perf.data.get("grade", "C")
         except:
             pass
+        
+        # Get user's store from their most recent staff_points entry
+        try:
+            store_result = supabase.table("staff_points").select(
+                "store_id, shops(name)"
+            ).eq("user_id", row["user_id"]).order("created_at", desc=True).limit(1).execute()
+            
+            if store_result.data:
+                store_id = store_result.data[0].get("store_id")
+                shops_data = store_result.data[0].get("shops")
+                store_name = shops_data.get("name") if shops_data else None
+        except Exception as e:
+            print(f"Error getting store for user {row['user_id']}: {e}")
+            pass
 
         entries.append(StaffLeaderboard(
             rank=row["rank"],
@@ -294,7 +311,9 @@ async def get_leaderboard(
             user_name=row["user_name"],
             total_points=row["total_points"],
             grade=grade,
-            zero_variance_days=0  # Placeholder for future feature
+            zero_variance_days=0,
+            store_id=store_id,
+            store_name=store_name
         ))
     
     return StaffLeaderboardResponse(

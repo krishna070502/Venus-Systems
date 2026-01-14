@@ -432,6 +432,8 @@ export interface LeaderboardEntry {
     total_points: number
     grade?: StaffGrade
     rank: number
+    store_id?: number
+    store_name?: string
 }
 
 // ============ Grading ============

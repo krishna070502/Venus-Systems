@@ -13,6 +13,7 @@ import {
     AlertCircle,
     Trophy,
     User,
+    Users,
     Settings,
     TrendingUp,
     Scale,
@@ -101,6 +102,15 @@ export default function StaffPointsPage() {
                                     title="System Configuration"
                                 >
                                     <Settings className="h-4 w-4 text-primary" />
+                                </Link>
+                            )}
+                            {hasPermission(permissions, 'staffgrading.view') && (
+                                <Link
+                                    href="/admin/business/staff-points/performance"
+                                    className="p-2 border rounded-lg bg-card hover:bg-accent transition-colors shadow-sm"
+                                    title="All Managers Performance"
+                                >
+                                    <Users className="h-4 w-4 text-primary" />
                                 </Link>
                             )}
                             <Link

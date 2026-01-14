@@ -563,10 +563,11 @@ export const api = {
       }),
       getLeaderboard: (storeId?: number, period?: string) => {
         const query = new URLSearchParams()
-        if (storeId) query.append('store_id', storeId.toString())
         if (period) query.append('period', period)
         const queryStr = query.toString() ? `?${query.toString()}` : ''
-        return apiRequest(`/api/v1/poultry/staff-points/leaderboard${queryStr}`)
+        const headers: Record<string, string> = {}
+        if (storeId) headers['X-Store-ID'] = storeId.toString()
+        return apiRequest(`/api/v1/poultry/staff-points/leaderboard${queryStr}`, { headers })
       },
       getConfig: () => apiRequest('/api/v1/poultry/staff-points/config'),
       updateConfig: (key: string, data: any) => apiRequest(`/api/v1/poultry/staff-points/config/${key}`, {
