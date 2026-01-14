@@ -9,10 +9,10 @@
 -- ============================================================================
 -- ADD VARIANCE_LOSS AND VARIANCE_FOUND REASON CODES
 -- ============================================================================
-INSERT INTO public.inventory_reason_codes (code, name, description, direction, is_active)
+INSERT INTO public.inventory_reason_codes (code, description, direction, requires_ref, is_system)
 VALUES 
-    ('VARIANCE_LOSS', 'Variance Loss', 'Stock write-off from negative variance', 'OUT', TRUE),
-    ('VARIANCE_FOUND', 'Variance Found', 'Found stock from positive variance', 'IN', TRUE)
+    ('VARIANCE_LOSS', 'Stock write-off from negative variance', 'DEBIT', TRUE, TRUE),
+    ('VARIANCE_FOUND', 'Found stock from positive variance', 'CREDIT', TRUE, TRUE)
 ON CONFLICT (code) DO NOTHING;
 
 -- ============================================================================
