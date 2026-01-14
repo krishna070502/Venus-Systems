@@ -20,8 +20,9 @@ export default function LeaderboardPage() {
         setLoading(true)
         setError(null)
         try {
+            // Show all stores - don't filter by currentStore
             const data = await api.poultry.staffPoints.getLeaderboard(
-                currentStore?.id,
+                undefined,
                 period
             ) as any // Response structure update handled here
 
@@ -33,7 +34,7 @@ export default function LeaderboardPage() {
         } finally {
             setLoading(false)
         }
-    }, [currentStore, period])
+    }, [period])
 
     useEffect(() => {
         fetchLeaderboard()
@@ -76,7 +77,7 @@ export default function LeaderboardPage() {
                             </h1>
                             <p className="text-muted-foreground text-sm font-medium flex items-center gap-1.5 mt-0.5">
                                 <Store className="h-3 w-3" />
-                                {currentStore ? currentStore.name : 'All Stores'} • {period.toUpperCase()}
+                                All Stores • {period.toUpperCase()}
                             </p>
                         </div>
                     </div>
