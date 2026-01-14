@@ -22,10 +22,22 @@ import {
     Zap,
     Scale,
     ArrowLeft,
+    CalendarDays,
+    Play,
+    Lock,
+    CheckCircle,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog'
 import {
     Select,
     SelectContent,
@@ -56,6 +68,18 @@ export default function PerformanceManagementPage() {
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
     const [expandedUserId, setExpandedUserId] = useState<string | null>(null)
     const [expandedData, setExpandedData] = useState<Record<string, ExpandedData>>({})
+
+    // Generate Monthly Performance state
+    const [showGenerateDialog, setShowGenerateDialog] = useState(false)
+    const [generateYear, setGenerateYear] = useState(new Date().getFullYear())
+    const [generateMonth, setGenerateMonth] = useState(new Date().getMonth() + 1)
+    const [generateStoreId, setGenerateStoreId] = useState<string>('')
+    const [generating, setGenerating] = useState(false)
+    const [generateResult, setGenerateResult] = useState<{ success: boolean; message: string } | null>(null)
+
+    // Lock state
+    const [showLockDialog, setShowLockDialog] = useState(false)
+    const [locking, setLocking] = useState(false)
 
     const fetchShops = async () => {
         try {
@@ -202,6 +226,68 @@ export default function PerformanceManagementPage() {
         'all': 'All Time'
     }
 
+    const monthNames = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+    ]
+
+    const handleGeneratePerformance = async () => {
+        if (!generateStoreId) return
+
+        setGenerating(true)
+        setGenerateResult(null)
+
+        try {
+            const result = await api.poultry.grading.generatePerformance(
+                parseInt(generateStoreId),
+                generateYear,
+                generateMonth
+            ) as any
+
+            setGenerateResult({
+                success: true,
+                message: `Successfully generated performance for ${result.records_processed || 0} staff members for ${monthNames[generateMonth - 1]} ${generateYear}`
+            })
+
+            // Refresh leaderboard
+            fetchLeaderboard()
+        } catch (err: any) {
+            setGenerateResult({
+                success: false,
+                message: err.message || 'Failed to generate performance'
+            })
+        } finally {
+            setGenerating(false)
+        }
+    }
+
+    const handleLockPerformance = async () => {
+        if (!generateStoreId) return
+
+        setLocking(true)
+
+        try {
+            const result = await api.poultry.grading.lockPerformance(
+                parseInt(generateStoreId),
+                generateYear,
+                generateMonth
+            ) as any
+
+            setGenerateResult({
+                success: true,
+                message: `Locked ${result.records_locked || 0} performance records for ${monthNames[generateMonth - 1]} ${generateYear}. These records are now immutable.`
+            })
+            setShowLockDialog(false)
+        } catch (err: any) {
+            setGenerateResult({
+                success: false,
+                message: err.message || 'Failed to lock performance'
+            })
+        } finally {
+            setLocking(false)
+        }
+    }
+
     return (
         <PermissionGuard permission="staffgrading.view">
             <div className="p-6 max-w-7xl mx-auto">
@@ -252,6 +338,15 @@ export default function PerformanceManagementPage() {
 
                         <Button variant="outline" onClick={fetchLeaderboard} disabled={loading}>
                             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Filter className="h-4 w-4" />}
+                        </Button>
+
+                        <Button
+                            variant="default"
+                            onClick={() => setShowGenerateDialog(true)}
+                            className="gap-2"
+                        >
+                            <CalendarDays className="h-4 w-4" />
+                            Generate Monthly
                         </Button>
                     </div>
                 </div>
@@ -508,6 +603,169 @@ export default function PerformanceManagementPage() {
                     </div>
                 )}
             </div>
+
+            {/* Generate Monthly Performance Dialog */}
+            <Dialog open={showGenerateDialog} onOpenChange={setShowGenerateDialog}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <CalendarDays className="h-5 w-5 text-primary" />
+                            Generate Monthly Performance
+                        </DialogTitle>
+                        <DialogDescription>
+                            Calculate performance scores, grades, and bonuses for all staff in a store for a specific month.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="space-y-4 py-4">
+                        {/* Store Selection */}
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Store</label>
+                            <Select value={generateStoreId} onValueChange={setGenerateStoreId}>
+                                <SelectTrigger>
+                                    <Store className="h-4 w-4 mr-2" />
+                                    <SelectValue placeholder="Select a store" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {shops.map(shop => (
+                                        <SelectItem key={shop.id} value={shop.id.toString()}>
+                                            {shop.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {/* Month Selection */}
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Month</label>
+                                <Select
+                                    value={generateMonth.toString()}
+                                    onValueChange={(v) => setGenerateMonth(parseInt(v))}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {monthNames.map((name, index) => (
+                                            <SelectItem key={index + 1} value={(index + 1).toString()}>
+                                                {name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Year</label>
+                                <Select
+                                    value={generateYear.toString()}
+                                    onValueChange={(v) => setGenerateYear(parseInt(v))}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {[2024, 2025, 2026, 2027].map(year => (
+                                            <SelectItem key={year} value={year.toString()}>
+                                                {year}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+
+                        {/* Result Message */}
+                        {generateResult && (
+                            <div className={cn(
+                                "rounded-lg p-3 text-sm",
+                                generateResult.success
+                                    ? "bg-green-50 text-green-700 border border-green-200"
+                                    : "bg-red-50 text-red-700 border border-red-200"
+                            )}>
+                                <div className="flex items-start gap-2">
+                                    {generateResult.success
+                                        ? <CheckCircle className="h-4 w-4 mt-0.5" />
+                                        : <AlertCircle className="h-4 w-4 mt-0.5" />}
+                                    <span>{generateResult.message}</span>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <DialogFooter className="gap-2">
+                        <Button
+                            variant="outline"
+                            onClick={() => setShowLockDialog(true)}
+                            disabled={!generateStoreId || !generateResult?.success || locking}
+                        >
+                            <Lock className="h-4 w-4 mr-2" />
+                            Lock Month
+                        </Button>
+                        <Button
+                            onClick={handleGeneratePerformance}
+                            disabled={!generateStoreId || generating}
+                        >
+                            {generating ? (
+                                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                            ) : (
+                                <Play className="h-4 w-4 mr-2" />
+                            )}
+                            Generate
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Lock Confirmation Dialog */}
+            <Dialog open={showLockDialog} onOpenChange={setShowLockDialog}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2 text-amber-600">
+                            <Lock className="h-5 w-5" />
+                            Lock Monthly Performance
+                        </DialogTitle>
+                        <DialogDescription>
+                            <span className="text-amber-600 font-medium">Warning:</span> This action cannot be undone.
+                            Locked records become immutable and will be used for salary calculations.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="py-4">
+                        <p className="text-sm">
+                            You are about to lock performance records for:
+                        </p>
+                        <div className="mt-2 p-3 bg-muted rounded-lg">
+                            <p className="font-medium">
+                                {shops.find(s => s.id.toString() === generateStoreId)?.name || 'Store'}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                                {monthNames[generateMonth - 1]} {generateYear}
+                            </p>
+                        </div>
+                    </div>
+
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setShowLockDialog(false)}>
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            onClick={handleLockPerformance}
+                            disabled={locking}
+                        >
+                            {locking ? (
+                                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                            ) : (
+                                <Lock className="h-4 w-4 mr-2" />
+                            )}
+                            Lock Permanently
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </PermissionGuard>
     )
 }

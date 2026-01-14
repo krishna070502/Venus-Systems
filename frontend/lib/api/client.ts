@@ -591,10 +591,10 @@ export const api = {
         method: 'PATCH',
         body: JSON.stringify(data),
       }),
-      generatePerformance: (data: any) => apiRequest('/api/v1/poultry/grading/performance/generate', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      }),
+      generatePerformance: (storeId: number, year: number, month: number) =>
+        apiRequest(`/api/v1/poultry/grading/performance/generate?store_id=${storeId}&year=${year}&month=${month}`, {
+          method: 'POST',
+        }),
       getPerformance: (storeId: number, year: number, month: number) =>
         apiRequest(`/api/v1/poultry/grading/performance?year=${year}&month=${month}`, {
           headers: { 'X-Store-ID': storeId.toString() },
@@ -606,10 +606,10 @@ export const api = {
         const queryStr = query.toString() ? `?${query.toString()}` : ''
         return apiRequest(`/api/v1/poultry/grading/performance/me${queryStr}`)
       },
-      lockPerformance: (data: any) => apiRequest('/api/v1/poultry/grading/performance/lock', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      }),
+      lockPerformance: (storeId: number, year: number, month: number) =>
+        apiRequest(`/api/v1/poultry/grading/performance/lock?store_id=${storeId}&year=${year}&month=${month}`, {
+          method: 'POST',
+        }),
       getSummary: (storeId: number, year: number, month: number) =>
         apiRequest(`/api/v1/poultry/grading/summary/store?year=${year}&month=${month}`, {
           headers: { 'X-Store-ID': storeId.toString() },
