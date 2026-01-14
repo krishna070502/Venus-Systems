@@ -13,31 +13,44 @@ from app.services.role_service import RoleService
 from app.services.audit_service import audit_logger
 from app.dependencies.auth import get_current_user
 from app.dependencies.rbac import require_permission
+from app.utils.field_filter import filter_fields, filter_fields_list
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+# Field-level permission configuration for roles
+ROLE_FIELD_CONFIG = {
+    "name": "roles.field.name",
+    "description": "roles.field.description",
+    "permissions": "roles.field.permissions",
+}
+
+# Fields always included
+ALWAYS_INCLUDE = {"id"}
+
 
 @router.get(
     "/",
-    response_model=List[Role],
     dependencies=[Depends(require_permission(["roles.read"]))]
 )
-async def get_all_roles():
-    """Get all roles"""
+async def get_all_roles(current_user: Dict = Depends(get_current_user)):
+    """Get all roles. Fields filtered based on user's field-level permissions."""
     role_service = RoleService()
     roles = await role_service.get_all_roles()
-    return roles
+    
+    # Get user's permissions for field filtering
+    user_permissions = await role_service.get_user_permissions(current_user["id"])
+    
+    return filter_fields_list(roles, user_permissions, ROLE_FIELD_CONFIG, ALWAYS_INCLUDE)
 
 
 @router.get(
     "/{role_id}",
-    response_model=RoleWithPermissions,
     dependencies=[Depends(require_permission(["roles.read"]))]
 )
-async def get_role(role_id: int):
-    """Get role by ID with permissions"""
+async def get_role(role_id: int, current_user: Dict = Depends(get_current_user)):
+    """Get role by ID with permissions. Fields filtered based on user's field-level permissions."""
     role_service = RoleService()
     
     role = await role_service.get_role_by_id(role_id)
@@ -50,10 +63,15 @@ async def get_role(role_id: int):
     # Get permissions for this role
     permissions = await role_service.get_role_permissions(role_id)
     
-    return {
+    role_with_perms = {
         **role,
         "permissions": permissions
     }
+    
+    # Get user's permissions for field filtering
+    user_permissions = await role_service.get_user_permissions(current_user["id"])
+    
+    return filter_fields(role_with_perms, user_permissions, ROLE_FIELD_CONFIG, ALWAYS_INCLUDE)
 
 
 @router.post(

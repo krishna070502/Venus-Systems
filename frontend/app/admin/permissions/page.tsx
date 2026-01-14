@@ -80,7 +80,7 @@ const GROUP_CONFIG: Record<string, { displayName: string; category: string }> = 
   'permissions.action': { displayName: 'Permissions - Action Permissions', category: 'System Administration' },
   'test': { displayName: 'Test', category: 'System Administration' },
   'gsearchbar': { displayName: 'Global Search', category: 'System Administration' },
-  
+
   // Business
   'business': { displayName: 'Business', category: 'Business' },
   'businessdashboard': { displayName: 'Business Dashboard', category: 'Business' },
@@ -106,7 +106,7 @@ const GROUP_CONFIG: Record<string, { displayName: string; category: string }> = 
   'purchasereport': { displayName: 'Purchase Reports', category: 'Business' },
   'expensereport': { displayName: 'Expense Reports', category: 'Business' },
   'wastagereport': { displayName: 'Wastage Reports', category: 'Business' },
-  
+
   // Business Management
   'businessmanagement': { displayName: 'Business Management', category: 'Business Management' },
   'shopmanagement': { displayName: 'Shop Management', category: 'Business Management' },
@@ -180,12 +180,12 @@ export default function PermissionsPage() {
   // Group permissions by their prefix
   const groupedPermissions = useMemo(() => {
     const groups: Record<string, Permission[]> = {}
-    
+
     permissions.forEach(permission => {
       // Extract the prefix (everything before the last dot)
       const parts = permission.key.split('.')
       const prefix = parts.length > 1 ? parts.slice(0, -1).join('.') : permission.key
-      
+
       if (!groups[prefix]) {
         groups[prefix] = []
       }
@@ -204,7 +204,7 @@ export default function PermissionsPage() {
   // Group by category
   const categorizedGroups = useMemo(() => {
     const categories: Record<string, PermissionGroup[]> = {}
-    
+
     groupedPermissions.forEach(group => {
       const category = group.category
       if (!categories[category]) {
@@ -221,16 +221,16 @@ export default function PermissionsPage() {
     if (!searchQuery) return categorizedGroups
 
     const filtered: Record<string, PermissionGroup[]> = {}
-    
+
     Object.entries(categorizedGroups).forEach(([category, groups]) => {
       const filteredGroups = groups.map(group => ({
         ...group,
-        permissions: group.permissions.filter(p => 
+        permissions: group.permissions.filter(p =>
           p.key.toLowerCase().includes(searchQuery.toLowerCase()) ||
           (p.description && p.description.toLowerCase().includes(searchQuery.toLowerCase()))
         )
       })).filter(g => g.permissions.length > 0)
-      
+
       if (filteredGroups.length > 0) {
         filtered[category] = filteredGroups
       }
@@ -317,23 +317,24 @@ export default function PermissionsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Permissions</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-3xl font-bold">Permissions</h1>
+            {/* Info Button */}
+            <Button
+              variant="outline"
+              size="icon"
+              className="rounded-full h-8 w-8 bg-blue-50 border-blue-200 hover:bg-blue-100 dark:bg-blue-900/20 dark:border-blue-800 dark:hover:bg-blue-900/40"
+              onClick={() => setShowPermissionsInfo(true)}
+              title="View your permissions"
+            >
+              <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+            </Button>
+          </div>
           <p className="text-muted-foreground mt-2">
             Manage granular permissions for roles
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {/* Info Button */}
-          <Button
-            variant="outline"
-            size="icon"
-            className="rounded-full h-8 w-8 bg-blue-50 border-blue-200 hover:bg-blue-100 dark:bg-blue-900/20 dark:border-blue-800 dark:hover:bg-blue-900/40"
-            onClick={() => setShowPermissionsInfo(true)}
-            title="View your permissions"
-          >
-            <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-          </Button>
-          
           {/* Column Toggle Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -360,7 +361,7 @@ export default function PermissionsPage() {
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-          
+
           {canCreate && (
             <Button onClick={handleCreatePermission}>Create Permission</Button>
           )}
@@ -449,10 +450,10 @@ export default function PermissionsPage() {
           {CATEGORY_ORDER.map(category => {
             const groups = filteredCategorizedGroups[category]
             if (!groups || groups.length === 0) return null
-            
+
             const isCategoryExpanded = expandedCategories.includes(category)
             const categoryPermissionCount = groups.reduce((sum, g) => sum + g.permissions.length, 0)
-            
+
             return (
               <div key={category} className="border rounded-lg overflow-hidden">
                 {/* Category Header */}
@@ -471,13 +472,13 @@ export default function PermissionsPage() {
                   </div>
                   <span className="text-sm text-muted-foreground">{groups.length} groups</span>
                 </button>
-                
+
                 {/* Category Content */}
                 {isCategoryExpanded && (
                   <div className="divide-y">
                     {groups.map(group => {
                       const isGroupExpanded = expandedGroups.includes(group.name)
-                      
+
                       return (
                         <div key={group.name}>
                           {/* Group Header */}
@@ -501,7 +502,7 @@ export default function PermissionsPage() {
                               {group.name}.*
                             </code>
                           </button>
-                          
+
                           {/* Permissions Table */}
                           {isGroupExpanded && (
                             <div className="px-6 pb-3">
@@ -538,19 +539,19 @@ export default function PermissionsPage() {
                                         <TableCell>
                                           <div className="flex gap-2">
                                             {canEdit && (
-                                              <Button 
-                                                variant="ghost" 
-                                                size="sm" 
+                                              <Button
+                                                variant="ghost"
+                                                size="sm"
                                                 onClick={() => handleEditPermission(permission)}
                                               >
                                                 Edit
                                               </Button>
                                             )}
                                             {canDelete && (
-                                              <Button 
-                                                variant="ghost" 
-                                                size="sm" 
-                                                onClick={() => handleDeletePermission(permission)} 
+                                              <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => handleDeletePermission(permission)}
                                                 className="text-red-600 hover:text-red-700"
                                               >
                                                 Delete

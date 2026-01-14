@@ -1,12 +1,8 @@
 # =============================================================================
-# ROOT GITIGNORE FOR SAAS STARTER KIT
+# ROOT GITIGNORE FOR VENUS CHICKEN BUSINESS SYSTEM
 # =============================================================================
 
-# Environment files
-.env
-.env.local
-.env.*.local
-*.env
+# NOTE: .env files are intentionally tracked for this private repo
 
 # IDE and Editors
 .vscode/

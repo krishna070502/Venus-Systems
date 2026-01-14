@@ -6,7 +6,7 @@ All settings are loaded from environment variables.
 """
 
 from pydantic_settings import BaseSettings
-from typing import List
+from typing import List, Optional
 import os
 
 
@@ -44,6 +44,11 @@ class Settings(BaseSettings):
     # Logging
     LOG_LEVEL: str = "INFO"
     
+    # NVIDIA NIM AI Service
+    NVIDIA_NIM_API_KEY: Optional[str] = None
+    NVIDIA_NIM_BASE_URL: str = "https://integrate.api.nvidia.com/v1"
+    NVIDIA_NIM_MODEL: str = "meta/llama-3.3-70b-instruct"  # Supports function calling
+    
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
@@ -52,3 +57,4 @@ class Settings(BaseSettings):
 
 # Create global settings instance
 settings = Settings()
+

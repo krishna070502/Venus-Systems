@@ -7,6 +7,7 @@ import { api } from '@/lib/api/client'
 interface UserPermissions {
   roles: string[]
   permissions: string[]
+  store_ids: number[]
   loading: boolean
 }
 
@@ -15,6 +16,7 @@ export function usePermissions(): UserPermissions {
   const [permissions, setPermissions] = useState<UserPermissions>({
     roles: [],
     permissions: [],
+    store_ids: [],
     loading: true,
   })
 
@@ -25,7 +27,7 @@ export function usePermissions(): UserPermissions {
     }
 
     if (!user) {
-      setPermissions({ roles: [], permissions: [], loading: false })
+      setPermissions({ roles: [], permissions: [], store_ids: [], loading: false })
       return
     }
 
@@ -33,15 +35,16 @@ export function usePermissions(): UserPermissions {
     const fetchPermissions = async () => {
       try {
         const userData = await api.users.getMe() as any
-        
+
         setPermissions({
           roles: userData.roles || [],
           permissions: userData.permissions || [],
+          store_ids: userData.store_ids || [],
           loading: false,
         })
       } catch (error) {
         console.error('Failed to load permissions:', error)
-        setPermissions({ roles: [], permissions: [], loading: false })
+        setPermissions({ roles: [], permissions: [], store_ids: [], loading: false })
       }
     }
 

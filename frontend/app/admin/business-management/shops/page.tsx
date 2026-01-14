@@ -4,11 +4,11 @@ import { useState, useEffect } from 'react'
 import { PermissionGuard } from '@/components/admin/PermissionGuard'
 import { usePermissions, hasPermission } from '@/lib/auth/usePermissions'
 import { api } from '@/lib/api/client'
-import { 
-  Store, 
-  Plus, 
-  CheckCircle2, 
-  XCircle, 
+import {
+  Store,
+  Plus,
+  CheckCircle2,
+  XCircle,
   Loader2,
   AlertCircle,
   Trash2,
@@ -16,7 +16,8 @@ import {
   X,
   MapPin,
   ToggleLeft,
-  ToggleRight
+  ToggleRight,
+  Globe
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -36,6 +37,7 @@ interface Shop {
   id: number
   name: string
   location: string | null
+  timezone: string | null
   is_active: boolean
   created_at: string
   updated_at: string
@@ -43,29 +45,31 @@ interface Shop {
 
 export default function ShopsPage() {
   const { permissions, loading: permissionsLoading } = usePermissions()
-  
+
   // State
   const [shops, setShops] = useState<Shop[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
-  
+
   // Modal state
   const [showModal, setShowModal] = useState(false)
   const [editingShop, setEditingShop] = useState<Shop | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [modalError, setModalError] = useState<string | null>(null)
-  
+
   // Form state
   const [formName, setFormName] = useState('')
   const [formLocation, setFormLocation] = useState('')
+  const [formTimezone, setFormTimezone] = useState('Asia/Kolkata')
   const [formIsActive, setFormIsActive] = useState(true)
-  
+
   // Permissions
   const canRead = hasPermission(permissions, 'shops.read')
   const canWrite = hasPermission(permissions, 'shops.write')
   const canUpdate = hasPermission(permissions, 'shops.update')
   const canDelete = hasPermission(permissions, 'shops.delete')
+  const canManageTimezone = hasPermission(permissions, 'shops.manage_timezone')
 
   // Fetch shops
   const fetchShops = async () => {
@@ -86,6 +90,7 @@ export default function ShopsPage() {
     setEditingShop(null)
     setFormName('')
     setFormLocation('')
+    setFormTimezone('Asia/Kolkata')
     setFormIsActive(true)
     setModalError(null)
     setShowModal(true)
@@ -96,6 +101,7 @@ export default function ShopsPage() {
     setEditingShop(shop)
     setFormName(shop.name)
     setFormLocation(shop.location || '')
+    setFormTimezone(shop.timezone || 'Asia/Kolkata')
     setFormIsActive(shop.is_active)
     setModalError(null)
     setShowModal(true)
@@ -124,6 +130,7 @@ export default function ShopsPage() {
         await api.businessManagement.shops.update(editingShop.id, {
           name: formName.trim(),
           location: formLocation.trim() || undefined,
+          timezone: formTimezone,
           is_active: formIsActive
         })
         setSuccess('Shop updated successfully')
@@ -132,11 +139,12 @@ export default function ShopsPage() {
         await api.businessManagement.shops.create({
           name: formName.trim(),
           location: formLocation.trim() || undefined,
+          timezone: formTimezone,
           is_active: formIsActive
         })
         setSuccess('Shop created successfully')
       }
-      
+
       closeModal()
       await fetchShops()
     } catch (err: any) {
@@ -288,6 +296,7 @@ export default function ShopsPage() {
                 <TableRow>
                   <TableHead>Shop Name</TableHead>
                   <TableHead>Location</TableHead>
+                  <TableHead>Timezone</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Created</TableHead>
                   {(canUpdate || canDelete) && <TableHead className="w-[120px]">Actions</TableHead>}
@@ -315,10 +324,16 @@ export default function ShopsPage() {
                       )}
                     </TableCell>
                     <TableCell>
-                      <Badge 
+                      <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                        <Globe className="h-3.5 w-3.5" />
+                        {shop.timezone || 'Asia/Kolkata'}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge
                         variant={shop.is_active ? "default" : "secondary"}
-                        className={shop.is_active 
-                          ? "bg-green-100 text-green-800 hover:bg-green-200" 
+                        className={shop.is_active
+                          ? "bg-green-100 text-green-800 hover:bg-green-200"
                           : "bg-gray-100 text-gray-600"}
                       >
                         {shop.is_active ? 'Active' : 'Inactive'}
@@ -440,6 +455,28 @@ export default function ShopsPage() {
                     onChange={(e) => setFormLocation(e.target.value)}
                   />
                 </div>
+
+                {/* Timezone */}
+                {canManageTimezone && (
+                  <div className="space-y-2">
+                    <Label htmlFor="timezone">Shop Timezone *</Label>
+                    <select
+                      id="timezone"
+                      value={formTimezone}
+                      onChange={(e) => setFormTimezone(e.target.value)}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <option value="Asia/Kolkata">Asia/Kolkata (IST)</option>
+                      <option value="America/Chicago">America/Chicago (CST/CDT)</option>
+                      <option value="America/New_York">America/New_York (EST/EDT)</option>
+                      <option value="America/Los_Angeles">America/Los_Angeles (PST/PDT)</option>
+                      <option value="UTC">UTC</option>
+                    </select>
+                    <p className="text-[10px] text-muted-foreground italic">
+                      All settlements and sales for this shop will be calculated based on this timezone.
+                    </p>
+                  </div>
+                )}
 
                 {/* Active Status */}
                 <div className="flex items-center justify-between">

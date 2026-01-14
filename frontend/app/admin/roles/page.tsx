@@ -99,7 +99,7 @@ function RolesPageContent() {
   const [allPermissions, setAllPermissions] = useState<Permission[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [showPermissionsInfo, setShowPermissionsInfo] = useState(false)
-  const [visibleFields, setVisibleFields] = useState<Set<FieldKey>>(new Set(['name', 'description', 'permissions']))
+  const [visibleFields, setVisibleFields] = useState<Set<FieldKey>>(new Set<FieldKey>(['name', 'description', 'permissions']))
   const [viewingPermissionsRole, setViewingPermissionsRole] = useState<Role | null>(null)
 
   const { permissions: userPermissions, loading: permissionsLoading } = usePermissions()
@@ -217,9 +217,9 @@ function RolesPageContent() {
 
   const handleDuplicateRole = async (role: Role) => {
     try {
-      await api.roles.create({ 
-        name: `${role.name} (Copy)`, 
-        description: role.description || '' 
+      await api.roles.create({
+        name: `${role.name} (Copy)`,
+        description: role.description || ''
       })
       showSuccess('Role duplicated successfully')
       await loadRoles()
@@ -235,7 +235,7 @@ function RolesPageContent() {
       permissions: role.permissions,
       user_count: role.user_count,
     }))
-    
+
     const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -287,9 +287,9 @@ function RolesPageContent() {
             </p>
           </div>
           {/* Info Button */}
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <Button
+            variant="ghost"
+            size="icon"
             className="rounded-full h-8 w-8 bg-blue-100 hover:bg-blue-200 text-blue-600"
             onClick={() => setShowPermissionsInfo(true)}
             title="View your permissions"
@@ -333,7 +333,7 @@ function RolesPageContent() {
                 Roles define what users can do in the system
               </CardDescription>
             </div>
-            
+
             {/* Column Visibility Dropdown */}
             {availableFields.length > 0 && (
               <DropdownMenu>
@@ -391,7 +391,7 @@ function RolesPageContent() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {roles.filter(role => 
+              {roles.filter(role =>
                 role.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 (role.description && role.description.toLowerCase().includes(searchQuery.toLowerCase()))
               ).map((role) => (
@@ -468,10 +468,10 @@ function RolesPageContent() {
                           </Button>
                         )}
                         {canDelete && (
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            onClick={() => handleDeleteRole(role)} 
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteRole(role)}
                             className="text-red-600 hover:text-red-700"
                           >
                             Delete
@@ -554,7 +554,7 @@ function RolesPageContent() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="mt-4 pt-4 border-t">
                 <p className="text-sm font-medium mb-2">Visible Columns:</p>
                 <div className="flex flex-wrap gap-2">
@@ -562,8 +562,8 @@ function RolesPageContent() {
                     const config = FIELD_CONFIG[fieldKey]
                     const canView = canViewField(fieldKey)
                     return (
-                      <Badge 
-                        key={fieldKey} 
+                      <Badge
+                        key={fieldKey}
                         variant={canView ? "default" : "secondary"}
                         className={cn(!canView && "opacity-50")}
                       >

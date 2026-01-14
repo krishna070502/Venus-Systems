@@ -19,7 +19,9 @@ class AuditLogger:
         resource_type: str,
         resource_id: Optional[str] = None,
         changes: Optional[Dict[str, Any]] = None,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
+        ip_address: Optional[str] = None,
+        user_agent: Optional[str] = None
     ):
         """
         Log an audit event
@@ -40,6 +42,8 @@ class AuditLogger:
                 "resource_id": resource_id,
                 "changes": changes or {},
                 "metadata": metadata or {},
+                "ip_address": ip_address,
+                "user_agent": user_agent,
                 "timestamp": datetime.utcnow().isoformat()
             }
             

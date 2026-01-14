@@ -643,9 +643,10 @@ async def remove_manager(
 )
 async def get_all_inventory_items(
     is_active: Optional[bool] = Query(None),
-    category: Optional[str] = Query(None)
+    category: Optional[str] = Query(None),
+    item_type: Optional[str] = Query(None, description="Filter by item type: purchase or sale")
 ):
-    """Get all inventory items"""
+    """Get all inventory items with optional filters"""
     try:
         query = supabase_client.table("inventory_items").select("*")
         
@@ -654,6 +655,9 @@ async def get_all_inventory_items(
         
         if category:
             query = query.eq("category", category)
+        
+        if item_type:
+            query = query.eq("item_type", item_type)
         
         response = query.order("name").execute()
         return response.data if response.data else []
@@ -677,8 +681,13 @@ async def create_inventory_item(
 ):
     """Create a new inventory item (Admin only)"""
     try:
+        item_data = item.model_dump()
+        # Convert Decimal to float for JSON serialization
+        if 'base_price' in item_data:
+            item_data['base_price'] = float(item_data['base_price'])
+        
         response = supabase_client.table("inventory_items")\
-            .insert(item.model_dump())\
+            .insert(item_data)\
             .execute()
         
         if response.data:
@@ -754,6 +763,9 @@ async def update_inventory_item(
         
         # Build update data (only include non-None fields)
         update_data = {k: v for k, v in item.model_dump().items() if v is not None}
+        # Convert Decimal to float for JSON serialization
+        if 'base_price' in update_data:
+            update_data['base_price'] = float(update_data['base_price'])
         
         if not update_data:
             raise HTTPException(

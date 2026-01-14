@@ -9,13 +9,14 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { LoadingSpinner } from '@/components/ui/loading'
-import { AlertCircle, UserX } from 'lucide-react'
+import { AlertCircle, UserX, Eye, EyeOff, ArrowLeft, LayoutDashboard, UserPlus, Shield } from 'lucide-react'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
 export default function SignupPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [fullName, setFullName] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -70,109 +71,203 @@ export default function SignupPage() {
   // Show disabled message if registration is off
   if (!registrationEnabled) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <div className="mx-auto mb-4 p-4 bg-destructive/10 rounded-full w-fit">
-              <UserX className="h-12 w-12 text-destructive" />
-            </div>
-            <CardTitle className="text-2xl text-[#1E4DD8]">Venus Chicken</CardTitle>
-            <CardDescription>
-              Registration Unavailable
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="text-center space-y-4">
-            <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-              <div className="flex items-center justify-center gap-2 text-yellow-800 dark:text-yellow-200">
-                <AlertCircle className="h-5 w-5" />
-                <p className="font-medium">Registration is currently disabled</p>
+      <div className="min-h-screen flex items-center justify-center p-4 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-50/50 via-white to-white relative overflow-hidden">
+        {/* Decorative background elements */}
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-core-blue/5 rounded-full blur-3xl -z-10" />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-100/20 rounded-full blur-3xl -z-10" />
+
+        <div className="w-full max-w-md space-y-8 relative z-10">
+          <div className="flex flex-col items-center text-center space-y-4">
+            <Link href="/" className="flex items-center gap-3 group transition-transform hover:scale-105">
+              <div className="h-12 w-12 bg-core-blue rounded-2xl flex items-center justify-center shadow-2xl shadow-blue-200">
+                <LayoutDashboard className="h-7 w-7 text-white" />
               </div>
-              <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-2">
-                New user registration has been temporarily disabled by the administrator.
-                Please contact support if you need access.
-              </p>
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
-            <Link href="/auth/login" className="w-full">
-              <Button variant="outline" className="w-full">
-                Back to Login
-              </Button>
+              <div className="text-left">
+                <span className="text-2xl font-black text-desk-black tracking-tighter uppercase block leading-none">
+                  Venus <span className="text-core-blue">Operations</span>
+                </span>
+                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em] mt-1 block">Enterprise Control Portal</span>
+              </div>
             </Link>
-          </CardFooter>
-        </Card>
+          </div>
+
+          <Card className="border-none shadow-3xl bg-white/80 backdrop-blur-xl rounded-[2.5rem] overflow-hidden">
+            <CardHeader className="text-center pt-10 pb-6">
+              <div className="mx-auto mb-6 p-6 bg-red-50 rounded-[2rem] w-fit border border-red-100 shadow-sm">
+                <UserX className="h-12 w-12 text-error-red" />
+              </div>
+              <CardTitle className="text-3xl font-black text-desk-black tracking-tighter uppercase">Registration Locked</CardTitle>
+              <CardDescription className="font-bold text-gray-400 mt-2 uppercase tracking-widest text-[10px]">
+                System Security Protocol Active
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="px-10 text-center space-y-6">
+              <div className="p-6 bg-orange-50 rounded-2xl border border-orange-100">
+                <div className="flex items-center justify-center gap-2 text-warning-yellow mb-2">
+                  <AlertCircle className="h-5 w-5" />
+                  <p className="font-black uppercase tracking-tight text-sm">Access Restricted</p>
+                </div>
+                <p className="text-sm text-gray-500 font-bold leading-relaxed">
+                  New personnel enrollment is currently disabled by system administrators.
+                  Existing credentials remain valid for authorized entry.
+                </p>
+              </div>
+              <p className="text-[11px] text-gray-400 font-medium italic">
+                Please contact the IT Security Department if you require new operational access.
+              </p>
+            </CardContent>
+            <CardFooter className="px-10 pb-10 pt-4 flex flex-col space-y-4">
+              <Link href="/auth/login" className="w-full">
+                <Button className="h-16 w-full bg-desk-black hover:bg-core-blue text-white font-black text-lg shadow-2xl transition-all rounded-2xl flex items-center justify-center gap-3 group">
+                  <ArrowLeft className="h-5 w-5 group-hover:-translate-x-1 transition-transform" />
+                  RETURN TO LOGIN
+                </Button>
+              </Link>
+            </CardFooter>
+          </Card>
+
+          <p className="text-[10px] text-center text-gray-400 font-black uppercase tracking-[0.4em] pt-4">
+            Venus Chicken - Subsidery of SHIVA AGROVET PVT LTD
+          </p>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-2xl text-[#1E4DD8]">Venus Chicken</CardTitle>
-          <CardDescription>
-            Create your control center account
-          </CardDescription>
-        </CardHeader>
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
-            {error && (
-              <div className="bg-destructive/10 text-destructive p-3 rounded-md text-sm">
-                {error}
+    <div className="min-h-screen flex items-center justify-center p-4 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-50/50 via-white to-white relative overflow-hidden">
+      {/* Decorative background elements */}
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-core-blue/5 rounded-full blur-3xl -z-10 animate-pulse" />
+      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-100/20 rounded-full blur-3xl -z-10" />
+
+      <div className="w-full max-w-md space-y-8 relative z-10">
+        <div className="flex flex-col items-center text-center space-y-4">
+          <Link href="/" className="flex items-center gap-3 group transition-transform hover:scale-105">
+            <div className="h-12 w-12 bg-core-blue rounded-2xl flex items-center justify-center shadow-2xl shadow-blue-200">
+              <LayoutDashboard className="h-7 w-7 text-white" />
+            </div>
+            <div className="text-left">
+              <span className="text-2xl font-black text-desk-black tracking-tighter uppercase block leading-none">
+                Venus <span className="text-core-blue">Operations</span>
+              </span>
+              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em] mt-1 block">Enterprise Control Portal</span>
+            </div>
+          </Link>
+        </div>
+
+        <Card className="border-none shadow-3xl bg-white/80 backdrop-blur-xl rounded-[2.5rem] overflow-hidden">
+          <CardHeader className="space-y-4 pt-10 px-8 pb-6 bg-gradient-to-b from-gray-50/50 to-transparent">
+            <div className="flex items-center justify-between">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="gap-2 -ml-2 text-gray-400 hover:text-core-blue font-bold uppercase tracking-widest text-[10px]"
+                onClick={() => router.push('/')}
+                type="button"
+              >
+                <ArrowLeft size={14} />
+                Back to Portal
+              </Button>
+              <div className="flex items-center gap-1.5 px-3 py-1 bg-blue-50 rounded-full border border-blue-100">
+                <div className="h-1.5 w-1.5 bg-core-blue rounded-full animate-pulse" />
+                <span className="text-[9px] font-black text-core-blue uppercase tracking-widest">New Protocol</span>
               </div>
-            )}
-            <div className="space-y-2">
-              <Label htmlFor="fullName">Full Name</Label>
-              <Input
-                id="fullName"
-                type="text"
-                placeholder="John Doe"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-              />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+            <div>
+              <CardTitle className="text-3xl font-black text-desk-black tracking-tighter uppercase">Personnel Registration</CardTitle>
+              <CardDescription className="font-bold text-gray-400 flex items-center gap-2 mt-2">
+                <Shield size={14} />
+                Creating New Security Credentials
+              </CardDescription>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Minimum 8 characters"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={8}
-              />
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? (
-                <span className="flex items-center gap-2">
+          </CardHeader>
+          <form onSubmit={handleSubmit}>
+            <CardContent className="px-8 space-y-5">
+              {error && (
+                <div className="bg-destructive/10 text-destructive p-4 rounded-2xl text-sm font-bold border border-destructive/20 flex gap-3 animate-in fade-in slide-in-from-top-2">
+                  <div className="mt-0.5">•</div>
+                  {error}
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="fullName" className="text-xs font-black uppercase tracking-widest text-gray-500 ml-1">Full Name</Label>
+                <Input
+                  id="fullName"
+                  type="text"
+                  placeholder="Operational Agent Identifier"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  className="h-14 bg-gray-50/50 border-gray-100 focus:border-core-blue focus:ring-core-blue/20 rounded-2xl transition-all font-medium"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-xs font-black uppercase tracking-widest text-gray-500 ml-1">Personnel Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="name@venuschicken.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="h-14 bg-gray-50/50 border-gray-100 focus:border-core-blue focus:ring-core-blue/20 rounded-2xl transition-all font-medium"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-xs font-black uppercase tracking-widest text-gray-500 ml-1">Digital Credential</Label>
+                <div className="relative group">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Min. 8 characters"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="h-14 bg-gray-50/50 border-gray-100 focus:border-core-blue focus:ring-core-blue/20 rounded-2xl transition-all font-medium pr-12"
+                    required
+                    minLength={8}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-core-blue transition-colors focus:outline-none"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+              </div>
+            </CardContent>
+
+            <CardFooter className="px-8 pb-10 pt-6 flex flex-col space-y-6">
+              <Button
+                type="submit"
+                className="h-16 w-full bg-desk-black hover:bg-core-blue text-white font-black text-lg shadow-2xl transition-all rounded-2xl flex items-center justify-center gap-3 group"
+                disabled={loading}
+              >
+                {loading ? (
                   <LoadingSpinner size="sm" />
-                  Creating account...
-                </span>
-              ) : 'Sign Up'}
-            </Button>
-            <p className="text-sm text-center text-muted-foreground">
-              Already have an account?{' '}
-              <Link href="/auth/login" className="text-primary hover:underline">
-                Sign in
-              </Link>
-            </p>
-          </CardFooter>
-        </form>
-      </Card>
+                ) : (
+                  <>
+                    CREATE CREDENTIALS
+                    <UserPlus className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                  </>
+                )}
+              </Button>
+              <div className="text-sm text-center">
+                <span className="text-gray-400 font-bold">Already Registered?</span>{' '}
+                <Link href="/auth/login" className="text-core-blue font-black hover:underline uppercase tracking-tight ml-1">
+                  Return to Login
+                </Link>
+              </div>
+            </CardFooter>
+          </form>
+        </Card>
+
+        <p className="text-[10px] text-center text-gray-400 font-black uppercase tracking-[0.4em] pt-4">
+          Venus Chicken - Subsidery of SHIVA AGROVET PVT LTD
+        </p>
+      </div>
     </div>
   )
 }

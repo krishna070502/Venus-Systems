@@ -11,52 +11,67 @@ import logging
 from app.models.permission import PermissionCreate, PermissionUpdate, Permission
 from app.services.role_service import RoleService
 from app.dependencies.rbac import require_permission
+from app.dependencies.auth import get_current_user
+from app.utils.field_filter import filter_fields, filter_fields_list
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+# Field-level permission configuration
+# Maps field names to the permission required to view them
+PERMISSION_FIELD_CONFIG = {
+    "key": "permissions.field.key",
+    "description": "permissions.field.description",
+}
+
+# Fields that are always included (needed for operations)
+ALWAYS_INCLUDE = {"id"}
+
 
 @router.get(
     "/",
-    response_model=List[Permission],
     dependencies=[Depends(require_permission(["permissions.read"]))]
 )
-async def get_all_permissions():
+async def get_all_permissions(current_user: dict = Depends(get_current_user)):
     """
     Get all permissions in the system
     
     Returns a complete list of all available permissions that can be assigned to roles.
+    Fields are filtered based on user's field-level permissions.
     
     **Permission Required:** `permissions.read`
     
-    **Dynamic Permission System:**
-    - New permissions can be created and will automatically appear in the UI
-    - Frontend displays permissions as feature cards (if mapped) or badges
-    - No code changes needed for new permissions to be visible
-    
-    **Permissions are used to:**
-    - Protect frontend pages with PermissionGuard
-    - Filter navigation sidebar items
-    - Control access to API endpoints
-    - Display available features on landing page
-    
-    **Standard Permission Format:** `<resource>.<action>`
-    
-    Examples: `users.read`, `systemdashboard.view`, `system.logs`, etc.
+    **Field-Level Permissions:**
+    - `permissions.field.key` - View permission key
+    - `permissions.field.description` - View permission description
     """
     role_service = RoleService()
     permissions = await role_service.get_all_permissions()
-    return permissions
+    
+    # Get user's permissions for field filtering
+    user_permissions = await role_service.get_user_permissions(current_user["id"])
+    
+    # Filter fields based on user's field-level permissions
+    filtered_permissions = filter_fields_list(
+        permissions,
+        user_permissions,
+        PERMISSION_FIELD_CONFIG,
+        ALWAYS_INCLUDE
+    )
+    
+    return filtered_permissions
 
 
 @router.get(
     "/{permission_id}",
-    response_model=Permission,
     dependencies=[Depends(require_permission(["permissions.read"]))]
 )
-async def get_permission(permission_id: int):
-    """Get permission by ID"""
+async def get_permission(
+    permission_id: int,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get permission by ID. Fields filtered based on user's field-level permissions."""
     role_service = RoleService()
     
     permission = await role_service.get_permission_by_id(permission_id)
@@ -66,7 +81,18 @@ async def get_permission(permission_id: int):
             detail="Permission not found"
         )
     
-    return permission
+    # Get user's permissions for field filtering
+    user_permissions = await role_service.get_user_permissions(current_user["id"])
+    
+    # Filter fields based on user's field-level permissions
+    filtered_permission = filter_fields(
+        permission,
+        user_permissions,
+        PERMISSION_FIELD_CONFIG,
+        ALWAYS_INCLUDE
+    )
+    
+    return filtered_permission
 
 
 @router.post(

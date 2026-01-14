@@ -11,6 +11,7 @@ import { GlobalSearch } from '@/components/admin/GlobalSearch'
 import { MaintenanceGuard } from '@/components/admin/MaintenanceGuard'
 import { AlertProvider } from '@/components/ui/alert-modal'
 import { LoadingSpinner } from '@/components/ui/loading'
+import AIChatWidget from '@/components/ai/AIChatWidget'
 
 export default function AdminLayout({
   children,
@@ -47,12 +48,8 @@ export default function AdminLayout({
         <div className="h-screen flex overflow-hidden">
           <AdminSidebar />
           <div className="flex-1 flex flex-col overflow-hidden">
-            <header className="border-b bg-card px-8 py-4 flex items-center justify-between flex-shrink-0 relative z-10">
-              <div className="flex items-center gap-8">
-                <div>
-                  <h1 className="text-2xl font-bold text-[#1E4DD8]">Venus Chicken</h1>
-                  <p className="text-sm text-muted-foreground">Your Application's Control Center</p>
-                </div>
+            <header className="border-b bg-white px-8 py-5 flex items-center justify-between flex-shrink-0 relative z-10">
+              <div className="flex-1 flex items-center">
                 {canViewSearchBar && <GlobalSearch />}
               </div>
               <div className="flex items-center gap-4">
@@ -65,7 +62,10 @@ export default function AdminLayout({
             </main>
           </div>
         </div>
+        {/* AI Chat Widget */}
+        <AIChatWidget />
       </MaintenanceGuard>
     </AlertProvider>
   )
 }
+

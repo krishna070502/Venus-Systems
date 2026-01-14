@@ -1,0 +1,65 @@
+name: Daily Staff Points Checks
+
+on:
+  schedule:
+    # Run at 6:00 AM IST (00:30 UTC since IST is UTC+5:30)
+    - cron: '30 0 * * *'
+  workflow_dispatch:
+    # Allow manual trigger from GitHub UI
+    inputs:
+      check_date:
+        description: 'Date to check (YYYY-MM-DD format, defaults to yesterday)'
+        required: false
+        type: string
+
+env:
+  API_BASE_URL: ${{ secrets.API_BASE_URL }}
+  CRON_SECRET: ${{ secrets.CRON_SECRET }}
+  ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
+
+jobs:
+  run-daily-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Daily Staff Points Checks
+        run: |
+          echo "Running daily staff points checks..."
+          
+          # Prepare headers
+          HEADERS="-H 'Content-Type: application/json' -H 'X-Cron-Secret: ${{ secrets.CRON_SECRET }}' -H 'Authorization: Bearer ${{ secrets.ADMIN_TOKEN }}'"
+          
+          # Prepare URL with optional date
+          URL="${{ secrets.API_BASE_URL }}/api/v1/poultry/scheduled-tasks/daily-checks"
+          if [ -n "${{ github.event.inputs.check_date }}" ]; then
+            URL="${URL}?check_date=${{ github.event.inputs.check_date }}"
+          fi
+          
+          # Make the API call
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$URL" \
+            -H "Content-Type: application/json" \
+            -H "X-Cron-Secret: ${{ secrets.CRON_SECRET }}" \
+            -H "Authorization: Bearer ${{ secrets.ADMIN_TOKEN }}")
+          
+          # Extract response body and status code
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+          
+          echo "Response Code: $HTTP_CODE"
+          echo "Response Body: $BODY"
+          
+          # Check for success
+          if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 300 ]; then
+            echo "✅ Daily checks completed successfully!"
+          else
+            echo "❌ Daily checks failed with status $HTTP_CODE"
+            exit 1
+          fi
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Daily Staff Points Check Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Trigger**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Check Date**: ${{ github.event.inputs.check_date || 'Yesterday (auto)' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status**: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY

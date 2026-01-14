@@ -42,6 +42,16 @@ import {
   Store,
   UserCog,
   Tags,
+  // Poultry Retail icons
+  Egg,
+  Scale,
+  Calculator,
+  Trophy,
+  ClipboardList,
+  RefreshCw,
+  Target,
+  Award,
+  AlertCircle,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
@@ -86,11 +96,11 @@ const systemAdministrationGroup: NavigationGroup = {
 const purchasesPayablesGroup: NavigationGroup = {
   name: 'Purchases & Payables',
   icon: Receipt,
-  permission: 'purchase&payment.view',
+  permission: 'purchases.view',
   items: [
-    { name: 'Purchases', href: '/admin/business/purchases', icon: ShoppingCart, permission: 'purchase.view' },
-    { name: 'Suppliers', href: '/admin/business/suppliers', icon: Truck, permission: 'supplier.view' },
-    { name: 'Payments', href: '/admin/business/payments', icon: CreditCard, permission: 'payment.view' },
+    { name: 'Purchases', href: '/admin/business/purchases', icon: ShoppingCart, permission: 'purchases.sidebar' },
+    { name: 'Suppliers', href: '/admin/business/suppliers', icon: Truck, permission: 'suppliers.sidebar' },
+    { name: 'Payments', href: '/admin/business/payments', icon: CreditCard, permission: 'payment.sidebar' },
   ]
 }
 
@@ -98,12 +108,14 @@ const purchasesPayablesGroup: NavigationGroup = {
 const inventoryManagementGroup: NavigationGroup = {
   name: 'Inventory Management',
   icon: Package,
-  permission: 'inventory.view',
+  permission: 'inventory.sidebar',
   items: [
-    { name: 'Items', href: '/admin/business/inventory/items', icon: Package, permission: 'inventoryitems.view' },
-    { name: 'Stock', href: '/admin/business/inventory/stock', icon: Box, permission: 'stock.view' },
-    { name: 'Wastage', href: '/admin/business/inventory/wastage', icon: Trash2, permission: 'wastage.view' },
-    { name: 'Adjustments', href: '/admin/business/inventory/adjustments', icon: ClipboardEdit, permission: 'adjustments.view' },
+    // { name: 'Items-Purchase', href: '/admin/business/inventory/items-purchase', icon: Package, permission: 'itemspurchase.view' }, // Hidden - replaced by SKUs
+    { name: 'Stock', href: '/admin/business/inventory/stock', icon: Box, permission: 'inventory.stock.sidebar' },
+    { name: 'Processing', href: '/admin/business/inventory/processing', icon: RefreshCw, permission: 'processing.sidebar' },
+    { name: 'SKUs', href: '/admin/business/skus', icon: Tags, permission: 'skus.sidebar' },
+    { name: 'Wastage', href: '/admin/business/inventory/wastage', icon: Trash2, permission: 'wastageconfig.sidebar' },
+    { name: 'Adjustments', href: '/admin/business/inventory/adjustments', icon: ClipboardEdit, permission: 'inventory.adjustments.sidebar' },
   ]
 }
 
@@ -111,9 +123,11 @@ const inventoryManagementGroup: NavigationGroup = {
 const salesIncomeGroup: NavigationGroup = {
   name: 'Sales & Income',
   icon: DollarSign,
-  permission: 'salesincome.view',
+  permission: 'sales.sidebar',
   items: [
-    { name: 'Sales', href: '/admin/business/sales', icon: TrendingUp, permission: 'sales.view' },
+    { name: 'POS', href: '/admin/business/sales/pos', icon: ShoppingCart, permission: 'sales.pos.sidebar' },
+    { name: 'Sales', href: '/admin/business/sales', icon: TrendingUp, permission: 'sales.history.sidebar' },
+    // { name: 'Items-Sale', href: '/admin/business/sales-items', icon: Package, permission: 'inventoryitems.view' }, // Hidden - replaced by SKUs
     { name: 'Customers', href: '/admin/business/customers', icon: UserCheck, permission: 'customer.view' },
     { name: 'Receipts', href: '/admin/business/receipts', icon: FileCheck, permission: 'receipt.view' },
   ]
@@ -127,7 +141,9 @@ const financeManagementGroup: NavigationGroup = {
   items: [
     { name: 'Expenses', href: '/admin/business/finance/expenses', icon: Banknote, permission: 'expense.view' },
     { name: 'Cashbook', href: '/admin/business/finance/cashbook', icon: Wallet, permission: 'cashbook.view' },
-    { name: 'Ledger', href: '/admin/business/finance/ledger', icon: BookOpenCheck, permission: 'ledger.view' },
+    { name: 'Ledger', href: '/admin/business/finance/ledger', icon: BookOpenCheck, permission: 'inventory.ledger.sidebar' },
+    { name: 'Settlements', href: '/admin/business/settlements', icon: Calculator, permission: 'settlements.sidebar' },
+    { name: 'Variance', href: '/admin/business/variance', icon: AlertCircle, permission: 'variance.sidebar' },
   ]
 }
 
@@ -144,11 +160,22 @@ const insightsReportsGroup: NavigationGroup = {
   ]
 }
 
+// Staff Performance sub-group
+const staffPerformanceGroup: NavigationGroup = {
+  name: 'Staff Performance',
+  icon: Trophy,
+  permission: 'managers.view',
+  items: [
+    { name: 'Points', href: '/admin/business/staff-points', icon: Award, permission: 'staffpoints.sidebar' },
+    { name: 'Leaderboard', href: '/admin/business/staff-points/leaderboard', icon: Trophy, permission: 'staffleaderboard.sidebar' },
+  ]
+}
+
 // Business group
 const businessGroup: NavigationGroup = {
   name: 'Business',
   icon: Activity,
-  permission: 'business.view',
+  permission: 'poultry.sidebar',
   items: [
     { name: 'Business Dashboard', href: '/admin/business', icon: Activity, permission: 'businessdashboard.view' },
     purchasesPayablesGroup,
@@ -156,7 +183,7 @@ const businessGroup: NavigationGroup = {
     salesIncomeGroup,
     financeManagementGroup,
     insightsReportsGroup,
-    // Add more business-related pages here
+    staffPerformanceGroup,
   ]
 }
 
@@ -182,6 +209,8 @@ const businessManagementGroup: NavigationGroup = {
     // Add more business management modules here
   ]
 }
+
+// Main poultry retail group (removed to use existing Business group)
 
 const navigationGroups: NavigationGroup[] = [
   systemAdministrationGroup,
@@ -215,7 +244,7 @@ export function AdminSidebar() {
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isResizing) return
-      
+
       const newWidth = e.clientX
       // Set min width to 200px and max width to 500px
       if (newWidth >= 200 && newWidth <= 500) {
@@ -253,10 +282,9 @@ export function AdminSidebar() {
 
   // Recursive function to filter navigation groups and items
   const filterNavigationGroup = (group: NavigationGroup): NavigationGroup | null => {
-    // Check if user has permission to view the group
-    if (group.permission && (!permissionsLoading && !hasPermission(userPermissions, group.permission))) {
-      return null
-    }
+    // Check if user has explicit permission to view the group
+    // BUT we also want to show the group if a child item is accessible
+    const hasGroupPermission = !group.permission || (hasPermission(userPermissions, group.permission))
 
     // Filter items within the group (can be pages or nested groups)
     const filteredItems = group.items
@@ -299,7 +327,7 @@ export function AdminSidebar() {
 
   return (
     <TooltipProvider delayDuration={0}>
-      <div 
+      <div
         ref={sidebarRef}
         className={cn(
           "bg-card border-r flex flex-col relative z-20",
@@ -335,8 +363,8 @@ export function AdminSidebar() {
         <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
           {filteredNavigationGroups.map((group) => {
             const isExpanded = expandedGroups.includes(group.name)
-            const hasActiveItem = group.items.some(item => pathname === item.href)
-            
+            const hasActiveItem = group.items.some(item => 'href' in item && pathname === item.href)
+
             return (
               <div key={group.name} className="space-y-1">
                 {isCollapsed ? (
@@ -386,7 +414,7 @@ export function AdminSidebar() {
                         <ChevronRight className="h-4 w-4" />
                       )}
                     </button>
-                    
+
                     {isExpanded && (
                       <div className="ml-4 space-y-1 border-l-2 border-border pl-2">
                         {group.items.map((item) => {
@@ -394,10 +422,10 @@ export function AdminSidebar() {
                           if (isNavigationGroup(item)) {
                             const nestedGroup = item
                             const isNestedExpanded = expandedGroups.includes(nestedGroup.name)
-                            const hasActiveNestedItem = nestedGroup.items.some((nestedItem: any) => 
+                            const hasActiveNestedItem = nestedGroup.items.some((nestedItem: any) =>
                               !isNavigationGroup(nestedItem) && pathname === nestedItem.href
                             )
-                            
+
                             return (
                               <div key={nestedGroup.name} className="space-y-1">
                                 <button
@@ -419,7 +447,7 @@ export function AdminSidebar() {
                                     <ChevronRight className="h-3 w-3" />
                                   )}
                                 </button>
-                                
+
                                 {isNestedExpanded && (
                                   <div className="ml-4 space-y-1 border-l-2 border-border pl-2">
                                     {nestedGroup.items.map((nestedItem: any) => {
@@ -446,7 +474,7 @@ export function AdminSidebar() {
                               </div>
                             )
                           }
-                          
+
                           // Regular navigation item
                           const isActive = pathname === item.href
                           return (
@@ -469,14 +497,14 @@ export function AdminSidebar() {
                     )}
                   </>
                 )}
-                
+
                 {/* Collapsed view - show group items as icons */}
                 {isCollapsed && isExpanded && (
                   <div className="space-y-1">
                     {group.items.map((item) => {
                       // Skip nested groups in collapsed view
                       if (isNavigationGroup(item)) return null
-                      
+
                       const isActive = pathname === item.href
                       return (
                         <Tooltip key={item.name}>

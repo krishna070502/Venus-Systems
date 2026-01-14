@@ -10,6 +10,7 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { api } from '@/lib/api/client'
 
 interface AuthContextType {
   user: User | null
@@ -55,6 +56,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       password,
     })
     if (error) throw error
+
+    // Record session metadata in backend
+    try {
+      await api.auth.recordSession()
+    } catch (e) {
+      console.error('Failed to record session:', e)
+    }
   }
 
   const signUp = async (email: string, password: string, fullName?: string) => {

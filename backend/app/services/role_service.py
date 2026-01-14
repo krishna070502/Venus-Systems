@@ -218,3 +218,16 @@ class RoleService:
         except Exception as e:
             logger.error(f"Error removing permission from role: {str(e)}")
             return False
+    async def get_user_store_ids(self, user_id: str) -> List[int]:
+        """Get IDs of all shops assigned to a user"""
+        try:
+            response = (
+                self.client.table("user_shops")
+                .select("shop_id")
+                .eq("user_id", user_id)
+                .execute()
+            )
+            return [item["shop_id"] for item in response.data]
+        except Exception as e:
+            logger.error(f"Error fetching user shop IDs: {str(e)}")
+            return []

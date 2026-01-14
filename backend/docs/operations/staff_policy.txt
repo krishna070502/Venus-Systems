@@ -1,0 +1,3 @@
+Store Manager Permissions Policy
+
+Store managers have full access to view and edit inventory items. They can also view staff profiles but cannot edit management roles. In case of a pricing dispute, Store Managers are authorized to apply up to a 10% discount without higher approval.

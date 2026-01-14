@@ -12,10 +12,24 @@ from app.models.user import UserUpdate, UserProfile
 from app.services.user_service import UserService
 from app.dependencies.auth import get_current_user
 from app.dependencies.rbac import require_permission
+from app.utils.field_filter import filter_fields, filter_fields_list
+from app.services.role_service import RoleService
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+# Field-level permission configuration for users
+USER_FIELD_CONFIG = {
+    "email": "users.field.email",
+    "full_name": "users.field.name",
+    "created_at": "users.field.created",
+    "roles": "users.field.roles",
+    "permissions": "users.field.permissions",
+}
+
+# Fields always included
+ALWAYS_INCLUDE = {"id"}
 
 
 @router.get("/me")
@@ -82,6 +96,9 @@ async def get_my_profile(current_user: dict = Depends(get_current_user)):
     # Add permissions to profile
     permissions = await role_service.get_user_permissions(current_user["id"])
     profile["permissions"] = permissions
+
+    # Add store IDs to profile
+    profile["store_ids"] = await role_service.get_user_store_ids(current_user["id"])
     
     return profile
 
@@ -112,27 +129,33 @@ async def update_my_profile(
 
 @router.get(
     "/",
-    response_model=List[UserProfile],
     dependencies=[Depends(require_permission(["users.read"]))]
 )
 async def get_all_users(
     limit: int = Query(100, ge=1, le=1000),
-    offset: int = Query(0, ge=0)
+    offset: int = Query(0, ge=0),
+    current_user: dict = Depends(get_current_user)
 ):
-    """Get all users (requires users.read permission)"""
+    """Get all users (requires users.read permission). Fields filtered based on user's field permissions."""
     user_service = UserService()
+    role_service = RoleService()
     users = await user_service.get_all_users(limit=limit, offset=offset)
-    return users
+    
+    # Get user's permissions for field filtering
+    user_permissions = await role_service.get_user_permissions(current_user["id"])
+    
+    # Filter fields based on permissions
+    return filter_fields_list(users, user_permissions, USER_FIELD_CONFIG, ALWAYS_INCLUDE)
 
 
 @router.get(
     "/{user_id}",
-    response_model=UserProfile,
     dependencies=[Depends(require_permission(["users.read"]))]
 )
-async def get_user(user_id: str):
-    """Get user by ID (requires users.read permission)"""
+async def get_user(user_id: str, current_user: dict = Depends(get_current_user)):
+    """Get user by ID (requires users.read permission). Fields filtered based on user's field permissions."""
     user_service = UserService()
+    role_service = RoleService()
     user = await user_service.get_user_by_id(user_id)
     
     if not user:
@@ -141,7 +164,10 @@ async def get_user(user_id: str):
             detail="User not found"
         )
     
-    return user
+    # Get user's permissions for field filtering
+    user_permissions = await role_service.get_user_permissions(current_user["id"])
+    
+    return filter_fields(user, user_permissions, USER_FIELD_CONFIG, ALWAYS_INCLUDE)
 
 
 @router.put(

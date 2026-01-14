@@ -14,6 +14,8 @@ interface AuditLog {
   resource_id?: string
   changes: any
   metadata: any
+  ip_address?: string
+  user_agent?: string
   timestamp: string
 }
 
@@ -143,6 +145,18 @@ export default function LogDetailsModal({ log, onClose }: LogDetailsModalProps) 
               <div className="text-sm font-medium text-muted-foreground">Resource ID</div>
               <div className="mt-1 font-mono text-sm">
                 {log.resource_id || 'N/A'}
+              </div>
+            </div>
+            <div>
+              <div className="text-sm font-medium text-muted-foreground">IP Address</div>
+              <div className="mt-1 font-mono text-sm">
+                {log.ip_address || 'N/A'}
+              </div>
+            </div>
+            <div>
+              <div className="text-sm font-medium text-muted-foreground">User Agent</div>
+              <div className="mt-1 text-sm bg-gray-50 p-2 rounded border truncate" title={log.user_agent}>
+                {log.user_agent || 'N/A'}
               </div>
             </div>
           </div>

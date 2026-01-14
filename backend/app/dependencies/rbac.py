@@ -48,6 +48,13 @@ def require_role(allowed_roles: List[str]) -> Callable:
                 detail=f"Insufficient permissions. Required roles: {', '.join(allowed_roles)}"
             )
         
+        # Enrich user object with roles and store_ids for downstream validation
+        current_user["roles"] = user_role_names
+        current_user["store_ids"] = await role_service.get_user_store_ids(user_id)
+        current_user["user_id"] = user_id  # Added for compatibility with poultry routers
+        
+        logger.info(f"Enriched role user {user_id}: roles={len(user_role_names)}, stores={len(current_user['store_ids'])}")
+        
         return current_user
     
     return role_checker
@@ -73,6 +80,10 @@ def require_permission(required_permissions: List[str]) -> Callable:
         role_service = RoleService()
         user_permissions = await role_service.get_user_permissions(user_id)
         
+        # DEBUG: Log what permissions the user has
+        logger.info(f"User {user_id} has permissions: {user_permissions}")
+        logger.info(f"Required permissions: {required_permissions}")
+        
         # Check if user has all required permissions
         has_all_permissions = all(perm in user_permissions for perm in required_permissions)
         
@@ -80,12 +91,20 @@ def require_permission(required_permissions: List[str]) -> Callable:
             missing_permissions = [perm for perm in required_permissions if perm not in user_permissions]
             logger.warning(
                 f"User {user_id} attempted to access resource requiring permissions {required_permissions}. "
-                f"Missing: {missing_permissions}"
+                f"Missing: {missing_permissions}. User has: {user_permissions}"
             )
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"Insufficient permissions. Required: {', '.join(required_permissions)}"
             )
+        
+        # Enrich user object with roles and store_ids for downstream validation (e.g. validate_store_access)
+        user_roles = await role_service.get_user_roles(user_id)
+        current_user["roles"] = [role["name"] for role in user_roles]
+        current_user["store_ids"] = await role_service.get_user_store_ids(user_id)
+        current_user["user_id"] = user_id  # Added for compatibility with poultry routers
+        
+        logger.info(f"Enriched perm user {user_id}: roles={current_user['roles']}, stores={current_user['store_ids']}")
         
         return current_user
     

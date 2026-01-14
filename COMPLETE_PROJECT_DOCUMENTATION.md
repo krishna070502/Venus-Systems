@@ -28,7 +28,8 @@
 16. [Deployment Guide](#16-deployment-guide)
 17. [Development Guidelines](#17-development-guidelines)
 18. [Troubleshooting](#18-troubleshooting)
-19. [Version History](#19-version-history)
+19. [Security & Performance Audit](#19-security--performance-audit)
+20. [Version History](#20-version-history)
 
 ---
 
@@ -1600,7 +1601,21 @@ app.add_middleware(
 
 ---
 
-## 19. Version History
+## 19. Security & Performance Audit
+
+### 19.1 Primary Performance Bottlenecks
+The system currently experiences latency due to **synchronous network I/O** in the backend middleware and RBAC logic. Every request is blocked by sequential calls to Supabase.
+
+### 19.2 Security Observations
+- **Credentials**: Correct use of environment variables, though a default `SECRET_KEY` needs rotation.
+- **Vulnerabilities**: Missing CSRF protection and in-memory rate limiting.
+- **Data Isolation**: Strong RLS policies are in place for multi-tenant data protection.
+
+For the full detailed report, see [SECURITY_AND_PERFORMANCE_AUDIT.md](./Documentation/SECURITY_AND_PERFORMANCE_AUDIT.md).
+
+---
+
+## 20. Version History
 
 ### v1.15.0 (2025-11-30)
 - **Business Management Module - Full Implementation**

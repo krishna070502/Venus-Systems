@@ -22,6 +22,7 @@ class ShopBase(BaseModel):
     """Base shop model"""
     name: str = Field(..., min_length=1, max_length=255)
     location: Optional[str] = None
+    timezone: Optional[str] = Field(default="Asia/Kolkata")
     is_active: bool = True
 
 
@@ -34,6 +35,7 @@ class ShopUpdate(BaseModel):
     """Model for updating shop information"""
     name: Optional[str] = Field(None, min_length=1, max_length=255)
     location: Optional[str] = None
+    timezone: Optional[str] = None
     is_active: Optional[bool] = None
 
 
@@ -120,6 +122,7 @@ class InventoryItemBase(BaseModel):
     category: Optional[str] = Field(None, max_length=100)
     base_price: Decimal = Field(..., ge=0, decimal_places=2)
     unit: str = Field(default="piece", max_length=50)
+    item_type: str = Field(default="sale", pattern="^(purchase|sale)$")
     is_active: bool = True
 
 
@@ -135,6 +138,7 @@ class InventoryItemUpdate(BaseModel):
     category: Optional[str] = Field(None, max_length=100)
     base_price: Optional[Decimal] = Field(None, ge=0, decimal_places=2)
     unit: Optional[str] = Field(None, max_length=50)
+    item_type: Optional[str] = Field(None, pattern="^(purchase|sale)$")
     is_active: Optional[bool] = None
 
 

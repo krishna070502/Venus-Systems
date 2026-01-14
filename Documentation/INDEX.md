@@ -213,6 +213,7 @@ Welcome to Venus Chicken documentation! This folder contains comprehensive guide
 | Token Security | [Authentication](./AUTHENTICATION.md) | Security Considerations |
 | Audit Logging | [Database Schema](./DATABASE_SCHEMA.md) | audit_logs |
 | Session Tracking | [Database Schema](./DATABASE_SCHEMA.md) | user_sessions |
+| System Audit | [Security & Performance](./SECURITY_AND_PERFORMANCE_AUDIT.md) | All |
 
 ---
 
@@ -273,6 +274,7 @@ Welcome to Venus Chicken documentation! This folder contains comprehensive guide
 ### Database Development
 - [Database Schema](./DATABASE_SCHEMA.md) - Complete schema
 - [Database Schema - Best Practices](./DATABASE_SCHEMA.md#best-practices) - Guidelines
+- [Security & Performance Audit](./SECURITY_AND_PERFORMANCE_AUDIT.md) - Recent findings
 
 ---
 

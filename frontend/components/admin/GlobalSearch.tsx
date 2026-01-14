@@ -3,9 +3,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { usePermissions, hasPermission } from '@/lib/auth/usePermissions'
-import { 
-  Search, 
-  X, 
+import {
+  Search,
+  X,
   LayoutDashboard,
   Users,
   ShieldCheck,
@@ -63,37 +63,38 @@ const allPages: SearchableItem[] = [
   { name: 'Test', href: '/admin/test', icon: TestTube, permission: 'test.run', category: 'System Administration', keywords: ['debug', 'testing'] },
   { name: 'Sessions', href: '/admin/sessions', icon: Users, permission: 'system.admin', category: 'System Administration', keywords: ['active', 'login', 'connected'] },
   { name: 'Documentation', href: '/admin/docs', icon: BookOpen, permission: 'system.docs', category: 'System Administration', keywords: ['help', 'guide', 'manual'] },
-  
+
   // Business
   { name: 'Business Dashboard', href: '/admin/business', icon: Activity, permission: 'businessdashboard.view', category: 'Business', keywords: ['overview', 'summary'] },
-  
+
   // Purchases & Payables
-  { name: 'Purchases', href: '/admin/business/purchases', icon: ShoppingCart, permission: 'purchase.view', category: 'Purchases & Payables', keywords: ['buy', 'orders', 'procurement'] },
-  { name: 'Suppliers', href: '/admin/business/suppliers', icon: Truck, permission: 'supplier.view', category: 'Purchases & Payables', keywords: ['vendors', 'providers'] },
+  { name: 'Purchases', href: '/admin/business/purchases', icon: ShoppingCart, permission: 'purchases.view', category: 'Purchases & Payables', keywords: ['buy', 'orders', 'procurement'] },
+  { name: 'Suppliers', href: '/admin/business/suppliers', icon: Truck, permission: 'suppliers.view', category: 'Purchases & Payables', keywords: ['vendors', 'providers'] },
   { name: 'Payments', href: '/admin/business/payments', icon: CreditCard, permission: 'payment.view', category: 'Purchases & Payables', keywords: ['pay', 'bills', 'invoices'] },
-  
+
   // Inventory Management
-  { name: 'Items', href: '/admin/business/inventory/items', icon: Package, permission: 'inventoryitems.view', category: 'Inventory Management', keywords: ['products', 'inventory', 'catalog', 'sku'] },
+  { name: 'Items-Purchase', href: '/admin/business/inventory/items-purchase', icon: Package, permission: 'itemspurchase.view', category: 'Inventory Management', keywords: ['products', 'inventory', 'buying', 'procurement'] },
   { name: 'Stock', href: '/admin/business/inventory/stock', icon: Box, permission: 'stock.view', category: 'Inventory Management', keywords: ['inventory', 'quantity', 'levels'] },
   { name: 'Wastage', href: '/admin/business/inventory/wastage', icon: Trash2, permission: 'wastage.view', category: 'Inventory Management', keywords: ['loss', 'spoilage', 'damage'] },
   { name: 'Adjustments', href: '/admin/business/inventory/adjustments', icon: ClipboardEdit, permission: 'adjustments.view', category: 'Inventory Management', keywords: ['corrections', 'modify', 'changes'] },
-  
+
   // Sales & Income
   { name: 'Sales', href: '/admin/business/sales', icon: TrendingUp, permission: 'sales.view', category: 'Sales & Income', keywords: ['revenue', 'transactions', 'orders'] },
+  { name: 'Items-Sale', href: '/admin/business/sales-items', icon: Package, permission: 'inventoryitems.view', category: 'Sales & Income', keywords: ['inventory', 'selling', 'products'] },
   { name: 'Customers', href: '/admin/business/customers', icon: UserCheck, permission: 'customer.view', category: 'Sales & Income', keywords: ['clients', 'buyers'] },
   { name: 'Receipts', href: '/admin/business/receipts', icon: FileCheck, permission: 'receipt.view', category: 'Sales & Income', keywords: ['invoices', 'bills'] },
-  
+
   // Finance Management
   { name: 'Expenses', href: '/admin/business/finance/expenses', icon: Banknote, permission: 'expense.view', category: 'Finance Management', keywords: ['costs', 'spending'] },
   { name: 'Cashbook', href: '/admin/business/finance/cashbook', icon: Wallet, permission: 'cashbook.view', category: 'Finance Management', keywords: ['cash', 'money', 'transactions'] },
   { name: 'Ledger', href: '/admin/business/finance/ledger', icon: BookOpenCheck, permission: 'ledger.view', category: 'Finance Management', keywords: ['accounts', 'bookkeeping'] },
-  
+
   // Insights & Reports
   { name: 'Sales Reports', href: '/admin/business/reports/sales', icon: LineChart, permission: 'salesreport.view', category: 'Insights & Reports', keywords: ['analytics', 'revenue'] },
   { name: 'Purchase Reports', href: '/admin/business/reports/purchase', icon: PieChart, permission: 'purchasereport.view', category: 'Insights & Reports', keywords: ['analytics', 'buying'] },
   { name: 'Expense Reports', href: '/admin/business/reports/expense', icon: FileBarChart, permission: 'expensereport.view', category: 'Insights & Reports', keywords: ['analytics', 'costs'] },
   { name: 'Wastage Reports', href: '/admin/business/reports/wastage', icon: Trash2, permission: 'wastagereport.view', category: 'Insights & Reports', keywords: ['analytics', 'loss'] },
-  
+
   // Business Management - Shop Management
   { name: 'Shops', href: '/admin/business-management/shops', icon: Store, permission: 'shops.view', category: 'Shop Management', keywords: ['stores', 'locations', 'branches'] },
   { name: 'Managers', href: '/admin/business-management/managers', icon: UserCog, permission: 'managers.view', category: 'Shop Management', keywords: ['staff', 'employees', 'onboard'] },
@@ -119,13 +120,13 @@ export function GlobalSearch() {
   // Search results
   const results = query.trim()
     ? accessiblePages.filter(page => {
-        const searchLower = query.toLowerCase()
-        return (
-          page.name.toLowerCase().includes(searchLower) ||
-          page.category.toLowerCase().includes(searchLower) ||
-          page.keywords.some(k => k.toLowerCase().includes(searchLower))
-        )
-      })
+      const searchLower = query.toLowerCase()
+      return (
+        page.name.toLowerCase().includes(searchLower) ||
+        page.category.toLowerCase().includes(searchLower) ||
+        page.keywords.some(k => k.toLowerCase().includes(searchLower))
+      )
+    })
     : accessiblePages.slice(0, 8) // Show first 8 when no query
 
   // Keyboard shortcut to open search (Cmd/Ctrl + K)
@@ -202,7 +203,7 @@ export function GlobalSearch() {
       {/* Search Trigger Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className="flex items-center gap-2 px-3 py-1.5 text-sm text-muted-foreground bg-muted/50 border rounded-md hover:bg-muted transition-colors min-w-[200px]"
+        className="flex items-center gap-3 px-4 py-2 text-sm text-muted-foreground bg-muted/30 border rounded-xl hover:bg-muted/50 transition-all min-w-[450px] shadow-sm hover:shadow-md border-gray-100"
       >
         <Search className="h-4 w-4" />
         <span className="flex-1 text-left">Search pages...</span>
@@ -215,7 +216,7 @@ export function GlobalSearch() {
       {isOpen && (
         <div className="fixed inset-0 z-50">
           {/* Backdrop */}
-          <div 
+          <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => setIsOpen(false)}
           />
@@ -272,15 +273,13 @@ export function GlobalSearch() {
                             key={item.href}
                             data-index={globalIndex}
                             onClick={() => navigateTo(item.href)}
-                            className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-left transition-colors ${
-                              selectedIndex === globalIndex
-                                ? 'bg-primary text-primary-foreground'
-                                : 'hover:bg-muted'
-                            }`}
+                            className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-left transition-colors ${selectedIndex === globalIndex
+                              ? 'bg-primary text-primary-foreground'
+                              : 'hover:bg-muted'
+                              }`}
                           >
-                            <Icon className={`h-4 w-4 flex-shrink-0 ${
-                              selectedIndex === globalIndex ? '' : 'text-muted-foreground'
-                            }`} />
+                            <Icon className={`h-4 w-4 flex-shrink-0 ${selectedIndex === globalIndex ? '' : 'text-muted-foreground'
+                              }`} />
                             <span className="flex-1">{item.name}</span>
                             {selectedIndex === globalIndex && (
                               <span className="text-xs opacity-70">Enter ↵</span>

@@ -25,7 +25,7 @@ import LogDetailsModal from '@/components/admin/LogDetailsModal'
 import { PageLoading } from '@/components/ui/loading'
 import { PermissionGuard } from '@/components/admin/PermissionGuard'
 import { usePermissions, hasPermission } from '@/lib/auth/usePermissions'
-import { Settings2, Eye, EyeOff, Download, Clock, Activity, Database, FileText, User, Info, X, Search, Filter } from 'lucide-react'
+import { Settings2, Eye, EyeOff, Download, Clock, Activity, Database, FileText, User, Info, X, Search, Filter, Globe, Monitor } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface AuditLog {
@@ -38,6 +38,8 @@ interface AuditLog {
   resource_id?: string
   changes: any
   metadata: any
+  ip_address?: string
+  user_agent?: string
   timestamp: string
 }
 
@@ -73,6 +75,18 @@ const FIELD_CONFIG = {
     icon: User,
     defaultVisible: true,
   },
+  ip: {
+    key: 'logs.field.user',
+    label: 'IP Address',
+    icon: Globe,
+    defaultVisible: false,
+  },
+  userAgent: {
+    key: 'logs.field.user',
+    label: 'User Agent',
+    icon: Monitor,
+    defaultVisible: false,
+  },
 }
 
 type FieldKey = keyof typeof FIELD_CONFIG
@@ -92,7 +106,7 @@ function LogsPageContent() {
   const [searchQuery, setSearchQuery] = useState('')
   const [filterAction, setFilterAction] = useState<string>('all')
   const [filterResourceType, setFilterResourceType] = useState<string>('all')
-  const [visibleFields, setVisibleFields] = useState<Set<FieldKey>>(new Set(['timestamp', 'action', 'resource', 'changes', 'user']))
+  const [visibleFields, setVisibleFields] = useState<Set<FieldKey>>(new Set(['timestamp', 'action', 'resource', 'changes', 'user'] as FieldKey[]))
   const [showPermissionsInfo, setShowPermissionsInfo] = useState(false)
 
   const { permissions: userPermissions, loading: permissionsLoading } = usePermissions()
@@ -163,7 +177,7 @@ function LogsPageContent() {
       changes: log.changes,
       metadata: log.metadata,
     }))
-    
+
     const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -179,7 +193,7 @@ function LogsPageContent() {
 
   const getActionColor = (action: string | undefined) => {
     if (!action) return 'secondary'
-    
+
     switch (action.toUpperCase()) {
       case 'CREATE':
       case 'INSERT':
@@ -198,7 +212,7 @@ function LogsPageContent() {
 
   const formatChanges = (changes: any) => {
     if (!changes || Object.keys(changes).length === 0) return 'No changes'
-    
+
     try {
       const changeList = Object.entries(changes).map(([key, value]: [string, any]) => {
         if (value && typeof value === 'object' && 'before' in value && 'after' in value) {
@@ -206,7 +220,7 @@ function LogsPageContent() {
         }
         return `${key}: ${JSON.stringify(value)}`
       })
-      
+
       return changeList.slice(0, 3).join(', ') + (changeList.length > 3 ? '...' : '')
     } catch (error) {
       return 'Invalid change data'
@@ -223,7 +237,7 @@ function LogsPageContent() {
 
   // Filter logs based on search and filters
   const filteredLogs = logs.filter(log => {
-    const matchesSearch = 
+    const matchesSearch =
       !canSearch ||
       searchQuery === '' ||
       (log.action && log.action.toLowerCase().includes(searchQuery.toLowerCase())) ||
@@ -248,9 +262,9 @@ function LogsPageContent() {
             </p>
           </div>
           {/* Info Button */}
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <Button
+            variant="ghost"
+            size="icon"
             className="rounded-full h-8 w-8 bg-blue-100 hover:bg-blue-200 text-blue-600"
             onClick={() => setShowPermissionsInfo(true)}
             title="View your permissions"
@@ -289,7 +303,7 @@ function LogsPageContent() {
                 Complete history of all system changes and user actions
               </CardDescription>
             </div>
-            
+
             {/* Column Visibility Dropdown */}
             {availableFields.length > 0 && (
               <DropdownMenu>
@@ -335,7 +349,7 @@ function LogsPageContent() {
                 className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               />
             )}
-            
+
             {/* Filters */}
             {canFilter && (
               <div className="flex gap-4 flex-wrap">
@@ -352,7 +366,7 @@ function LogsPageContent() {
                     ))}
                   </select>
                 </div>
-                
+
                 <div className="flex-1 min-w-[200px]">
                   <label className="text-sm font-medium mb-2 block">Resource Type</label>
                   <select
@@ -399,6 +413,8 @@ function LogsPageContent() {
                 {visibleFields.has('resource') && <TableHead>Resource</TableHead>}
                 {visibleFields.has('changes') && <TableHead>Changes</TableHead>}
                 {visibleFields.has('user') && <TableHead>User</TableHead>}
+                {visibleFields.has('ip') && <TableHead>IP Address</TableHead>}
+                {visibleFields.has('userAgent') && <TableHead>User Agent</TableHead>}
                 {canViewDetails && <TableHead>Details</TableHead>}
               </TableRow>
             </TableHeader>
@@ -406,7 +422,7 @@ function LogsPageContent() {
               {filteredLogs.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={visibleFields.size + (canViewDetails ? 1 : 0)} className="text-center text-muted-foreground py-8">
-                    {logs.length === 0 
+                    {logs.length === 0
                       ? 'No audit logs yet. Changes will appear here once you start using the system.'
                       : 'No logs match your search criteria. Try adjusting your filters.'}
                   </TableCell>
@@ -459,6 +475,16 @@ function LogsPageContent() {
                             <span className="text-muted-foreground text-sm">System</span>
                           )}
                         </div>
+                      </TableCell>
+                    )}
+                    {visibleFields.has('ip') && (
+                      <TableCell className="font-mono text-xs">
+                        {log.ip_address || '-'}
+                      </TableCell>
+                    )}
+                    {visibleFields.has('userAgent') && (
+                      <TableCell className="max-w-[150px] truncate text-xs" title={log.user_agent}>
+                        {log.user_agent || '-'}
                       </TableCell>
                     )}
                     {canViewDetails && (
@@ -540,7 +566,7 @@ function LogsPageContent() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="mt-4 pt-4 border-t">
                 <p className="text-sm font-medium mb-2">Visible Columns:</p>
                 <div className="flex flex-wrap gap-2">
@@ -548,8 +574,8 @@ function LogsPageContent() {
                     const config = FIELD_CONFIG[fieldKey]
                     const canView = canViewField(fieldKey)
                     return (
-                      <Badge 
-                        key={fieldKey} 
+                      <Badge
+                        key={fieldKey}
                         variant={canView ? "default" : "secondary"}
                         className={cn(!canView && "opacity-50")}
                       >

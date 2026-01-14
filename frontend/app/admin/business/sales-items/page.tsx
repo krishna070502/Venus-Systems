@@ -17,6 +17,7 @@ interface InventoryItem {
   category: string | null
   base_price: number | string
   unit: string
+  item_type: string
   is_active: boolean
   created_at: string
   updated_at: string
@@ -28,6 +29,7 @@ interface ItemFormData {
   category: string
   base_price: string
   unit: string
+  item_type: string
   is_active: boolean
 }
 
@@ -37,6 +39,7 @@ const DEFAULT_FORM: ItemFormData = {
   category: '',
   base_price: '',
   unit: 'piece',
+  item_type: 'sale',
   is_active: true,
 }
 
@@ -92,7 +95,7 @@ export default function ItemsPage() {
       const isActive = activeFilter === 'all' ? undefined : activeFilter === 'active'
       const category = categoryFilter || undefined
       
-      const data = await api.businessManagement.inventory.getAll(isActive, category) as InventoryItem[]
+      const data = await api.businessManagement.inventory.getAll(isActive, category, 'sale') as InventoryItem[]
       setItems(data)
     } catch (err: any) {
       setError(err.message || 'Failed to fetch items')
@@ -141,6 +144,7 @@ export default function ItemsPage() {
         category: formData.category || undefined,
         base_price: parseFloat(formData.base_price),
         unit: formData.unit,
+        item_type: 'sale',
         is_active: formData.is_active,
       })
       
@@ -178,6 +182,7 @@ export default function ItemsPage() {
         category: formData.category || undefined,
         base_price: parseFloat(formData.base_price),
         unit: formData.unit,
+        item_type: 'sale',
         is_active: formData.is_active,
       })
       
@@ -218,6 +223,7 @@ export default function ItemsPage() {
       category: item.category || '',
       base_price: String(parseFloat(String(item.base_price))),
       unit: item.unit,
+      item_type: 'sale',
       is_active: item.is_active,
     })
     setFormError(null)
