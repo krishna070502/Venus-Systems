@@ -2,22 +2,46 @@
 Scheduled Tasks Router for PoultryRetail-Core
 ==============================================
 API endpoints for scheduled/cron tasks.
+Uses CRON_SECRET + Service Role Key for authentication.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Header
+from fastapi import APIRouter, HTTPException, Header
 from typing import Optional
 from datetime import date, timedelta
+import os
 
-from app.dependencies.rbac import require_permission
+from app.config.database import get_supabase
 
 router = APIRouter(prefix="/scheduled-tasks", tags=["Scheduled Tasks"])
+
+
+def verify_cron_auth(cron_secret: str, authorization: str):
+    """
+    Verify cron authentication using:
+    1. CRON_SECRET header
+    2. Service Role Key via Authorization header
+    """
+    expected_secret = os.getenv("CRON_SECRET")
+    service_role_key = os.getenv("SUPABASE_SERVICE_KEY")
+    
+    if not expected_secret:
+        raise HTTPException(status_code=500, detail="CRON_SECRET not configured")
+    
+    if cron_secret != expected_secret:
+        raise HTTPException(status_code=401, detail="Invalid cron secret")
+    
+    # Verify service role key if provided
+    if service_role_key:
+        expected_auth = f"Bearer {service_role_key}"
+        if authorization != expected_auth:
+            raise HTTPException(status_code=401, detail="Invalid service role key")
 
 
 @router.post("/daily-checks")
 async def run_daily_checks(
     check_date: Optional[date] = None,
     x_cron_secret: str = Header(..., description="Secret key for cron authentication"),
-    current_user: dict = Depends(require_permission(["admin"]))
+    authorization: str = Header(..., description="Bearer token with service role key")
 ):
     """
     Run daily scheduled checks.
@@ -28,14 +52,12 @@ async def run_daily_checks(
     2. check_repeated_negative_variance - Penalize repeated variance patterns
     
     Expected to run daily around 6:00 AM in the business timezone.
-    """
-    import os
-    from app.config.database import get_supabase
     
-    # Verify cron secret
-    expected_secret = os.getenv("CRON_SECRET", "your-cron-secret-key")
-    if x_cron_secret != expected_secret:
-        raise HTTPException(status_code=401, detail="Invalid cron secret")
+    Authentication:
+    - X-Cron-Secret: Your CRON_SECRET value
+    - Authorization: Bearer <SUPABASE_SERVICE_ROLE_KEY>
+    """
+    verify_cron_auth(x_cron_secret, authorization)
     
     supabase = get_supabase()
     
@@ -78,15 +100,10 @@ async def run_daily_checks(
 async def run_missed_settlements_check(
     check_date: Optional[date] = None,
     x_cron_secret: str = Header(..., description="Secret key for cron authentication"),
-    current_user: dict = Depends(require_permission(["admin"]))
+    authorization: str = Header(..., description="Bearer token with service role key")
 ):
     """Run only the missed settlements check."""
-    import os
-    from app.config.database import get_supabase
-    
-    expected_secret = os.getenv("CRON_SECRET", "your-cron-secret-key")
-    if x_cron_secret != expected_secret:
-        raise HTTPException(status_code=401, detail="Invalid cron secret")
+    verify_cron_auth(x_cron_secret, authorization)
     
     supabase = get_supabase()
     target_date = check_date or (date.today() - timedelta(days=1))
@@ -106,15 +123,10 @@ async def run_missed_settlements_check(
 async def run_repeated_variance_check(
     check_date: Optional[date] = None,
     x_cron_secret: str = Header(..., description="Secret key for cron authentication"),
-    current_user: dict = Depends(require_permission(["admin"]))
+    authorization: str = Header(..., description="Bearer token with service role key")
 ):
     """Run only the repeated variance check."""
-    import os
-    from app.config.database import get_supabase
-    
-    expected_secret = os.getenv("CRON_SECRET", "your-cron-secret-key")
-    if x_cron_secret != expected_secret:
-        raise HTTPException(status_code=401, detail="Invalid cron secret")
+    verify_cron_auth(x_cron_secret, authorization)
     
     supabase = get_supabase()
     target_date = check_date or date.today()
