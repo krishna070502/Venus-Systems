@@ -474,7 +474,7 @@ export const api = {
         body: JSON.stringify(data),
       }),
       getSummary: (storeId: number, date: string) =>
-        apiRequest(`/api/v1/poultry/sales/summary?date=${date}`, {
+        apiRequest(`/api/v1/poultry/sales/summary/daily?summary_date=${date}`, {
           headers: { 'X-Store-ID': storeId.toString() },
         }),
     },
@@ -529,7 +529,7 @@ export const api = {
         method: 'POST',
         body: data ? JSON.stringify(data) : undefined,
       }),
-      getPending: (storeId: number) => apiRequest('/api/v1/poultry/variance/pending', {
+      getPending: (storeId: number) => apiRequest('/api/v1/poultry/variance/pending/count', {
         headers: { 'X-Store-ID': storeId.toString() },
       }),
     },
