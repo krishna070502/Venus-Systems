@@ -52,6 +52,7 @@ import {
   Target,
   Award,
   AlertCircle,
+  Bot,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
@@ -83,11 +84,13 @@ const systemAdministrationGroup: NavigationGroup = {
   items: [
     { name: 'Dashboard', href: '/admin', icon: LayoutDashboard, permission: 'systemdashboard.view' },
     { name: 'Users', href: '/admin/users', icon: Users, permission: 'users.read' },
+    { name: 'AI Config', href: '/admin/ai-settings', icon: Bot, permission: 'ai.admin' },
     { name: 'Roles', href: '/admin/roles', icon: ShieldCheck, permission: 'roles.read' },
     { name: 'Permissions', href: '/admin/permissions', icon: Key, permission: 'permissions.read' },
     { name: 'Health', href: '/admin/health', icon: Activity, permission: 'system.admin' },
     { name: 'Settings', href: '/admin/settings', icon: Settings, permission: 'system.settings' },
     { name: 'Logs', href: '/admin/logs', icon: FileText, permission: 'system.logs' },
+    { name: 'Activity Logs', href: '/admin/activity-logs', icon: Activity, permission: 'system.logs' },
     { name: 'Test', href: '/admin/test', icon: TestTube, permission: 'test.run' },
   ]
 }

@@ -12,7 +12,7 @@ from fastapi.exceptions import RequestValidationError
 import logging
 
 from app.config.settings import settings
-from app.routers import auth, users, roles, permissions, admin, health, business_management, rate_limits, ai
+from app.routers import auth, users, roles, permissions, admin, health, business_management, rate_limits, ai, activity_logs
 from app.routers.poultry_retail import router as poultry_retail_router
 from app.utils.logger import setup_logging
 from app.middleware.session_tracker import SessionTrackerMiddleware
@@ -160,6 +160,7 @@ app.include_router(health.router, prefix="/api/v1/health", tags=["Health"])
 app.include_router(business_management.router, prefix="/api/v1/business-management", tags=["Business Management"])
 app.include_router(rate_limits.router, prefix="/api/v1/rate-limits", tags=["Rate Limits"])
 app.include_router(ai.router, prefix="/api/v1/ai", tags=["AI Assistant"])
+app.include_router(activity_logs.router, prefix="/api/v1/activity-logs", tags=["Activity Logs"])
 app.include_router(poultry_retail_router, prefix="/api/v1", tags=["Poultry Retail"])
 
 

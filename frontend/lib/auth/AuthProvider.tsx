@@ -79,6 +79,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signOut = async () => {
+    // Record logout in backend while token is still valid
+    try {
+      await api.auth.logout()
+    } catch (e) {
+      console.error('Failed to log logout:', e)
+    }
+
     const { error } = await supabase.auth.signOut()
     if (error) throw error
     router.push('/auth/login')

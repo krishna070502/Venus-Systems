@@ -312,6 +312,29 @@ export const api = {
       }),
   },
 
+  // Activity Logs endpoints
+  activityLogs: {
+    getAll: (params: {
+      user_id?: string;
+      event_type?: string;
+      status?: string;
+      from_date?: string;
+      to_date?: string;
+      limit?: number;
+      offset?: number;
+    } = {}) => {
+      const queryParams = new URLSearchParams()
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          queryParams.append(key, value.toString())
+        }
+      })
+      const queryString = queryParams.toString()
+      return apiRequest(`/api/v1/activity-logs/${queryString ? `?${queryString}` : ''}`)
+    },
+    getStats: () => apiRequest('/api/v1/activity-logs/stats'),
+  },
+
   // ============ Poultry Retail Endpoints ============
   poultry: {
     // Suppliers

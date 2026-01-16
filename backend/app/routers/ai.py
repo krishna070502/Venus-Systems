@@ -229,6 +229,11 @@ async def update_ai_config(
     from app.services.supabase_client import supabase_client
     from app.services.audit_service import audit_logger
     
+    # Get existing state for audit diff
+    existing = supabase_client.table('ai_agent_configs').select('*').eq('id', config_id).single().execute()
+    if not existing.data:
+        raise HTTPException(status_code=404, detail="Config not found")
+    
     # Build update data
     update_data = {k: v for k, v in config_data.dict().items() if v is not None}
     
@@ -238,17 +243,23 @@ async def update_ai_config(
             detail="No data to update"
         )
     
+    # Calculate diff
+    before = {k: existing.data.get(k) for k in update_data.keys()}
+    
     response = supabase_client.table('ai_agent_configs').update(update_data).eq('id', config_id).execute()
     
     if response.data:
-        # Audit log
+        # Audit log with diff
         await audit_logger.log_action(
             user_id=current_user["id"],
             action="UPDATE_AI_CONFIG",
             resource_type="ai_agent_config",
             resource_id=str(config_id),
-            changes=update_data,
-            metadata={}
+            changes={
+                "before": before,
+                "after": update_data
+            },
+            metadata={"role_id": existing.data.get('role_id')}
         )
         
         return response.data[0]

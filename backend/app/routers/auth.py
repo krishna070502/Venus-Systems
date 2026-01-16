@@ -14,6 +14,7 @@ from app.services.supabase_client import supabase_client
 from app.models.user import UserCreate
 from app.dependencies.auth import get_current_user
 from app.services.audit_service import audit_logger
+from app.services.activity_service import activity_logger
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +76,7 @@ async def get_maintenance_status() -> Dict:
 
 
 @router.post("/signup", status_code=status.HTTP_201_CREATED)
-async def signup(user_data: UserCreate) -> Dict:
+async def signup(user_data: UserCreate, request: Request) -> Dict:
     """
     Register a new user.
     
@@ -133,6 +134,14 @@ async def signup(user_data: UserCreate) -> Dict:
                 metadata={"email": response.user.email}
             )
             
+            # Log Activity
+            await activity_logger.log_activity(
+                user_id=response.user.id,
+                event_type="SIGNUP",
+                request=request,
+                metadata={"email": response.user.email}
+            )
+            
             return {
                 "message": "User created successfully",
                 "user": {
@@ -162,56 +171,23 @@ async def login(email: str, password: str, request: Request) -> Dict:
     Returns access token and user information.
     """
     try:
-        # Capture session metadata early for logging/failures
-        ip_address = request.client.host if request.client else "unknown"
-        user_agent = request.headers.get("user-agent", "")
-        
-        # Simple User-Agent parsing
-        browser = "Unknown"
-        device_type = "Desktop"
-        
-        ua_lower = user_agent.lower()
-        if "mobi" in ua_lower or "android" in ua_lower or "iphone" in ua_lower:
-            device_type = "Mobile"
-        elif "tablet" in ua_lower or "ipad" in ua_lower:
-            device_type = "Tablet"
-            
-        if "chrome" in ua_lower: browser = "Chrome"
-        elif "firefox" in ua_lower: browser = "Firefox"
-        elif "safari" in ua_lower and "chrome" not in ua_lower: browser = "Safari"
-        elif "edge" in ua_lower: browser = "Edge"
-
+        logger.info(f"Attempting login for user: {email}")
         response = supabase_client.auth.sign_in_with_password({
             "email": email,
             "password": password
         })
         
+        logger.info(f"Supabase login response received. Success: {bool(response.session)}")
+        
         if response.session:
-            # Record session in database
-            try:
-                supabase_client.table('user_sessions').insert({
-                    "user_id": response.user.id,
-                    "ip_address": ip_address,
-                    "user_agent": user_agent,
-                    "device_type": device_type,
-                    "browser": browser,
-                    "last_activity_at": datetime.utcnow().isoformat()
-                }).execute()
-            except Exception as session_error:
-                logger.warning(f"Could not record user session: {session_error}")
-
-            # Log login audit
-            await audit_logger.log_action(
+            # Log Activity
+            logger.info(f"Triggering activity log for successful login: {response.user.id}")
+            await activity_logger.log_activity(
                 user_id=response.user.id,
-                action="LOGIN",
-                resource_type="auth",
-                ip_address=ip_address,
-                user_agent=user_agent,
-                metadata={
-                    "email": response.user.email,
-                    "browser": browser,
-                    "device": device_type
-                }
+                event_type="LOGIN",
+                status="SUCCESS",
+                request=request,
+                metadata={"email": response.user.email}
             )
             
             return {
@@ -224,19 +200,14 @@ async def login(email: str, password: str, request: Request) -> Dict:
                 }
             }
         else:
-            # Log failed login (Invalid credentials)
-            await audit_logger.log_action(
-                user_id="system",  # Unknown user
-                action="LOGIN_FAILED",
-                resource_type="auth",
-                ip_address=ip_address,
-                user_agent=user_agent,
-                metadata={
-                    "email": email,
-                    "reason": "Invalid credentials",
-                    "browser": browser,
-                    "device": device_type
-                }
+            logger.warning(f"Login failed for {email}: No session in response")
+            # Log Activity Failure
+            await activity_logger.log_activity(
+                user_id=None,
+                event_type="LOGIN",
+                status="FAILED",
+                request=request,
+                metadata={"email": email, "reason": "Invalid credentials"}
             )
             
             raise HTTPException(
@@ -247,20 +218,12 @@ async def login(email: str, password: str, request: Request) -> Dict:
     except Exception as e:
         logger.error(f"Login error: {str(e)}")
         
-        # Log failed login (Exception)
-        try:
-            # Re-capture metadata in exception block if needed (though local vars should be available)
-            # We need to ensure these are defined if exception happened before their definition
-            # But they are defined right at the start of the function now? 
-            # No, I need to move the metadata capture UP.
-            pass
-        except:
-            pass
-            
-        await audit_logger.log_action(
-            user_id="system",
-            action="LOGIN_FAILED",
-            resource_type="auth",
+        # Log Activity Exception
+        await activity_logger.log_activity(
+            user_id=None,
+            event_type="LOGIN",
+            status="FAILED",
+            request=request,
             metadata={"email": email, "error": str(e)}
         )
         
@@ -271,7 +234,7 @@ async def login(email: str, password: str, request: Request) -> Dict:
 
 
 @router.post("/logout")
-async def logout(current_user: dict = Depends(get_current_user)) -> Dict:
+async def logout(request: Request, current_user: dict = Depends(get_current_user)) -> Dict:
     """Logout current user"""
     try:
         # Log logout
@@ -279,6 +242,14 @@ async def logout(current_user: dict = Depends(get_current_user)) -> Dict:
             user_id=current_user["id"],
             action="LOGOUT",
             resource_type="auth"
+        )
+        
+        # Log Activity
+        await activity_logger.log_activity(
+            user_id=current_user["id"],
+            event_type="LOGOUT",
+            status="SUCCESS",
+            request=request
         )
         
         supabase_client.auth.sign_out()
@@ -315,12 +286,19 @@ async def get_current_user_info(current_user: dict = Depends(get_current_user)) 
 
 
 @router.post("/refresh")
-async def refresh_token(refresh_token: str) -> Dict:
+async def refresh_token(refresh_token: str, request: Request) -> Dict:
     """Refresh access token"""
     try:
         response = supabase_client.auth.refresh_session(refresh_token)
         
         if response.session:
+            # Log Activity
+            await activity_logger.log_activity(
+                user_id=response.user.id,
+                event_type="REFRESH_TOKEN",
+                status="SUCCESS",
+                request=request
+            )
             return {
                 "access_token": response.session.access_token,
                 "refresh_token": response.session.refresh_token,
@@ -348,26 +326,22 @@ async def record_session(request: Request, current_user: dict = Depends(get_curr
     metadata (IP, User Agent) is captured in the backend.
     """
     try:
+        # Record activity in the new system
+        await activity_logger.log_activity(
+            user_id=current_user['id'],
+            event_type="LOGIN",
+            status="SUCCESS",
+            request=request,
+            metadata={
+                "email": current_user.get('email'),
+                "via": "client_side_auth"
+            }
+        )
+        
+        # Legacy session tracking (keep for compatibility if needed elsewhere)
         ip_address = request.client.host if request.client else "unknown"
         user_agent = request.headers.get("user-agent", "")
         
-        # Simple User-Agent parsing
-        browser = "Unknown"
-        device_type = "Desktop"
-        
-        ua_lower = user_agent.lower()
-        if "mobi" in ua_lower or "android" in ua_lower or "iphone" in ua_lower:
-            device_type = "Mobile"
-        elif "tablet" in ua_lower or "ipad" in ua_lower:
-            device_type = "Tablet"
-            
-        if "chrome" in ua_lower: browser = "Chrome"
-        elif "firefox" in ua_lower: browser = "Firefox"
-        elif "safari" in ua_lower and "chrome" not in ua_lower: browser = "Safari"
-        elif "edge" in ua_lower: browser = "Edge"
-        
-        # Record session in database
-        # Check if recent session exists to avoid duplicates
         existing = supabase_client.table('user_sessions').select('id').eq(
             'user_id', current_user['id']
         ).eq('user_agent', user_agent).eq('ip_address', ip_address).execute()
@@ -377,25 +351,8 @@ async def record_session(request: Request, current_user: dict = Depends(get_curr
                 "user_id": current_user['id'],
                 "ip_address": ip_address,
                 "user_agent": user_agent,
-                "device_type": device_type,
-                "browser": browser,
                 "last_activity_at": datetime.utcnow().isoformat()
             }).execute()
-            
-            # Also log to audit logs
-            await audit_logger.log_action(
-                user_id=current_user['id'],
-                action="LOGIN",
-                resource_type="auth",
-                ip_address=ip_address,
-                user_agent=user_agent,
-                metadata={
-                    "email": current_user.get('email'),
-                    "browser": browser,
-                    "device": device_type,
-                    "via": "client_side_auth"
-                }
-            )
             
         return {"status": "recorded"}
     except Exception as e:
