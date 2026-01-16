@@ -5,10 +5,11 @@ Entry point for the SaaS Starter Kit backend API.
 Includes CORS, exception handlers, and router registration.
 """
 
-from fastapi import FastAPI, Request, status
+from fastapi import FastAPI, Request, status, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.exceptions import RequestValidationError
+from fastapi.openapi.docs import get_swagger_ui_html, get_redoc_html
 import logging
 
 from app.config.settings import settings
@@ -17,12 +18,14 @@ from app.routers.poultry_retail import router as poultry_retail_router
 from app.utils.logger import setup_logging
 from app.middleware.session_tracker import SessionTrackerMiddleware
 from app.middleware.rate_limiter import RateLimiterMiddleware
+from app.dependencies.auth import get_current_user
+from app.dependencies.rbac import require_permission
 
 # Setup logging
 setup_logging()
 logger = logging.getLogger(__name__)
 
-# Initialize FastAPI app
+# Initialize FastAPI app - disable default docs for auth protection
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
@@ -73,9 +76,36 @@ Venus Chicken implements a sophisticated permission system:
 
 All admin endpoints require appropriate permissions. See endpoint descriptions for required permissions.
 """,
-    docs_url="/docs" if settings.ENVIRONMENT != "production" else None,
-    redoc_url="/redoc" if settings.ENVIRONMENT != "production" else None,
+    docs_url=None,      # Disable default - we'll add auth-protected version
+    redoc_url=None,     # Disable default - we'll add auth-protected version
+    openapi_url=None,   # Disable default - we'll add auth-protected version
 )
+
+# =============================================================================
+# AUTH-PROTECTED API DOCUMENTATION
+# =============================================================================
+
+@app.get("/openapi.json", include_in_schema=False)
+async def get_openapi_schema(current_user: dict = Depends(require_permission(["system.docs"]))):
+    """OpenAPI schema - requires system.docs permission"""
+    return app.openapi()
+
+@app.get("/docs", include_in_schema=False)
+async def get_docs(current_user: dict = Depends(require_permission(["system.docs"]))):
+    """Swagger UI - requires system.docs permission"""
+    return get_swagger_ui_html(
+        openapi_url="/openapi.json",
+        title=f"{settings.PROJECT_NAME} - API Docs"
+    )
+
+@app.get("/redoc", include_in_schema=False)
+async def get_redoc(current_user: dict = Depends(require_permission(["system.docs"]))):
+    """ReDoc - requires system.docs permission"""
+    return get_redoc_html(
+        openapi_url="/openapi.json",
+        title=f"{settings.PROJECT_NAME} - API Docs"
+    )
+
 
 # CORS Configuration
 app.add_middleware(

@@ -57,11 +57,13 @@ async def main():
     paths_to_scan = [
         "../../Documentation",
         "../../docs",
+        "../../docs/wiki",  # Wiki documentation
         "../../README.md",
         "../../AI_AGENT_GUIDELINES.md",
         "../../COMPLETE_PROJECT_DOCUMENTATION.md",
         "../../frontend/INSTALL_NOTE.md",
     ]
+
 
     for path in paths_to_scan:
         # Check if it's an absolute path (like the brain artifacts) or relative

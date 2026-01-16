@@ -584,32 +584,29 @@ export function AdminSidebar() {
             isCollapsed ? (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <a
-                    href={`${apiDocsUrl}/docs`}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <Link
+                    href="/admin/api-docs"
                     className="flex items-center justify-center p-3 rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
                   >
                     <BookOpen className="h-5 w-5" />
-                  </a>
+                  </Link>
                 </TooltipTrigger>
                 <TooltipContent side="right">
                   <p>API Documentation</p>
                 </TooltipContent>
               </Tooltip>
             ) : (
-              <a
-                href={`${apiDocsUrl}/docs`}
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                href="/admin/api-docs"
                 className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
               >
                 <BookOpen className="h-5 w-5" />
                 <span>API Documentation</span>
-              </a>
+              </Link>
             )
           )}
         </div>
+
 
         {/* Resize Handle */}
         {!isCollapsed && (
