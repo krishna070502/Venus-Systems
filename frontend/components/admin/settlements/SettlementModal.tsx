@@ -24,6 +24,7 @@ import {
     InventoryType
 } from '@/lib/types/poultry'
 import { cn } from '@/lib/utils'
+import { BillUpload } from './BillUpload'
 
 interface SettlementModalProps {
     isOpen: boolean
@@ -74,6 +75,11 @@ export function SettlementModal({
         expense_notes: settlement?.expense_notes || ''
     })
 
+    // State for expense receipts (bill uploads)
+    const [expenseReceipts, setExpenseReceipts] = useState<string[]>(
+        (settlement?.expense_receipts as string[]) || []
+    )
+
     // Local state for raw input strings to handle decimal typing (prevent stripping zeros)
     const [inputStrings, setInputStrings] = useState<Record<string, string>>({})
 
@@ -123,6 +129,7 @@ export function SettlementModal({
                 expense_amount: Number(settlement.expense_amount) || 0,
                 expense_notes: settlement.expense_notes || ''
             })
+            setExpenseReceipts((settlement.expense_receipts as string[]) || [])
         } else {
             // Reset for new settlement
             setSettlementDate(new Date().toLocaleDateString('en-CA'))
@@ -136,6 +143,7 @@ export function SettlementModal({
                 expense_amount: 0,
                 expense_notes: ''
             })
+            setExpenseReceipts([])
         }
         // ALWAYS reset raw input strings when switching settlements
         setInputStrings({})
@@ -211,6 +219,7 @@ export function SettlementModal({
                 declared_stock: declarations.stock,
                 expense_amount: Number(declarations.expense_amount),
                 expense_notes: declarations.expense_notes,
+                expense_receipts: expenseReceipts,
                 settlement_date: settlementDate
             })
 
@@ -448,6 +457,25 @@ export function SettlementModal({
                                         )}
                                     />
                                 </div>
+                            </div>
+
+                            {/* Bill Upload Section */}
+                            <div className="pt-4 border-t space-y-2">
+                                <label className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-2">
+                                    Upload Bills / Receipts
+                                    <span className="text-muted-foreground font-normal normal-case">
+                                        (Max 5 files, 5MB each)
+                                    </span>
+                                </label>
+                                <BillUpload
+                                    storeId={storeId}
+                                    settlementId={settlement?.id}
+                                    files={expenseReceipts}
+                                    onChange={setExpenseReceipts}
+                                    disabled={!canEdit || loading}
+                                    maxFiles={5}
+                                    maxSizeMB={5}
+                                />
                             </div>
                         </div>
                     </section>

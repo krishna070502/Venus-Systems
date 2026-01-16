@@ -154,6 +154,7 @@ async def submit_settlement(
         "declared_stock": submit_data.declared_stock.model_dump(mode='json'),
         "expense_amount": str(submit_data.expense_amount),
         "expense_notes": submit_data.expense_notes,
+        "expense_receipts": submit_data.expense_receipts or [],
         "status": "SUBMITTED",
         "submitted_by": current_user["id"],
         "submitted_at": datetime.utcnow().isoformat()

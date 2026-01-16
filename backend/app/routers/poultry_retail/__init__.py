@@ -22,6 +22,7 @@ from .receipts import router as receipts_router
 from .payments import router as payments_router
 from .ledger import router as ledger_router
 from .scheduled_tasks import router as scheduled_tasks_router
+from .expenses import router as expenses_router
 
 # Create main router
 router = APIRouter(prefix="/poultry", tags=["Poultry Retail"])
@@ -43,6 +44,7 @@ router.include_router(receipts_router)
 router.include_router(payments_router)
 router.include_router(ledger_router)
 router.include_router(scheduled_tasks_router)
+router.include_router(expenses_router)
 
 __all__ = ["router"]
 

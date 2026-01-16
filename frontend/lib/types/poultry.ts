@@ -324,6 +324,7 @@ export interface Settlement {
     calculated_variance: any
     expense_amount: number
     expense_notes: string | null
+    expense_receipts: string[] | null
     status: SettlementStatus
     submitted_by: string | null
     submitted_at: string | null
@@ -343,6 +344,10 @@ export interface SettlementSubmit {
     declared_cash: number
     declared_upi: number
     declared_stock: DeclaredStock
+    expense_amount?: number
+    expense_notes?: string
+    expense_receipts?: string[]
+    settlement_date?: string
 }
 
 // ============ Variance ============

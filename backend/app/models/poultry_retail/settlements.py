@@ -5,7 +5,7 @@ Pydantic models for daily settlements and variance detection.
 """
 
 from pydantic import BaseModel, Field, field_validator
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from datetime import datetime, date
 from decimal import Decimal
 from uuid import UUID
@@ -82,6 +82,7 @@ class SettlementSubmit(BaseModel):
     declared_stock: DeclaredStock
     expense_amount: Decimal = Field(default=Decimal("0.00"), ge=0)
     expense_notes: Optional[str] = None
+    expense_receipts: Optional[List[str]] = Field(default=None, description="List of storage URLs for uploaded receipts")
     settlement_date: Optional[date] = None
 
     @field_validator('declared_cash', 'declared_upi', 'declared_card', 
@@ -118,6 +119,7 @@ class Settlement(BaseModel):
     # Expenses
     expense_amount: Decimal
     expense_notes: Optional[str] = None
+    expense_receipts: Optional[List[str]] = None
     
     # Status
     status: SettlementStatus
