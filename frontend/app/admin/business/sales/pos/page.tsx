@@ -21,7 +21,10 @@ import {
     Minus,
     CheckCircle2,
     X,
-    UserCircle2
+    UserCircle2,
+    Maximize,
+    Minimize,
+    Search
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ReceiptModal } from '@/components/pos/ReceiptModal'
@@ -33,12 +36,18 @@ interface CartItem {
     amount: number
 }
 
+import { useRef } from 'react'
+
 export default function POSPage() {
+    const posRef = useRef<HTMLDivElement>(null)
+    const [isFullscreen, setIsFullscreen] = useState(false)
+
     const { currentStore } = useStore()
     const { permissions, loading: permLoading } = usePermissions()
     const [skus, setSKUs] = useState<SKU[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
+    const [searchQuery, setSearchQuery] = useState('')
 
     // Cart state
     const [cart, setCart] = useState<CartItem[]>([])
@@ -67,7 +76,32 @@ export default function POSPage() {
 
     useEffect(() => {
         fetchSKUs()
+
+        const handleFullscreenChange = () => {
+            setIsFullscreen(!!document.fullscreenElement)
+        }
+
+        document.addEventListener('fullscreenchange', handleFullscreenChange)
+        return () => document.removeEventListener('fullscreenchange', handleFullscreenChange)
     }, [fetchSKUs])
+
+    const toggleFullscreen = () => {
+        if (!posRef.current) return
+
+        if (!document.fullscreenElement) {
+            posRef.current.requestFullscreen().catch(err => {
+                console.error(`Error attempting to enable full-screen mode: ${err.message}`)
+            })
+        } else {
+            document.exitFullscreen()
+        }
+    }
+
+    // Filter SKUs based on search query
+    const filteredSKUs = skus.filter(sku =>
+        sku.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        sku.code.toLowerCase().includes(searchQuery.toLowerCase())
+    )
 
     // Calculate totals
     const totalAmount = cart.reduce((sum, item) => sum + item.amount, 0)
@@ -87,11 +121,16 @@ export default function POSPage() {
         }])
     }
 
-    const updateCartItem = (skuId: string, field: 'weight_kg' | 'rate_per_kg', value: number) => {
+    const updateCartItem = (skuId: string, field: 'weight_kg' | 'rate_per_kg' | 'amount', value: number) => {
         setCart(cart.map(item => {
             if (item.sku.id !== skuId) return item
             const updated = { ...item, [field]: value }
-            updated.amount = updated.weight_kg * updated.rate_per_kg
+
+            if (field === 'amount') {
+                updated.weight_kg = updated.rate_per_kg > 0 ? updated.amount / updated.rate_per_kg : 0
+            } else {
+                updated.amount = updated.weight_kg * updated.rate_per_kg
+            }
             return updated
         }))
     }
@@ -165,9 +204,25 @@ export default function POSPage() {
                     title="Enterprise POS"
                     subtitle="Premium Retail Management System"
                     onRefresh={fetchSKUs}
+                    actions={
+                        <button
+                            onClick={toggleFullscreen}
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg border hover:bg-accent transition-colors"
+                            title={isFullscreen ? "Exit Full Screen" : "Enter Full Screen"}
+                        >
+                            {isFullscreen ? (
+                                <Minimize className="h-4 w-4" />
+                            ) : (
+                                <Maximize className="h-4 w-4" />
+                            )}
+                            <span className="text-sm hidden sm:inline">
+                                {isFullscreen ? "Exit Full Screen" : "Full Screen"}
+                            </span>
+                        </button>
+                    }
                 />
 
-                <div className="flex-1 flex flex-col lg:flex-row overflow-hidden p-2 sm:p-4 gap-2 sm:gap-4">
+                <div ref={posRef} className="flex-1 flex flex-col lg:flex-row overflow-hidden p-2 sm:p-4 gap-2 sm:gap-4 bg-muted/20">
                     {/* Left: Product Grid */}
                     <div className="flex-1 flex flex-col min-w-0 h-full">
                         <div className="bg-card rounded-2xl sm:rounded-3xl border shadow-sm flex-1 overflow-auto p-3 sm:p-6 scrollbar-hide">
@@ -176,7 +231,19 @@ export default function POSPage() {
                                     <ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                                     Available Stocks
                                 </h1>
-                                <div className="text-[10px] font-black text-muted-foreground uppercase opacity-50 tracking-widest">{skus.length} PRODUCTS</div>
+                                <div className="flex items-center gap-4">
+                                    <div className="relative">
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                        <input
+                                            type="text"
+                                            placeholder="Search SKU..."
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            className="pl-10 pr-4 py-2 bg-muted/20 border-none rounded-full text-sm font-bold focus:ring-2 focus:ring-primary/20 outline-none w-48 sm:w-64 transition-all"
+                                        />
+                                    </div>
+                                    <div className="text-[10px] font-black text-muted-foreground uppercase opacity-50 tracking-widest">{filteredSKUs.length} PRODUCTS</div>
+                                </div>
                             </div>
 
                             {loading ? (
@@ -191,7 +258,7 @@ export default function POSPage() {
                                 </div>
                             ) : (
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-4 lg:gap-6">
-                                    {skus.map((sku) => {
+                                    {filteredSKUs.map((sku) => {
                                         const inCart = cart.some(c => c.sku.id === sku.id)
                                         return (
                                             <button
@@ -232,6 +299,19 @@ export default function POSPage() {
                                 </div>
                             )}
                         </div>
+
+                        {/* Floating Exit Button for Full Screen */}
+                        {isFullscreen && (
+                            <button
+                                onClick={toggleFullscreen}
+                                className="absolute top-4 right-4 z-[100] p-3 bg-destructive text-white rounded-full shadow-2xl hover:scale-110 active:scale-95 transition-all flex items-center gap-2 group"
+                            >
+                                <Minimize className="h-5 w-5" />
+                                <span className="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-500 font-bold uppercase text-[10px] tracking-widest whitespace-nowrap">
+                                    Exit Full Screen
+                                </span>
+                            </button>
+                        )}
                     </div>
 
                     {/* Right: Cart & Checkout */}
@@ -277,7 +357,7 @@ export default function POSPage() {
                                                 </button>
                                             </div>
 
-                                            <div className="grid grid-cols-2 gap-2 sm:gap-4">
+                                            <div className="grid grid-cols-2 gap-2 sm:gap-4 mb-2">
                                                 <div className="space-y-1 sm:space-y-1.5">
                                                     <label className="text-[8px] sm:text-[9px] font-black text-muted-foreground uppercase pl-1 tracking-tighter">Quant (kg)</label>
                                                     <div className="relative group">
@@ -285,7 +365,7 @@ export default function POSPage() {
                                                             type="number"
                                                             value={item.weight_kg || ''}
                                                             onChange={(e) => updateCartItem(item.sku.id, 'weight_kg', parseFloat(e.target.value) || 0)}
-                                                            className="w-full pl-2 sm:pl-3 pr-6 sm:pr-10 py-2 sm:py-3 bg-white border-2 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black focus:border-primary transition-all outline-none tabular-nums"
+                                                            className="w-full pl-2 sm:pl-3 pr-6 sm:pr-8 py-2 sm:py-3 bg-white border-2 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black focus:border-primary transition-all outline-none tabular-nums"
                                                             placeholder="0.000"
                                                         />
                                                         <div className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 text-[8px] sm:text-[10px] font-black opacity-30 select-none">KG</div>
@@ -298,7 +378,7 @@ export default function POSPage() {
                                                             type="number"
                                                             value={item.rate_per_kg || ''}
                                                             onChange={(e) => updateCartItem(item.sku.id, 'rate_per_kg', parseFloat(e.target.value) || 0)}
-                                                            className="w-full pl-2 sm:pl-3 pr-6 sm:pr-10 py-2 sm:py-3 bg-white border-2 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black focus:border-primary transition-all outline-none tabular-nums"
+                                                            className="w-full pl-2 sm:pl-3 pr-6 sm:pr-8 py-2 sm:py-3 bg-white border-2 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black focus:border-primary transition-all outline-none tabular-nums"
                                                             placeholder="0"
                                                         />
                                                         <div className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 text-[8px] sm:text-[10px] font-black opacity-30 select-none">RATE</div>
@@ -306,9 +386,18 @@ export default function POSPage() {
                                                 </div>
                                             </div>
 
-                                            <div className="flex items-center justify-between px-1">
-                                                <span className="text-[8px] sm:text-[10px] font-black text-muted-foreground italic uppercase tracking-widest opacity-40">Item Total</span>
-                                                <div className="text-sm sm:text-lg font-black text-primary tracking-tighter">₹{item.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+                                            <div className="space-y-1 sm:space-y-1.5">
+                                                <label className="text-[8px] sm:text-[9px] font-black text-primary uppercase pl-1 tracking-tighter">Item Total (₹) - Editable</label>
+                                                <div className="relative group">
+                                                    <input
+                                                        type="number"
+                                                        value={item.amount || ''}
+                                                        onChange={(e) => updateCartItem(item.sku.id, 'amount', parseFloat(e.target.value) || 0)}
+                                                        className="w-full pl-2 sm:pl-3 pr-6 sm:pr-10 py-2 sm:py-3 bg-primary/5 border-2 border-primary/20 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black focus:border-primary transition-all outline-none tabular-nums text-primary"
+                                                        placeholder="0.00"
+                                                    />
+                                                    <div className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 text-[8px] sm:text-[10px] font-black opacity-30 select-none">TOTAL</div>
+                                                </div>
                                             </div>
                                         </div>
                                     ))
