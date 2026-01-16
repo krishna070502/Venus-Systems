@@ -821,7 +821,7 @@ proprietary license - see [LICENSE](./LICENSE) file
 - 📖 **Documentation:** `Documentation/` folder
 - 🐛 **Issues:** GitHub Issues
 - 💬 **Discussions:** GitHub Discussions
-- 📧 **Email:** support@example.com
+- 📧 **Email:** gopal@shivaagrovet.com
 
 ---
 
