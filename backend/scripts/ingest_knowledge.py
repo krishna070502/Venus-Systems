@@ -56,13 +56,11 @@ async def main():
     # 2. Define high-value paths to ingest
     paths_to_scan = [
         "../../Documentation",
+        "../../docs",
         "../../README.md",
         "../../AI_AGENT_GUIDELINES.md",
         "../../COMPLETE_PROJECT_DOCUMENTATION.md",
         "../../frontend/INSTALL_NOTE.md",
-        # Brain Artifacts (High Context)
-        "/Users/gopalsmac/.gemini/antigravity/brain/3ce5e999-41ec-4048-ae95-c2abf2c016b5/walkthrough.md",
-        "/Users/gopalsmac/.gemini/antigravity/brain/3ce5e999-41ec-4048-ae95-c2abf2c016b5/implementation_plan.md"
     ]
 
     for path in paths_to_scan:

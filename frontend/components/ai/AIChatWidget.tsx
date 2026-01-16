@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { usePermissions, hasPermission } from '@/lib/auth/usePermissions'
 import { api } from '@/lib/api/client'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import {
     MessageSquare,
     X,
@@ -367,12 +369,35 @@ export default function AIChatWidget() {
                                                     </div>
                                                 )}
                                                 <div
-                                                    className={`max-w-[75%] rounded-2xl px-4 py-3 ${msg.role === 'user'
+                                                    className={`max-w-[85%] rounded-2xl px-4 py-3 ${msg.role === 'user'
                                                         ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white'
                                                         : 'bg-white/5 text-gray-200 border border-white/10'
                                                         }`}
                                                 >
-                                                    <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+                                                    {msg.role === 'user' ? (
+                                                        <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+                                                    ) : (
+                                                        <div className="prose prose-invert prose-sm max-w-none
+                                                            prose-headings:text-purple-300 prose-headings:font-semibold prose-headings:mb-2 prose-headings:mt-3 first:prose-headings:mt-0
+                                                            prose-h1:text-lg prose-h2:text-base prose-h3:text-sm
+                                                            prose-p:text-gray-200 prose-p:leading-relaxed prose-p:my-2
+                                                            prose-strong:text-white prose-strong:font-semibold
+                                                            prose-code:text-purple-300 prose-code:bg-purple-500/20 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-xs prose-code:font-mono prose-code:before:content-none prose-code:after:content-none
+                                                            prose-pre:bg-black/40 prose-pre:border prose-pre:border-white/10 prose-pre:rounded-lg prose-pre:my-3
+                                                            prose-ul:my-2 prose-ul:pl-4 prose-ol:my-2 prose-ol:pl-4
+                                                            prose-li:text-gray-300 prose-li:my-0.5 prose-li:marker:text-purple-400
+                                                            prose-table:my-3 prose-table:text-sm
+                                                            prose-th:bg-purple-500/20 prose-th:text-purple-200 prose-th:px-3 prose-th:py-2 prose-th:text-left prose-th:font-medium prose-th:border prose-th:border-white/10
+                                                            prose-td:px-3 prose-td:py-2 prose-td:border prose-td:border-white/10 prose-td:text-gray-300
+                                                            prose-blockquote:border-l-purple-500 prose-blockquote:bg-purple-500/10 prose-blockquote:py-1 prose-blockquote:px-4 prose-blockquote:my-3 prose-blockquote:rounded-r-lg prose-blockquote:text-gray-300 prose-blockquote:not-italic
+                                                            prose-a:text-purple-400 prose-a:no-underline hover:prose-a:underline
+                                                            prose-hr:border-white/10 prose-hr:my-4
+                                                        ">
+                                                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                                                {msg.content}
+                                                            </ReactMarkdown>
+                                                        </div>
+                                                    )}
                                                 </div>
                                                 {msg.role === 'user' && (
                                                     <div className="h-8 w-8 rounded-lg bg-gray-700 flex items-center justify-center flex-shrink-0">

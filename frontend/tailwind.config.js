@@ -26,7 +26,7 @@ module.exports = {
         'success-green': '#1ABC9C',
         'warning-yellow': '#F1C40F',
         'error-red': '#E74C3C',
-        
+
         // shadcn/ui theme colors
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -83,5 +83,5 @@ module.exports = {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
 }
