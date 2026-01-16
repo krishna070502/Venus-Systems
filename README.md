@@ -801,7 +801,7 @@ app.add_middleware(
 
 ## 📝 License
 
-MIT License - see [LICENSE](./LICENSE) file
+proprietary license - see [LICENSE](./LICENSE) file
 
 ---
 
