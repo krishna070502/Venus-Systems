@@ -19,7 +19,8 @@ import {
     Loader2,
     AlertCircle,
     TrendingUp,
-    Banknote
+    Banknote,
+    XCircle
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { SettlementModal } from '@/components/admin/settlements/SettlementModal'
@@ -73,10 +74,21 @@ export default function SettlementsPage() {
         }
     }
 
+    const handleReject = async (id: string) => {
+        if (!confirm('Reject this settlement expenses? This will require manager to submit full cash.')) return
+        try {
+            await api.poultry.settlements.reject(id)
+            fetchSettlements()
+        } catch (err: any) {
+            alert(err.message || 'Failed to reject settlement')
+        }
+    }
+
     const statusColors: Record<SettlementStatus, string> = {
         DRAFT: 'bg-yellow-100 text-yellow-800',
         SUBMITTED: 'bg-blue-100 text-blue-800',
         APPROVED: 'bg-green-100 text-green-800',
+        REJECTED: 'bg-red-100 text-red-800',
         LOCKED: 'bg-slate-100 text-slate-800',
     }
 

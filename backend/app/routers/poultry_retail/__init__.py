@@ -24,6 +24,7 @@ from .ledger import router as ledger_router
 from .scheduled_tasks import router as scheduled_tasks_router
 from .expenses import router as expenses_router
 from .transfers import router as transfers_router
+from .finance import router as finance_router
 
 # Create main router
 router = APIRouter(prefix="/poultry", tags=["Poultry Retail"])
@@ -47,6 +48,7 @@ router.include_router(ledger_router)
 router.include_router(scheduled_tasks_router)
 router.include_router(expenses_router)
 router.include_router(transfers_router)
+router.include_router(finance_router)
 
 
 __all__ = ["router"]

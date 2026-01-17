@@ -8,7 +8,8 @@
 
 export type BirdType = 'BROILER' | 'PARENT_CULL'
 export type InventoryType = 'LIVE' | 'SKIN' | 'SKINLESS'
-export type SettlementStatus = 'DRAFT' | 'SUBMITTED' | 'APPROVED' | 'LOCKED'
+export type SettlementStatus = 'DRAFT' | 'SUBMITTED' | 'APPROVED' | 'REJECTED' | 'LOCKED'
+export type ExpenseStatus = 'SUBMITTED' | 'APPROVED' | 'REJECTED'
 export type VarianceType = 'POSITIVE' | 'NEGATIVE' | 'ZERO'
 export type VarianceLogStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'DEDUCTED'
 export type PurchaseStatus = 'DRAFT' | 'COMMITTED' | 'CANCELLED'

@@ -14,15 +14,9 @@ from app.models.poultry_retail.settlements import (
     SettlementCreate, SettlementSubmit, Settlement, SettlementWithVariance
 )
 from app.models.poultry_retail.enums import SettlementStatus
+from app.routers.poultry_retail.utils import validate_store_access
 
 router = APIRouter(prefix="/settlements", tags=["Settlements"])
-
-
-def validate_store_access(store_id: int, user: dict) -> bool:
-    """Check if user has access to the store."""
-    if "Admin" in user.get("roles", []):
-        return True
-    return store_id in user.get("store_ids", [])
 
 
 @router.get("/expected")
@@ -242,11 +236,17 @@ async def approve_settlement(
         )
     
     # Approve settlement
-    result = supabase.table("daily_settlements").update({
+    # Also automatically approve expense if it's still SUBMITTED
+    update_data = {
         "status": "APPROVED",
         "approved_by": current_user["id"],
         "approved_at": datetime.utcnow().isoformat()
-    }).eq("id", str(settlement_id)).execute()
+    }
+    
+    if settlement.get("expense_status") == "SUBMITTED":
+        update_data["expense_status"] = "APPROVED"
+        
+    result = supabase.table("daily_settlements").update(update_data).eq("id", str(settlement_id)).execute()
 
     # Award points for zero-variance settlements
     try:
@@ -257,7 +257,7 @@ async def approve_settlement(
         # Don't fail the approval if point awarding fails (logs and continue)
         print(f"Warning: Failed to award points: {str(e)}")
     
-    return result.data[0]
+    return await get_settlement(settlement_id)
 
 
 @router.post("/{settlement_id}/lock", response_model=Settlement)

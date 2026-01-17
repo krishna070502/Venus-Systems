@@ -12,6 +12,8 @@ from pydantic import BaseModel
 from decimal import Decimal
 
 from app.dependencies.rbac import require_permission
+from app.models.poultry_retail.enums import SettlementStatus, ExpenseStatus
+from app.routers.poultry_retail.utils import has_allstores_permission, validate_store_access
 
 
 router = APIRouter(prefix="/expenses", tags=["Expenses"])
@@ -26,7 +28,8 @@ class ExpenseItem(BaseModel):
     expense_amount: Decimal
     expense_notes: Optional[str] = None
     expense_receipts: Optional[List[str]] = None
-    status: str
+    status: str  # Settlement status
+    expense_status: str  # Granular expense status
     submitted_by: Optional[UUID] = None
     submitted_at: Optional[str] = None
     approved_by: Optional[UUID] = None
@@ -44,19 +47,6 @@ class ExpenseListResponse(BaseModel):
     page_size: int
 
 
-def validate_store_access(store_id: int, user: dict) -> bool:
-    """Check if user has access to the store."""
-    if "Admin" in user.get("roles", []):
-        return True
-    return store_id in user.get("store_ids", [])
-
-
-def has_allstores_permission(user: dict) -> bool:
-    """Check if user has expense.allstores permission."""
-    if "Admin" in user.get("roles", []):
-        return True
-    permissions = user.get("permissions", [])
-    return "expense.allstores" in permissions
 
 
 @router.get("", response_model=ExpenseListResponse)
@@ -66,16 +56,13 @@ async def list_expenses(
     from_date: Optional[date] = Query(None, description="Filter from date"),
     to_date: Optional[date] = Query(None, description="Filter to date"),
     status: Optional[str] = Query(None, description="Filter by settlement status"),
+    expense_status: Optional[str] = Query(None, description="Filter by granular expense status"),
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=20, le=100),
     current_user: dict = Depends(require_permission(["expense.read"]))
 ):
     """
     List expenses from settlements.
-    
-    - Admin/users with expense.allstores can see all stores
-    - Store managers can only see their assigned stores
-    - Returns expenses with bill receipts for verification
     """
     from app.config.database import get_supabase
     
@@ -88,60 +75,37 @@ async def list_expenses(
     # Build query
     query = supabase.table("daily_settlements").select(
         "id, store_id, settlement_date, expense_amount, expense_notes, expense_receipts, "
-        "status, submitted_by, submitted_at, approved_by, approved_at, "
+        "status, expense_status, submitted_by, submitted_at, approved_by, approved_at, "
         "shops:store_id(name)"
-    ).gt("expense_amount", 0)  # Only show settlements with expenses
+    ).gt("expense_amount", 0)
     
     # Apply store filter
     filter_store_id = store_id or x_store_id
     
     if filter_store_id:
-        # Specific store requested
         if not can_see_all and filter_store_id not in user_store_ids:
             raise HTTPException(status_code=403, detail="Access denied to this store")
         query = query.eq("store_id", filter_store_id)
     elif not can_see_all:
-        # Non-admin without specific store: filter to their stores
         if not user_store_ids:
             return ExpenseListResponse(items=[], total=0, page=page, page_size=page_size)
         query = query.in_("store_id", user_store_ids)
-    # else: admin with no filter sees all stores
     
-    # Apply date filters
     if from_date:
         query = query.gte("settlement_date", from_date.isoformat())
     if to_date:
         query = query.lte("settlement_date", to_date.isoformat())
-    
-    # Apply status filter
     if status:
         query = query.eq("status", status)
+    if expense_status:
+        query = query.eq("expense_status", expense_status)
     
-    # Get total count first
+    # Get total count
     count_result = query.execute()
     total = len(count_result.data)
     
     # Apply pagination and ordering
     offset = (page - 1) * page_size
-    query = supabase.table("daily_settlements").select(
-        "id, store_id, settlement_date, expense_amount, expense_notes, expense_receipts, "
-        "status, submitted_by, submitted_at, approved_by, approved_at, "
-        "shops:store_id(name)"
-    ).gt("expense_amount", 0)
-    
-    # Re-apply filters for paginated query
-    if filter_store_id:
-        query = query.eq("store_id", filter_store_id)
-    elif not can_see_all and user_store_ids:
-        query = query.in_("store_id", user_store_ids)
-    
-    if from_date:
-        query = query.gte("settlement_date", from_date.isoformat())
-    if to_date:
-        query = query.lte("settlement_date", to_date.isoformat())
-    if status:
-        query = query.eq("status", status)
-    
     query = query.order("settlement_date", desc=True).range(offset, offset + page_size - 1)
     result = query.execute()
     
@@ -161,6 +125,7 @@ async def list_expenses(
             expense_notes=row.get("expense_notes"),
             expense_receipts=row.get("expense_receipts"),
             status=row["status"],
+            expense_status=row.get("expense_status", "SUBMITTED"),
             submitted_by=row.get("submitted_by"),
             submitted_at=row.get("submitted_at"),
             approved_by=row.get("approved_by"),
@@ -175,6 +140,62 @@ async def list_expenses(
     )
 
 
+@router.post("/{expense_id}/approve", response_model=ExpenseItem)
+async def approve_expense(
+    expense_id: UUID,
+    current_user: dict = Depends(require_permission(["expense.approve"]))
+):
+    """Approve a store expense."""
+    from app.config.database import get_supabase
+    from datetime import datetime
+    
+    supabase = get_supabase()
+    
+    # Check if exists
+    check = supabase.table("daily_settlements").select("id").eq("id", str(expense_id)).execute()
+    if not check.data:
+        raise HTTPException(status_code=404, detail="Expense not found")
+        
+    result = supabase.table("daily_settlements").update({
+        "expense_status": "APPROVED",
+        "approved_by": current_user["id"],
+        "approved_at": datetime.utcnow().isoformat()
+    }).eq("id", str(expense_id)).execute()
+    
+    if not result.data:
+        raise HTTPException(status_code=500, detail="Failed to approve expense")
+        
+    return await get_expense(expense_id, current_user)
+
+
+@router.post("/{expense_id}/reject", response_model=ExpenseItem)
+async def reject_expense(
+    expense_id: UUID,
+    current_user: dict = Depends(require_permission(["expense.approve"]))
+):
+    """Reject a store expense."""
+    from app.config.database import get_supabase
+    from datetime import datetime
+    
+    supabase = get_supabase()
+    
+    # Check if exists
+    check = supabase.table("daily_settlements").select("id").eq("id", str(expense_id)).execute()
+    if not check.data:
+        raise HTTPException(status_code=404, detail="Expense not found")
+        
+    result = supabase.table("daily_settlements").update({
+        "expense_status": "REJECTED",
+        "approved_by": current_user["id"],
+        "approved_at": datetime.utcnow().isoformat()
+    }).eq("id", str(expense_id)).execute()
+    
+    if not result.data:
+        raise HTTPException(status_code=500, detail="Failed to reject expense")
+        
+    return await get_expense(expense_id, current_user)
+
+
 @router.get("/{expense_id}")
 async def get_expense(
     expense_id: UUID,
@@ -187,7 +208,7 @@ async def get_expense(
     
     result = supabase.table("daily_settlements").select(
         "id, store_id, settlement_date, expense_amount, expense_notes, expense_receipts, "
-        "status, submitted_by, submitted_at, approved_by, approved_at, "
+        "status, expense_status, submitted_by, submitted_at, approved_by, approved_at, "
         "shops:store_id(name)"
     ).eq("id", str(expense_id)).execute()
     
@@ -215,6 +236,7 @@ async def get_expense(
         expense_notes=row.get("expense_notes"),
         expense_receipts=row.get("expense_receipts"),
         status=row["status"],
+        expense_status=row.get("expense_status", "SUBMITTED"),
         submitted_by=row.get("submitted_by"),
         submitted_at=row.get("submitted_at"),
         approved_by=row.get("approved_by"),

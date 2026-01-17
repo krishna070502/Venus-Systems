@@ -16,7 +16,9 @@ import {
   ExternalLink,
   ChevronLeft,
   ChevronRight,
-  Eye
+  Eye,
+  Check,
+  XCircle
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -29,6 +31,7 @@ interface ExpenseItem {
   expense_notes: string | null
   expense_receipts: string[] | null
   status: string
+  expense_status: string
   submitted_by: string | null
   submitted_at: string | null
   approved_by: string | null
@@ -103,6 +106,25 @@ export default function ExpensesPage() {
     }
   }, [storeId, fromDate, toDate, statusFilter, page, pageSize])
 
+  const handleApprove = async (id: string) => {
+    try {
+      await api.poultry.expenses.approve(id)
+      fetchExpenses()
+    } catch (err: any) {
+      alert(err.message || 'Failed to approve expense')
+    }
+  }
+
+  const handleReject = async (id: string) => {
+    if (!confirm('Are you sure you want to reject this expense? This will require the manager to submit the full cash amount.')) return
+    try {
+      await api.poultry.expenses.reject(id)
+      fetchExpenses()
+    } catch (err: any) {
+      alert(err.message || 'Failed to reject expense')
+    }
+  }
+
   useEffect(() => {
     fetchShops()
   }, [fetchShops])
@@ -127,6 +149,7 @@ export default function ExpensesPage() {
     DRAFT: 'bg-yellow-100 text-yellow-800',
     SUBMITTED: 'bg-blue-100 text-blue-800',
     APPROVED: 'bg-green-100 text-green-800',
+    REJECTED: 'bg-red-100 text-red-800',
     LOCKED: 'bg-slate-100 text-slate-800',
   }
 
@@ -147,11 +170,14 @@ export default function ExpensesPage() {
                 Expenses
               </h1>
               <p className="text-muted-foreground mt-2">
-                View and verify store expenses from daily settlements
+                Verify and approve store expenses from daily settlements
               </p>
             </div>
           </div>
         </div>
+        {/* ... existing filters ... */}
+        {/* I will truncate filters for brevity in replacement but I must maintain them if I'm doing a single block. */}
+        {/* Actually, it's better to replace the table rows specifically. */}
 
         {/* Filters */}
         <div className="bg-card border rounded-xl p-4 mb-6 shadow-sm">
@@ -282,7 +308,9 @@ export default function ExpensesPage() {
                       <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-muted-foreground text-right">Amount</th>
                       <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-muted-foreground">Notes</th>
                       <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-muted-foreground text-center">Bills</th>
-                      <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-muted-foreground text-center">Status</th>
+                      <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-muted-foreground text-center">Settlement</th>
+                      <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-muted-foreground text-center">Expense Status</th>
+                      <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-muted-foreground text-right pr-6">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y">
@@ -346,6 +374,43 @@ export default function ExpensesPage() {
                           )}>
                             {expense.status}
                           </span>
+                        </td>
+                        <td className="px-4 py-4 text-center">
+                          <span className={cn(
+                            "px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider",
+                            statusColors[expense.expense_status] || 'bg-gray-100 text-gray-800'
+                          )}>
+                            {expense.expense_status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4 text-right pr-6">
+                          <div className="flex items-center justify-end gap-2">
+                            {expense.expense_status === 'SUBMITTED' && (
+                              <>
+                                <button
+                                  onClick={() => handleApprove(expense.id)}
+                                  className="p-1 text-green-600 hover:bg-green-50 rounded transition-colors"
+                                  title="Approve expense"
+                                >
+                                  <Check className="h-4 w-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleReject(expense.id)}
+                                  className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                  title="Reject expense"
+                                >
+                                  <XCircle className="h-4 w-4" />
+                                </button>
+                              </>
+                            )}
+                            <button
+                              onClick={() => window.location.href = `/admin/business/settlements/${expense.id}`}
+                              className="p-1 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                              title="View settlement"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}

@@ -10,7 +10,7 @@ from datetime import datetime, date
 from decimal import Decimal
 from uuid import UUID
 
-from .enums import SettlementStatus, BirdType, InventoryType
+from .enums import SettlementStatus, ExpenseStatus, BirdType, InventoryType
 
 
 # =============================================================================
@@ -83,6 +83,7 @@ class SettlementSubmit(BaseModel):
     expense_amount: Decimal = Field(default=Decimal("0.00"), ge=0)
     expense_notes: Optional[str] = None
     expense_receipts: Optional[List[str]] = Field(default=None, description="List of storage URLs for uploaded receipts")
+    expense_status: Optional[ExpenseStatus] = ExpenseStatus.SUBMITTED
     settlement_date: Optional[date] = None
 
     @field_validator('declared_cash', 'declared_upi', 'declared_card', 
@@ -120,6 +121,7 @@ class Settlement(BaseModel):
     expense_amount: Decimal
     expense_notes: Optional[str] = None
     expense_receipts: Optional[List[str]] = None
+    expense_status: ExpenseStatus = ExpenseStatus.SUBMITTED
     
     # Status
     status: SettlementStatus

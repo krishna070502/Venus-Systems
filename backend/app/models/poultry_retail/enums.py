@@ -31,7 +31,15 @@ class SettlementStatus(str, Enum):
     DRAFT = "DRAFT"       # Being prepared
     SUBMITTED = "SUBMITTED"  # Submitted for approval
     APPROVED = "APPROVED"   # Approved by manager
+    REJECTED = "REJECTED"   # Deprecated: User prefers granular expense status
     LOCKED = "LOCKED"     # Finalized, no changes
+
+
+class ExpenseStatus(str, Enum):
+    """Granular status for store expenses"""
+    SUBMITTED = "SUBMITTED"
+    APPROVED = "APPROVED"
+    REJECTED = "REJECTED"
 
 
 class PaymentMethod(str, Enum):

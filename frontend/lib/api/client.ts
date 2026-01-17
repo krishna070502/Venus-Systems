@@ -528,12 +528,36 @@ export const api = {
         method: 'POST',
         body: JSON.stringify(data),
       }),
-      approve: (id: string) => apiRequest(`/api/v1/poultry/settlements/${id}/approve`, {
-        method: 'POST',
-      }),
-      lock: (id: string) => apiRequest(`/api/v1/poultry/settlements/${id}/lock`, {
-        method: 'POST',
-      }),
+      approve: (id: string | number) => apiRequest(`/api/v1/poultry/settlements/${id}/approve`, { method: 'POST' }),
+      reject: (id: string | number) => apiRequest(`/api/v1/poultry/settlements/${id}/reject`, { method: 'POST' }),
+      lock: (id: string | number) => apiRequest(`/api/v1/poultry/settlements/${id}/lock`, { method: 'POST' }),
+    },
+
+    // Finance
+    finance: {
+      getCashbook: (params?: any) => {
+        const queryStr = params ? `?${new URLSearchParams(Object.entries(params).filter(([_, v]) => v !== undefined).map(([k, v]) => [k, String(v)]))}` : ''
+        return apiRequest(`/api/v1/poultry/finance/cashbook${queryStr}`)
+      }
+    },
+
+    // Expenses (from settlements)
+    expenses: {
+      getAll: (params?: any) => {
+        const query = new URLSearchParams()
+        if (params?.store_id) query.append('store_id', params.store_id.toString())
+        if (params?.from_date) query.append('from_date', params.from_date)
+        if (params?.to_date) query.append('to_date', params.to_date)
+        if (params?.status) query.append('status', params.status)
+        if (params?.expense_status) query.append('expense_status', params.expense_status)
+        if (params?.page) query.append('page', params.page.toString())
+        if (params?.page_size) query.append('page_size', params.page_size.toString())
+        const queryStr = query.toString() ? `?${query.toString()}` : ''
+        return apiRequest(`/api/v1/poultry/expenses${queryStr}`)
+      },
+      getById: (id: string) => apiRequest(`/api/v1/poultry/expenses/${id}`),
+      approve: (id: string) => apiRequest(`/api/v1/poultry/expenses/${id}/approve`, { method: 'POST' }),
+      reject: (id: string) => apiRequest(`/api/v1/poultry/expenses/${id}/reject`, { method: 'POST' }),
     },
 
     // Variance
@@ -663,28 +687,6 @@ export const api = {
       }),
     },
 
-    // Expenses (from settlements)
-    expenses: {
-      getAll: (params?: {
-        store_id?: number;
-        from_date?: string;
-        to_date?: string;
-        status?: string;
-        page?: number;
-        page_size?: number;
-      }) => {
-        const query = new URLSearchParams()
-        if (params?.store_id) query.append('store_id', params.store_id.toString())
-        if (params?.from_date) query.append('from_date', params.from_date)
-        if (params?.to_date) query.append('to_date', params.to_date)
-        if (params?.status) query.append('status', params.status)
-        if (params?.page) query.append('page', params.page.toString())
-        if (params?.page_size) query.append('page_size', params.page_size.toString())
-        const queryStr = query.toString() ? `?${query.toString()}` : ''
-        return apiRequest(`/api/v1/poultry/expenses${queryStr}`)
-      },
-      getById: (id: string) => apiRequest(`/api/v1/poultry/expenses/${id}`),
-    },
   },
 }
 
