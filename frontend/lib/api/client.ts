@@ -407,6 +407,7 @@ export const api = {
         }),
       adjust: (data: any) => apiRequest('/api/v1/poultry/inventory/adjust', {
         method: 'POST',
+        headers: { 'X-Store-ID': data.store_id.toString() },
         body: JSON.stringify(data),
       }),
       getReasonCodes: () => apiRequest('/api/v1/poultry/inventory/reason-codes'),

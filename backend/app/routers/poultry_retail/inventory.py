@@ -167,20 +167,49 @@ async def create_adjustment(
     
     supabase = get_supabase()
     
+    qty_change = adjustment.quantity_change
+    count_change = adjustment.bird_count_change or 0
+    
+    # Handle absolute quantity overwrite
+    if adjustment.absolute_quantity is not None:
+        # Get current stock
+        stock_res = supabase.rpc("get_current_stock", {
+            "p_store_id": adjustment.store_id,
+            "p_bird_type": adjustment.bird_type.value,
+            "p_inventory_type": adjustment.inventory_type.value
+        }).execute()
+        
+        current_qty = Decimal("0.000")
+        current_count = 0
+        if stock_res.data:
+            current_qty = Decimal(str(stock_res.data[0]["current_qty"]))
+            current_count = stock_res.data[0].get("current_bird_count", 0)
+        
+        qty_change = adjustment.absolute_quantity - current_qty
+        
+        # If absolute bird count provided for LIVE
+        if adjustment.inventory_type == InventoryType.LIVE and adjustment.absolute_bird_count is not None:
+            count_change = adjustment.absolute_bird_count - current_count
+    
+    if qty_change is None:
+        raise HTTPException(status_code=400, detail="Either quantity_change or absolute_quantity must be provided")
+
     # Determine reason code based on direction
     reason_code = adjustment.reason_code
-    if adjustment.quantity_change > 0 and reason_code not in ["ADJUSTMENT_CREDIT", "OPENING_BALANCE"]:
+    if qty_change > 0 and reason_code not in ["ADJUSTMENT_CREDIT", "OPENING_BALANCE"]:
         reason_code = "ADJUSTMENT_CREDIT"
-    elif adjustment.quantity_change < 0 and reason_code != "ADJUSTMENT_DEBIT":
+    elif qty_change < 0 and reason_code != "ADJUSTMENT_DEBIT":
         reason_code = "ADJUSTMENT_DEBIT"
     
-    # For debit, validate sufficient stock
-    if adjustment.quantity_change < 0:
+    # For debit, validate sufficient stock (but skip if Admin is doing an overwrite)
+    # Actually, as an admin overwrite, we SHOULD allow negative balance if the user insists, 
+    # but the DB trigger mostly prevents it. Let's keep the check for safety unless it's a correction.
+    if qty_change < 0 and adjustment.absolute_quantity is None:
         stock_check = supabase.rpc("validate_stock_available", {
             "p_store_id": adjustment.store_id,
             "p_bird_type": adjustment.bird_type.value,
             "p_inventory_type": adjustment.inventory_type.value,
-            "p_required_qty": abs(float(adjustment.quantity_change))
+            "p_required_qty": abs(float(qty_change))
         }).execute()
         
         if not stock_check.data:
@@ -194,10 +223,12 @@ async def create_adjustment(
         "p_store_id": adjustment.store_id,
         "p_bird_type": adjustment.bird_type.value,
         "p_inventory_type": adjustment.inventory_type.value,
-        "p_quantity_change": float(adjustment.quantity_change),
+        "p_quantity_change": float(qty_change),
         "p_reason_code": reason_code,
         "p_user_id": current_user["user_id"],
-        "p_notes": adjustment.notes
+        "p_notes": adjustment.notes,
+        "p_bird_count_change": int(count_change),
+        "p_ref_type": "ADJUSTMENT"
     }).execute()
     
     if not result.data:

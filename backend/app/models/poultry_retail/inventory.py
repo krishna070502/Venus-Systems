@@ -44,16 +44,19 @@ class InventoryLedgerCreate(BaseModel):
     store_id: int
     bird_type: BirdType
     inventory_type: InventoryType
-    quantity_change: Decimal = Field(..., max_digits=10, decimal_places=3)
+    quantity_change: Optional[Decimal] = Field(None, max_digits=10, decimal_places=3)
+    bird_count_change: Optional[int] = 0
+    absolute_quantity: Optional[Decimal] = Field(None, max_digits=10, decimal_places=3)
+    absolute_bird_count: Optional[int] = Field(None, ge=0)
     reason_code: str
     notes: Optional[str] = None
 
-    @field_validator('quantity_change', mode='before')
+    @field_validator('quantity_change', 'absolute_quantity', mode='before')
     @classmethod
     def convert_to_decimal(cls, v):
-        if v is not None:
+        if v is not None and v != "":
             return Decimal(str(v))
-        return v
+        return None
 
 
 # =============================================================================

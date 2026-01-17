@@ -220,7 +220,8 @@ export default function StockPage() {
                               </span>
                             </td>
                             <td className="px-4 py-3 text-xs text-muted-foreground font-mono">
-                              {entry.ref_type}: {entry.ref_id.substring(0, 8)}...
+                              {entry.ref_type ? `${entry.ref_type}: ` : ''}
+                              {entry.ref_id ? `${entry.ref_id.substring(0, 8)}...` : 'N/A'}
                             </td>
                           </tr>
                         ))}
