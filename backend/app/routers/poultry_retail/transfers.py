@@ -4,7 +4,7 @@ Stock Transfers Router for PoultryRetail-Core
 API endpoints for inter-store stock transfers.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Header
 from typing import Optional
 from datetime import date, datetime
 from uuid import UUID
@@ -121,6 +121,8 @@ async def create_transfer(
 @router.get("", response_model=list[StockTransferWithStores])
 async def list_transfers(
     status: Optional[TransferStatus] = None,
+    store_id: Optional[int] = Query(None),
+    x_store_id: Optional[int] = Header(None, alias="X-Store-ID"),
     from_store_id: Optional[int] = None,
     to_store_id: Optional[int] = None,
     from_date: Optional[date] = None,
@@ -133,14 +135,18 @@ async def list_transfers(
     List stock transfers.
     
     - Regular users see transfers involving their stores
-    - Admins can see all transfers
+    - Admins can see all transfers (unless a specific store is requested)
     """
     from app.config.database import get_supabase
     
     supabase = get_supabase()
     permissions = current_user.get("permissions", [])
-    is_admin = "Admin" in current_user.get("roles", [])
+    roles = current_user.get("roles", [])
+    is_admin = "Admin" in roles
     user_stores = current_user.get("store_ids", [])
+    
+    # Prioritize store_id from header or query
+    effective_store_id = x_store_id if x_store_id is not None else store_id
     
     # Build query with store names
     query = supabase.table("stock_transfers").select(
@@ -154,16 +160,19 @@ async def list_transfers(
         query = query.eq("status", status.value)
     
     # Filter by stores
+    if effective_store_id:
+        query = query.or_(f"from_store_id.eq.{effective_store_id},to_store_id.eq.{effective_store_id}")
+    else:
+        # If no specific store requested, and it's a non-admin, restrict to their stores
+        if not is_admin and user_stores:
+            query = query.or_(
+                f"from_store_id.in.({','.join(map(str, user_stores))}),to_store_id.in.({','.join(map(str, user_stores))})"
+            )
+    
     if from_store_id:
         query = query.eq("from_store_id", from_store_id)
     if to_store_id:
         query = query.eq("to_store_id", to_store_id)
-    
-    # Non-admins only see their stores
-    if not is_admin and user_stores:
-        query = query.or_(
-            f"from_store_id.in.({','.join(map(str, user_stores))}),to_store_id.in.({','.join(map(str, user_stores))})"
-        )
     
     # Date filters
     if from_date:

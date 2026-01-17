@@ -85,17 +85,24 @@ export default function StockTransfersPage() {
         setError(null)
         try {
             let url = '/api/v1/poultry/transfers'
-            if (statusFilter) {
-                url += `?status=${statusFilter}`
+            const params = new URLSearchParams()
+
+            if (statusFilter) params.append('status', statusFilter)
+            if (currentStore) params.append('store_id', currentStore.id.toString())
+
+            if (params.toString()) {
+                url += `?${params.toString()}`
             }
-            const data = await apiRequest<StockTransfer[]>(url)
+            const data = await apiRequest<StockTransfer[]>(url, {
+                headers: currentStore ? { 'X-Store-ID': currentStore.id.toString() } : {}
+            })
             setTransfers(Array.isArray(data) ? data : [])
         } catch (err: any) {
             setError(err.message || 'Failed to load transfers')
         } finally {
             setLoading(false)
         }
-    }, [statusFilter])
+    }, [statusFilter, currentStore])
 
     const fetchShops = useCallback(async () => {
         try {
