@@ -159,7 +159,9 @@ export interface ProcessingEntry {
     wastage_weight: number
     wastage_percentage: number
     processed_by: string
+    actual_output_weight?: number
     notes?: string
+    processing_date: string
     created_at: string
 }
 
@@ -169,6 +171,7 @@ export interface ProcessingCreate {
     input_bird_type: BirdType
     output_inventory_type: InventoryType
     input_weight: number
+    actual_output_weight?: number
     idempotency_key?: string
 }
 

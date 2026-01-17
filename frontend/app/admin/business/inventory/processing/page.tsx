@@ -45,6 +45,7 @@ export default function ProcessingPage() {
         output_inventory_type: 'SKINLESS' as InventoryType,
     })
     const [localOutputWeight, setLocalOutputWeight] = useState(0)
+    const [actualOutputWeight, setActualOutputWeight] = useState<number | ''>('')
     const [configuredWastage, setConfiguredWastage] = useState(0)
     const [isCalculating, setIsCalculating] = useState(false)
     const [localNotes, setLocalNotes] = useState('')
@@ -83,7 +84,12 @@ export default function ProcessingPage() {
                         output_type: formData.output_inventory_type
                     }) as any
                     if (result && result.output_weight) {
-                        setLocalOutputWeight(Number(Number(result.output_weight).toFixed(2)))
+                        const est = Number(Number(result.output_weight).toFixed(3))
+                        setLocalOutputWeight(est)
+                        // If actual is empty, pre-fill with estimated
+                        if (actualOutputWeight === '') {
+                            setActualOutputWeight(est)
+                        }
                         setConfiguredWastage(Number(result.wastage_percentage))
                     }
                 } catch (err) {
@@ -120,6 +126,7 @@ export default function ProcessingPage() {
                 output_inventory_type: formData.output_inventory_type,
                 input_weight: formData.input_weight,
                 input_bird_count: formData.input_bird_count || undefined,
+                actual_output_weight: typeof actualOutputWeight === 'number' ? actualOutputWeight : undefined,
             })
             setShowModal(false)
             fetchEntries()
@@ -158,6 +165,7 @@ export default function ProcessingPage() {
                                             output_inventory_type: 'SKINLESS',
                                         })
                                         setLocalOutputWeight(0)
+                                        setActualOutputWeight('')
                                         setLocalNotes('')
                                         setSaveError(null)
                                         setShowModal(true)
@@ -305,15 +313,14 @@ export default function ProcessingPage() {
                                         </select>
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Estimated Output (kg)</label>
+                                        <label className="text-sm font-semibold text-muted-foreground uppercase tracking-wider block">Estimated Output (kg)</label>
                                         <div className="relative">
                                             <input
                                                 type="number"
                                                 value={localOutputWeight || ''}
                                                 readOnly
-                                                className="w-full px-4 py-2 bg-muted/50 border rounded-lg outline-none font-mono text-lg font-bold text-primary cursor-not-allowed"
+                                                className="w-full px-4 py-2 bg-muted/50 border rounded-lg outline-none font-mono text-lg font-bold text-muted-foreground cursor-not-allowed"
                                                 placeholder="0.00"
-                                                step="0.01"
                                             />
                                             {isCalculating && (
                                                 <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -321,6 +328,23 @@ export default function ProcessingPage() {
                                                 </div>
                                             )}
                                         </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-semibold text-primary uppercase tracking-wider block">Actual Weight (kg)</label>
+                                        <div className="relative">
+                                            <input
+                                                type="number"
+                                                value={actualOutputWeight}
+                                                onChange={(e) => setActualOutputWeight(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                                                className="w-full px-4 py-2 bg-white border-2 border-primary rounded-lg outline-none font-mono text-lg font-bold text-primary focus:ring-4 focus:ring-primary/10 transition-all"
+                                                placeholder="0.00"
+                                                step="0.001"
+                                            />
+                                            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                                                <Scale className="h-5 w-5 text-primary opacity-50" />
+                                            </div>
+                                        </div>
+                                        <p className="text-[10px] text-muted-foreground font-medium">Recorded weight for inventory and wastage tracking</p>
                                     </div>
                                 </div>
 

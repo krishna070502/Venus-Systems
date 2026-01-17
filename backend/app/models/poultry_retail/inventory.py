@@ -156,9 +156,10 @@ class ProcessingEntryCreate(BaseModel):
     output_inventory_type: InventoryType
     input_weight: Decimal = Field(..., gt=0, max_digits=10, decimal_places=3)
     input_bird_count: Optional[int] = Field(None, gt=0)
+    actual_output_weight: Optional[Decimal] = Field(None, gt=0, max_digits=10, decimal_places=3)
     idempotency_key: Optional[UUID] = None
 
-    @field_validator('input_weight', mode='before')
+    @field_validator('input_weight', 'actual_output_weight', mode='before')
     @classmethod
     def convert_to_decimal(cls, v):
         if v is not None:
@@ -185,6 +186,7 @@ class ProcessingEntry(BaseModel):
     wastage_percentage: Decimal
     wastage_weight: Decimal
     output_weight: Decimal
+    actual_output_weight: Optional[Decimal] = None
     idempotency_key: Optional[UUID] = None
     processed_by: UUID
     created_at: datetime

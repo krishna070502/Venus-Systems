@@ -128,6 +128,7 @@ async def create_processing_entry(
         "output_inventory_type": entry.output_inventory_type.value,
         "input_weight": str(entry.input_weight),
         "input_bird_count": entry.input_bird_count,
+        "actual_output_weight": str(entry.actual_output_weight) if entry.actual_output_weight else None,
         "idempotency_key": str(idempotency_key),
         "processed_by": current_user["user_id"]
     }
