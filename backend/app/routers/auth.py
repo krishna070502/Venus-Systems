@@ -237,6 +237,10 @@ async def login(email: str, password: str, request: Request) -> Dict:
 async def logout(request: Request, current_user: dict = Depends(get_current_user)) -> Dict:
     """Logout current user"""
     try:
+        # Get platform identifier from headers
+        platform = request.headers.get("x-platform", "Web")
+        client_app = request.headers.get("x-client-app", "Venus Web")
+        
         # Log logout
         await audit_logger.log_action(
             user_id=current_user["id"],
@@ -249,7 +253,11 @@ async def logout(request: Request, current_user: dict = Depends(get_current_user
             user_id=current_user["id"],
             event_type="LOGOUT",
             status="SUCCESS",
-            request=request
+            request=request,
+            metadata={
+                "platform": platform,
+                "client_app": client_app
+            }
         )
         
         supabase_client.auth.sign_out()
@@ -326,6 +334,10 @@ async def record_session(request: Request, current_user: dict = Depends(get_curr
     metadata (IP, User Agent) is captured in the backend.
     """
     try:
+        # Get platform identifier from headers (e.g., "POS" for mobile POS app)
+        platform = request.headers.get("x-platform", "Web")
+        client_app = request.headers.get("x-client-app", "Venus Web")
+        
         # Record activity in the new system
         await activity_logger.log_activity(
             user_id=current_user['id'],
@@ -334,7 +346,9 @@ async def record_session(request: Request, current_user: dict = Depends(get_curr
             request=request,
             metadata={
                 "email": current_user.get('email'),
-                "via": "client_side_auth"
+                "via": "client_side_auth",
+                "platform": platform,
+                "client_app": client_app
             }
         )
         

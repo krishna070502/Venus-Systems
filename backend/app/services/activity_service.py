@@ -45,28 +45,45 @@ class ActivityLogger:
                 ip_address = request.client.host if request.client else "unknown"
                 user_agent = request.headers.get("user-agent", "unknown")
                 
-                # Simple Manual UA Parsing (can be replaced with ua-parser if available)
-                ua_lower = user_agent.lower()
+                # Check for platform header (e.g., from mobile POS app)
+                platform = request.headers.get("x-platform", "").upper()
+                client_app = request.headers.get("x-client-app", "")
                 
-                # Device Type
-                if "mobi" in ua_lower or "android" in ua_lower or "iphone" in ua_lower:
+                # If platform is POS, set custom browser/OS values
+                if platform == "POS":
+                    browser = client_app or "Venus POS"
                     device_type = "Mobile"
-                elif "tablet" in ua_lower or "ipad" in ua_lower:
-                    device_type = "Tablet"
-                
-                # OS
-                if "windows" in ua_lower: os = "Windows"
-                elif "mac os" in ua_lower or "macintosh" in ua_lower: os = "macOS"
-                elif "android" in ua_lower: os = "Android"
-                elif "iphone" in ua_lower or "ipad" in ua_lower: os = "iOS"
-                elif "linux" in ua_lower: os = "Linux"
-                
-                # Browser
-                if "edg/" in ua_lower: browser = "Edge"
-                elif "chrome" in ua_lower: browser = "Chrome"
-                elif "firefox" in ua_lower: browser = "Firefox"
-                elif "safari" in ua_lower and "chrome" not in ua_lower: browser = "Safari"
-                elif "trident" in ua_lower: browser = "IE"
+                    # Try to detect OS from user-agent for POS
+                    ua_lower = user_agent.lower()
+                    if "android" in ua_lower or "okhttp" in ua_lower:
+                        os = "Android"
+                    elif "ios" in ua_lower or "darwin" in ua_lower:
+                        os = "iOS"
+                    else:
+                        os = "POS Terminal"
+                else:
+                    # Standard web UA parsing
+                    ua_lower = user_agent.lower()
+                    
+                    # Device Type
+                    if "mobi" in ua_lower or "android" in ua_lower or "iphone" in ua_lower:
+                        device_type = "Mobile"
+                    elif "tablet" in ua_lower or "ipad" in ua_lower:
+                        device_type = "Tablet"
+                    
+                    # OS
+                    if "windows" in ua_lower: os = "Windows"
+                    elif "mac os" in ua_lower or "macintosh" in ua_lower: os = "macOS"
+                    elif "android" in ua_lower: os = "Android"
+                    elif "iphone" in ua_lower or "ipad" in ua_lower: os = "iOS"
+                    elif "linux" in ua_lower: os = "Linux"
+                    
+                    # Browser
+                    if "edg/" in ua_lower: browser = "Edge"
+                    elif "chrome" in ua_lower: browser = "Chrome"
+                    elif "firefox" in ua_lower: browser = "Firefox"
+                    elif "safari" in ua_lower and "chrome" not in ua_lower: browser = "Safari"
+                    elif "trident" in ua_lower: browser = "IE"
 
             log_entry = {
                 "user_id": user_id,
