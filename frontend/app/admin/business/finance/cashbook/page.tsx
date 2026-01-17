@@ -52,13 +52,15 @@ export default function CashbookPage() {
   const [fromDate, setFromDate] = useState<string>(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
   const [toDate, setToDate] = useState<string>(new Date().toISOString().split('T')[0])
 
+  // Custom API call for cashbook to ensure store_id is correctly appended
   const fetchCashbook = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
       const data = await api.poultry.finance.getCashbook({
         from_date: fromDate,
-        to_date: toDate
+        to_date: toDate,
+        store_id: currentStore?.id
       }) as any
 
       setEntries(data.entries)
@@ -72,7 +74,7 @@ export default function CashbookPage() {
     } finally {
       setLoading(false)
     }
-  }, [fromDate, toDate])
+  }, [fromDate, toDate, currentStore?.id])
 
   useEffect(() => {
     fetchCashbook()

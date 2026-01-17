@@ -535,8 +535,12 @@ export const api = {
 
     // Finance
     finance: {
-      getCashbook: (params?: any) => {
-        const queryStr = params ? `?${new URLSearchParams(Object.entries(params).filter(([_, v]) => v !== undefined).map(([k, v]) => [k, String(v)]))}` : ''
+      getCashbook: (params?: { from_date?: string; to_date?: string; store_id?: number }) => {
+        const query = new URLSearchParams()
+        if (params?.from_date) query.append('from_date', params.from_date)
+        if (params?.to_date) query.append('to_date', params.to_date)
+        if (params?.store_id) query.append('store_id', params.store_id.toString())
+        const queryStr = query.toString() ? `?${query.toString()}` : ''
         return apiRequest(`/api/v1/poultry/finance/cashbook${queryStr}`)
       }
     },
