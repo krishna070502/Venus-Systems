@@ -19,8 +19,10 @@ import {
   X as XIcon,
   Loader2,
   AlertCircle,
+  Download,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { generatePurchaseBillPDF } from '@/lib/utils/generatePDF'
 
 export default function PurchasesPage() {
   const { currentStore } = useStore()
@@ -253,6 +255,28 @@ export default function PurchasesPage() {
                                 </button>
                               </>
                             )}
+                            <button
+                              onClick={() => generatePurchaseBillPDF({
+                                purchaseId: p.id,
+                                date: new Date(p.created_at).toLocaleDateString('en-IN'),
+                                supplierName: p.supplier_name || p.supplier?.name || 'Unknown Supplier',
+                                birdType: p.bird_type,
+                                birdCount: p.bird_count || 0,
+                                totalWeight: Number(p.total_weight || 0),
+                                pricePerKg: Number(p.price_per_kg || 0),
+                                totalAmount: Number(p.total_amount || 0),
+                                status: p.status,
+                                vehicleNumber: p.vehicle_number || undefined,
+                                driverName: p.driver_name || undefined,
+                                notes: p.notes || undefined,
+                                storeName: currentStore?.name
+                              })}
+                              className="p-1.5 hover:bg-blue-100 text-blue-600 rounded"
+                              title="Download Bill"
+                            >
+                              <Download className="h-4 w-4" />
+                            </button>
+
                           </div>
                         </td>
                       </tr>

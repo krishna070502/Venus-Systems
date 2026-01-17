@@ -54,7 +54,9 @@ import {
   AlertCircle,
   Bot,
   Home,
+  ArrowRightLeft,
 } from 'lucide-react'
+
 import { cn } from '@/lib/utils'
 import {
   Tooltip,
@@ -123,8 +125,10 @@ const inventoryManagementGroup: NavigationGroup = {
     { name: 'SKUs', href: '/admin/business/skus', icon: Tags, permission: 'skus.sidebar' },
     { name: 'Wastage', href: '/admin/business/inventory/wastage', icon: Trash2, permission: 'wastageconfig.sidebar' },
     { name: 'Adjustments', href: '/admin/business/inventory/adjustments', icon: ClipboardEdit, permission: 'inventory.adjustments.sidebar' },
+    { name: 'Transfers', href: '/admin/business/inventory/transfers', icon: ArrowRightLeft, permission: 'inventory.transfer.view' },
   ]
 }
+
 
 // Sales & Income sub-group
 const salesIncomeGroup: NavigationGroup = {

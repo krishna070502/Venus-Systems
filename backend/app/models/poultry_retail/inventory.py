@@ -80,6 +80,18 @@ class StockByType(BaseModel):
     SKIN: Decimal = Decimal("0.000")
     SKINLESS: Decimal = Decimal("0.000")
 
+    class Config:
+        json_encoders = {
+            Decimal: lambda v: float(v)
+        }
+
+    @classmethod
+    @field_validator('LIVE', 'SKIN', 'SKINLESS', mode='before')
+    def convert_to_decimal(cls, v):
+        if isinstance(v, (int, float)):
+            return Decimal(str(v))
+        return v
+
 
 class StockSummary(BaseModel):
     """Complete stock summary for a store"""

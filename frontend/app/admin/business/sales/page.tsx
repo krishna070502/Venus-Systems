@@ -17,6 +17,7 @@ import {
   FileText,
   Loader2,
   AlertCircle,
+  Download,
 } from 'lucide-react'
 import {
   Sale,
@@ -27,6 +28,8 @@ import {
 } from '@/lib/types/poultry'
 import { apiRequest } from '@/lib/api/client'
 import { cn } from '@/lib/utils'
+import { generateSaleBillPDF } from '@/lib/utils/generatePDF'
+
 
 export default function SalesPage() {
   const { currentStore } = useStore()
@@ -122,6 +125,8 @@ export default function SalesPage() {
                       <th className="px-4 py-3 text-left">Customer</th>
                       <th className="px-4 py-3 text-right font-bold">Total Amount</th>
                       <th className="px-4 py-3 text-center">Payment</th>
+                      <th className="px-4 py-3 text-center">Actions</th>
+
                     </tr>
                   </thead>
                   <tbody className="divide-y">
@@ -153,6 +158,32 @@ export default function SalesPage() {
                             {sale.payment_method}
                           </span>
                         </td>
+                        <td className="px-4 py-3 text-center">
+                          <button
+                            onClick={() => generateSaleBillPDF({
+                              receiptNumber: sale.receipt_number,
+                              date: new Date(sale.created_at).toLocaleString('en-IN'),
+                              customerName: sale.customer_name || 'Walk-in Customer',
+                              customerPhone: sale.customer_phone || undefined,
+                              items: (sale.items || []).map(item => ({
+                                skuName: item.sku_name || item.sku?.name || 'Product',
+                                weight: Number(item.weight) || 0,
+                                rate: Number(item.price_snapshot) || 0,
+                                total: (Number(item.weight) || 0) * (Number(item.price_snapshot) || 0)
+                              })),
+                              totalAmount: Number(sale.total_amount) || 0,
+                              paymentMethod: sale.payment_method,
+                              saleType: sale.sale_type || 'POS',
+                              notes: sale.notes || undefined,
+                              storeName: currentStore?.name
+                            })}
+                            className="p-1.5 hover:bg-blue-100 text-blue-600 rounded transition-colors"
+                            title="Download Invoice"
+                          >
+                            <Download className="h-4 w-4" />
+                          </button>
+                        </td>
+
                       </tr>
                     ))}
                   </tbody>

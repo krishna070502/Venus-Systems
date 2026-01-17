@@ -98,9 +98,10 @@ def require_permission(required_permissions: List[str]) -> Callable:
                 detail=f"Insufficient permissions. Required: {', '.join(required_permissions)}"
             )
         
-        # Enrich user object with roles and store_ids for downstream validation (e.g. validate_store_access)
+        # Enrich user object with roles, permissions, and store_ids for downstream validation (e.g. validate_store_access)
         user_roles = await role_service.get_user_roles(user_id)
         current_user["roles"] = [role["name"] for role in user_roles]
+        current_user["permissions"] = user_permissions  # Added for permission-based logic in routers
         current_user["store_ids"] = await role_service.get_user_store_ids(user_id)
         current_user["user_id"] = user_id  # Added for compatibility with poultry routers
         
@@ -109,6 +110,7 @@ def require_permission(required_permissions: List[str]) -> Callable:
         return current_user
     
     return permission_checker
+
 
 
 # Convenience dependencies for common roles
