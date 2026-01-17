@@ -11,7 +11,7 @@ from uuid import UUID
 
 from app.dependencies.rbac import require_permission
 from app.models.poultry_retail.settlements import (
-    SettlementCreate, SettlementSubmit, Settlement, SettlementWithVariance
+    SettlementCreate, SettlementSubmit, Settlement, SettlementWithVariance, SettlementReject
 )
 from app.models.poultry_retail.enums import SettlementStatus
 from app.routers.poultry_retail.utils import validate_store_access
@@ -258,6 +258,58 @@ async def approve_settlement(
         print(f"Warning: Failed to award points: {str(e)}")
     
     return await get_settlement(settlement_id)
+
+
+@router.post("/{settlement_id}/reject", response_model=Settlement)
+async def reject_settlement(
+    settlement_id: UUID,
+    rejection: SettlementReject,
+    current_user: dict = Depends(require_permission(["settlements.approve"]))
+):
+    """
+    Reject a submitted settlement.
+    Returns it to DRAFT status so the manager can fix it.
+    """
+    from app.config.database import get_supabase
+    
+    supabase = get_supabase()
+    
+    # Get existing settlement
+    existing = supabase.table("daily_settlements").select("*").eq(
+        "id", str(settlement_id)
+    ).execute()
+    
+    if not existing.data:
+        raise HTTPException(status_code=404, detail="Settlement not found")
+    
+    settlement = existing.data[0]
+    
+    # Validate store access
+    if not validate_store_access(settlement["store_id"], current_user):
+        raise HTTPException(status_code=403, detail="Access denied to this store")
+    
+    # Check status - can only reject SUBMITTED settlements
+    if settlement["status"] != "SUBMITTED":
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cannot reject settlement with status {settlement['status']}"
+        )
+    
+    # Reject settlement: set back to DRAFT
+    # We use DRAFT so they can fix it and submit again.
+    # We also mark the expense as REJECTED.
+    update_data = {
+        "status": "DRAFT",
+        "expense_status": "REJECTED",
+        "updated_at": datetime.utcnow().isoformat()
+    }
+    
+    result = supabase.table("daily_settlements").update(update_data).eq("id", str(settlement_id)).execute()
+    
+    if not result.data:
+        raise HTTPException(status_code=500, detail="Failed to reject settlement")
+        
+    return result.data[0]
 
 
 @router.post("/{settlement_id}/lock", response_model=Settlement)

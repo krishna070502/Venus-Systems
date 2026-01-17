@@ -147,7 +147,7 @@ async def get_store_prices(
     )
 
 
-@router.post("/prices", response_model=StorePrice, status_code=201)
+@router.post("/prices/store", response_model=StorePrice, status_code=201)
 async def set_store_price(
     price: StorePriceCreate,
     current_user: dict = Depends(require_permission(["storeprices.edit"]))

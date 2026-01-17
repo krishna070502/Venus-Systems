@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { apiRequest } from '../api/client'
+import { useAuth } from '@/lib/auth/AuthProvider'
 
 // Types
 export interface WidgetConfig {
@@ -63,6 +64,7 @@ const DEFAULT_CONFIG: DashboardConfig = {
 }
 
 export function useDashboard() {
+    const { user, loading: authLoading } = useAuth()
     const [config, setConfig] = useState<DashboardConfig>(DEFAULT_CONFIG)
     const [shortcuts, setShortcuts] = useState<Shortcut[]>([])
     const [homepagePreference, setHomepagePreference] = useState<HomepagePreference | null>(null)
@@ -109,13 +111,23 @@ export function useDashboard() {
 
     // Initial load
     useEffect(() => {
+        if (authLoading) return
+
+        if (!user) {
+            setConfig(DEFAULT_CONFIG)
+            setShortcuts([])
+            setHomepagePreference(null)
+            setLoading(false)
+            return
+        }
+
         const loadAll = async () => {
             setLoading(true)
             await Promise.all([loadConfig(), loadShortcuts(), loadHomepagePreference()])
             setLoading(false)
         }
         loadAll()
-    }, [loadConfig, loadShortcuts, loadHomepagePreference])
+    }, [user, authLoading, loadConfig, loadShortcuts, loadHomepagePreference])
 
     // Save dashboard layout (only if tables exist)
     const saveLayout = async (layout: DashboardLayout) => {
@@ -286,6 +298,9 @@ export function useDashboard() {
         deleteShortcut,
         moveWidget,
         updateHomepagePreference,
-        refresh: () => Promise.all([loadConfig(), loadShortcuts()])
+        refresh: () => {
+            if (!user) return Promise.resolve()
+            return Promise.all([loadConfig(), loadShortcuts()])
+        }
     }
 }

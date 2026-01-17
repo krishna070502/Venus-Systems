@@ -13,6 +13,11 @@ from uuid import UUID
 from .enums import SettlementStatus, ExpenseStatus, BirdType, InventoryType
 
 
+class SettlementReject(BaseModel):
+    """Model for rejecting a settlement"""
+    rejection_reason: Optional[str] = Field(default=None, max_length=500)
+
+
 # =============================================================================
 # DECLARED STOCK MODELS
 # =============================================================================

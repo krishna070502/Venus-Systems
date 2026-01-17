@@ -1,7 +1,7 @@
 Audit Walkthrough: Venus-System API Consistency
 I have completed a comprehensive audit of the backend (FastAPI) and frontend (Next.js) to identify any endpoint mismatches, logic breaks, or potential application breaks.
 
-🔴 Critical Mismatches (Functional Breaks)
+🔴 Critical Mismatches (Functional Breaks)--- Fixed
 1. Missing Settlement Reject Endpoint
 The frontend expects a "Reject" capability for settlements, but the backend implementation is incomplete.
 
@@ -10,7 +10,7 @@ Backend Router:
 settlements.py
  lacks a corresponding @router.post("/{settlement_id}/reject").
 Impact: Any attempt to reject a settlement from the UI will result in a 404 error.
-2. SKU Pricing POST Route Mismatch
+2. SKU Pricing POST Route Mismatch--- Fixed
 There is a naming inconsistency in the Store Pricing implementation.
 
 Frontend Call: api.poultry.skus.setPrice(data) -> POST /api/v1/poultry/skus/prices/store
