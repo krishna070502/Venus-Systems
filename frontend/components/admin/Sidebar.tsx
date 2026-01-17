@@ -53,6 +53,7 @@ import {
   Award,
   AlertCircle,
   Bot,
+  Home,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
@@ -76,13 +77,16 @@ interface NavigationGroup {
   items: (NavigationItem | NavigationGroup)[] // Items can be pages or nested groups
 }
 
+// Standalone Home item (visible to all authenticated users)
+const homeNavItem: NavigationItem = { name: 'Home', href: '/admin/home', icon: Home }
+
 // System Administration group
 const systemAdministrationGroup: NavigationGroup = {
   name: 'System Administration',
   icon: Settings,
   permission: 'systemadministration.view',
   items: [
-    { name: 'Dashboard', href: '/admin', icon: LayoutDashboard, permission: 'systemdashboard.view' },
+    { name: 'System Dashboard', href: '/admin', icon: LayoutDashboard, permission: 'systemdashboard.view' },
     { name: 'Users', href: '/admin/users', icon: Users, permission: 'users.read' },
     { name: 'AI Config', href: '/admin/ai-settings', icon: Bot, permission: 'ai.admin' },
     { name: 'Roles', href: '/admin/roles', icon: ShieldCheck, permission: 'roles.read' },
@@ -364,6 +368,42 @@ export function AdminSidebar() {
 
         {/* Navigation */}
         <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
+          {/* Standalone Home Link */}
+          {isCollapsed ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link
+                  href={homeNavItem.href}
+                  className={cn(
+                    'flex items-center justify-center p-3 rounded-md text-sm font-medium transition-colors',
+                    pathname === homeNavItem.href
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                  )}
+                >
+                  <homeNavItem.icon className="h-5 w-5" />
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                <p>{homeNavItem.name}</p>
+              </TooltipContent>
+            </Tooltip>
+          ) : (
+            <Link
+              href={homeNavItem.href}
+              className={cn(
+                'flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors',
+                pathname === homeNavItem.href
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+              )}
+            >
+              <homeNavItem.icon className="h-5 w-5" />
+              {homeNavItem.name}
+            </Link>
+          )}
+
+          {/* Navigation Groups */}
           {filteredNavigationGroups.map((group) => {
             const isExpanded = expandedGroups.includes(group.name)
             const hasActiveItem = group.items.some(item => 'href' in item && pathname === item.href)

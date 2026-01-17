@@ -113,9 +113,13 @@ const GROUP_CONFIG: Record<string, { displayName: string; category: string }> = 
   'shops': { displayName: 'Shops', category: 'Business Management' },
   'managers': { displayName: 'Managers', category: 'Business Management' },
   'priceconfig': { displayName: 'Price Config', category: 'Business Management' },
+
+  // Personal Home
+  'dashboard': { displayName: 'Personal Home', category: 'Personal Home' },
+  'dashboard.widget': { displayName: 'Personal Home - Widgets', category: 'Personal Home' },
 }
 
-const CATEGORY_ORDER = ['System Administration', 'Business', 'Business Management', 'Other']
+const CATEGORY_ORDER = ['System Administration', 'Business', 'Business Management', 'Personal Home', 'Other']
 
 export default function PermissionsPage() {
   const [permissions, setPermissions] = useState<Permission[]>([])

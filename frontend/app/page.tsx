@@ -18,13 +18,31 @@ import {
   Cpu,
   Monitor
 } from 'lucide-react'
-import AIChatWidget from '@/components/ai/AIChatWidget'
+import AIChatWidget from '../components/ai/AIChatWidget'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '../lib/auth/AuthProvider'
+import { usePermissions } from '../lib/auth/usePermissions'
+import { useDashboard } from '../lib/hooks/useDashboard'
+import { useEffect } from 'react'
 
 // Professional dashboard imagery paths
 const DASHBOARD_HERO = '/hero.png'
 const OPS_IMAGE = '/farm.png'
 
 export default function HomePage() {
+  const router = useRouter()
+  const { user, loading: authLoading } = useAuth()
+  const { roles, loading: permLoading } = usePermissions()
+  const { homepagePreference } = useDashboard()
+
+  // Redirect all authenticated users to /admin/home
+  useEffect(() => {
+    if (!authLoading && !permLoading && user) {
+      router.push('/admin/home')
+    }
+  }, [user, authLoading, permLoading, router])
+
+
   const modules = [
     {
       icon: Terminal,
@@ -140,7 +158,7 @@ export default function HomePage() {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 items-center mb-12">
-                <Link href="/admin" className="w-full sm:w-auto">
+                <Link href={user ? (roles.includes('Admin') && homepagePreference?.homepage !== 'dashboard' ? '/admin' : '/admin/home') : '/admin'} className="w-full sm:w-auto">
                   <Button size="lg" className="h-16 px-10 bg-core-blue hover:bg-desk-black text-white font-black text-lg shadow-2xl shadow-blue-200 transition-all rounded-2xl w-full">
                     GOTO DASHBOARD
                     <ArrowRight className="ml-2 h-6 w-6" />

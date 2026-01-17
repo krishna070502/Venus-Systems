@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from 'react'
 import { apiRequest } from '@/lib/api/client'
 import { PermissionGuard } from '@/components/admin/PermissionGuard'
 import { usePermissions, hasPermission } from '@/lib/auth/usePermissions'
+import { useStore } from '@/lib/context/StoreContext'
+import { StoreHeader } from '@/components/poultry/StoreHeader'
 import { Receipt, ReceiptCreate, Customer, ReceiptPaymentMethod } from '@/lib/types/poultry'
 import {
   FileCheck,
@@ -14,11 +16,14 @@ import {
   AlertCircle,
   Calendar,
   User,
-  IndianRupee
+  IndianRupee,
+  Download
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { generatePDF } from '@/lib/utils/generatePDF'
 
 export default function ReceiptsPage() {
+  const { currentStore } = useStore()
   const { permissions, loading: permLoading } = usePermissions()
   const [receipts, setReceipts] = useState<Receipt[]>([])
   const [customers, setCustomers] = useState<Customer[]>([])
@@ -43,17 +48,20 @@ export default function ReceiptsPage() {
   const canCreate = !permLoading && hasPermission(permissions, 'receipt.write')
 
   const fetchReceipts = useCallback(async () => {
+    if (!currentStore) return
     setLoading(true)
     setError(null)
     try {
-      const data = await apiRequest<Receipt[]>('/api/v1/poultry/receipts')
+      const data = await apiRequest<Receipt[]>('/api/v1/poultry/receipts', {
+        headers: { 'X-Store-Id': currentStore.id.toString() }
+      })
       setReceipts(Array.isArray(data) ? data : [])
     } catch (err: any) {
       setError(err.message || 'Failed to load receipts')
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [currentStore])
 
   const fetchCustomers = useCallback(async () => {
     try {
@@ -65,9 +73,11 @@ export default function ReceiptsPage() {
   }, [])
 
   useEffect(() => {
-    fetchReceipts()
-    fetchCustomers()
-  }, [fetchReceipts, fetchCustomers])
+    if (currentStore) {
+      fetchReceipts()
+      fetchCustomers()
+    }
+  }, [currentStore, fetchReceipts, fetchCustomers])
 
   const filteredReceipts = receipts.filter(r =>
     r.receipt_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -131,189 +141,207 @@ export default function ReceiptsPage() {
 
   return (
     <PermissionGuard permission="receipt.view">
-      <div className="p-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-          <div>
-            <h1 className="text-3xl font-bold flex items-center gap-2">
-              <FileCheck className="h-8 w-8" />
-              Receipts
-            </h1>
-            <p className="text-muted-foreground mt-2">
-              Track payments received from customers
-            </p>
+      <div className="flex flex-col h-full bg-muted/20">
+        <StoreHeader
+          title="Receipts"
+          subtitle="Track payments received from customers"
+          onRefresh={fetchReceipts}
+          actions={
+            canCreate && (
+              <button
+                onClick={openCreateModal}
+                className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+              >
+                <Plus className="h-4 w-4" />
+                New Receipt
+              </button>
+            )
+          }
+        />
+
+        <div className="p-6">
+          {/* Search */}
+          <div className="relative mb-6">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Search receipts..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full max-w-md pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 bg-background"
+            />
           </div>
-          {canCreate && (
-            <button
-              onClick={openCreateModal}
-              className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
-            >
-              <Plus className="h-4 w-4" />
-              New Receipt
-            </button>
+
+          {/* Error */}
+          {error && (
+            <div className="bg-destructive/10 text-destructive p-4 rounded-lg mb-6 flex items-center gap-2">
+              <AlertCircle className="h-5 w-5" />
+              {error}
+            </div>
+          )}
+
+          {/* Loading */}
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : filteredReceipts.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">
+              <FileCheck className="h-12 w-12 mx-auto mb-4 opacity-30" />
+              <p>No receipts found</p>
+            </div>
+          ) : (
+            <div className="bg-card rounded-lg border shadow-sm overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-muted/50">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-sm font-medium">Receipt #</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium">Customer</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium">Date</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium">Method</th>
+                      <th className="px-4 py-3 text-right text-sm font-medium">Amount</th>
+                      <th className="px-4 py-3 text-center text-sm font-medium">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredReceipts.map((receipt) => (
+                      <tr key={receipt.id} className="border-b hover:bg-muted/20 transition-colors">
+                        <td className="px-4 py-4 font-mono text-sm">{receipt.receipt_number}</td>
+                        <td className="px-4 py-4">
+                          <div className="flex items-center gap-2">
+                            <User className="h-4 w-4 text-muted-foreground" />
+                            {receipt.customer_name || 'Unknown'}
+                          </div>
+                        </td>
+                        <td className="px-4 py-4">
+                          <div className="flex items-center gap-2 text-sm">
+                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                            {formatDate(receipt.receipt_date)}
+                          </div>
+                        </td>
+                        <td className="px-4 py-4">
+                          <span className={cn("px-2 py-1 rounded-full text-xs font-medium", paymentMethodColors[receipt.payment_method])}>
+                            {receipt.payment_method}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4 text-right font-medium text-green-600">
+                          {formatCurrency(receipt.amount)}
+                        </td>
+                        <td className="px-4 py-4 text-center">
+                          <button
+                            onClick={() => generatePDF({
+                              type: 'RECEIPT',
+                              documentNumber: receipt.receipt_number,
+                              date: formatDate(receipt.receipt_date),
+                              partyName: receipt.customer_name || 'Unknown',
+                              amount: receipt.amount,
+                              paymentMethod: receipt.payment_method,
+                              referenceNumber: receipt.reference_number || undefined,
+                              notes: receipt.notes || undefined,
+                              storeAddress: currentStore?.location || undefined
+                            })}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-primary/10 text-primary hover:bg-primary/20 rounded-md transition-colors"
+                            title="Download PDF"
+                          >
+                            <Download className="h-4 w-4" />
+                            PDF
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* Modal */}
+          {showModal && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+              <div className="bg-card rounded-lg border shadow-xl w-full max-w-lg">
+                <div className="px-6 py-4 border-b flex items-center justify-between">
+                  <h2 className="text-lg font-semibold">Record Receipt</h2>
+                  <button onClick={() => setShowModal(false)} className="p-1 hover:bg-accent rounded"><X className="h-5 w-5" /></button>
+                </div>
+                <div className="p-6 space-y-4">
+                  {saveError && <div className="bg-destructive/10 text-destructive p-3 rounded-lg text-sm">{saveError}</div>}
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Customer <span className="text-destructive">*</span></label>
+                    <select
+                      value={formData.customer_id}
+                      onChange={(e) => setFormData({ ...formData, customer_id: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg bg-background"
+                    >
+                      <option value="">Select customer...</option>
+                      {customers.map(c => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Amount <span className="text-destructive">*</span></label>
+                    <input
+                      type="number"
+                      value={formData.amount}
+                      onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })}
+                      className="w-full px-3 py-2 border rounded-lg bg-background"
+                      placeholder="0.00"
+                      min="0"
+                      step="0.01"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Payment Method</label>
+                    <select
+                      value={formData.payment_method}
+                      onChange={(e) => setFormData({ ...formData, payment_method: e.target.value as ReceiptPaymentMethod })}
+                      className="w-full px-3 py-2 border rounded-lg bg-background"
+                    >
+                      <option value="CASH">Cash</option>
+                      <option value="BANK">Bank Transfer</option>
+                      <option value="UPI">UPI</option>
+                      <option value="CHEQUE">Cheque</option>
+                      <option value="OTHER">Other</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Reference Number</label>
+                    <input
+                      type="text"
+                      value={formData.reference_number}
+                      onChange={(e) => setFormData({ ...formData, reference_number: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg bg-background"
+                      placeholder="Transaction/Cheque reference"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Notes</label>
+                    <textarea
+                      value={formData.notes}
+                      onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg bg-background"
+                      rows={2}
+                      placeholder="Optional notes..."
+                    />
+                  </div>
+                </div>
+                <div className="px-6 py-4 border-t flex items-center justify-end gap-3">
+                  <button onClick={() => setShowModal(false)} className="px-4 py-2 border rounded-lg hover:bg-accent transition-colors">Cancel</button>
+                  <button onClick={handleSave} disabled={saving} className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center gap-2">
+                    {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+                    Record Receipt
+                  </button>
+                </div>
+              </div>
+            </div>
           )}
         </div>
-
-        {/* Search */}
-        <div className="relative mb-6">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="Search receipts..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full max-w-md pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
-          />
-        </div>
-
-        {/* Error */}
-        {error && (
-          <div className="bg-destructive/10 text-destructive p-4 rounded-lg mb-6 flex items-center gap-2">
-            <AlertCircle className="h-5 w-5" />
-            {error}
-          </div>
-        )}
-
-        {/* Loading */}
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        ) : filteredReceipts.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground">
-            <FileCheck className="h-12 w-12 mx-auto mb-4 opacity-30" />
-            <p>No receipts found</p>
-          </div>
-        ) : (
-          <div className="bg-card rounded-lg border shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-muted/50">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-sm font-medium">Receipt #</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium">Customer</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium">Date</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium">Method</th>
-                    <th className="px-4 py-3 text-right text-sm font-medium">Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredReceipts.map((receipt) => (
-                    <tr key={receipt.id} className="border-b hover:bg-muted/20 transition-colors">
-                      <td className="px-4 py-4 font-mono text-sm">{receipt.receipt_number}</td>
-                      <td className="px-4 py-4">
-                        <div className="flex items-center gap-2">
-                          <User className="h-4 w-4 text-muted-foreground" />
-                          {receipt.customer_name || 'Unknown'}
-                        </div>
-                      </td>
-                      <td className="px-4 py-4">
-                        <div className="flex items-center gap-2 text-sm">
-                          <Calendar className="h-4 w-4 text-muted-foreground" />
-                          {formatDate(receipt.receipt_date)}
-                        </div>
-                      </td>
-                      <td className="px-4 py-4">
-                        <span className={cn("px-2 py-1 rounded-full text-xs font-medium", paymentMethodColors[receipt.payment_method])}>
-                          {receipt.payment_method}
-                        </span>
-                      </td>
-                      <td className="px-4 py-4 text-right font-medium text-green-600">
-                        {formatCurrency(receipt.amount)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* Modal */}
-        {showModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-card rounded-lg border shadow-xl w-full max-w-lg">
-              <div className="px-6 py-4 border-b flex items-center justify-between">
-                <h2 className="text-lg font-semibold">Record Receipt</h2>
-                <button onClick={() => setShowModal(false)} className="p-1 hover:bg-accent rounded"><X className="h-5 w-5" /></button>
-              </div>
-              <div className="p-6 space-y-4">
-                {saveError && <div className="bg-destructive/10 text-destructive p-3 rounded-lg text-sm">{saveError}</div>}
-
-                <div>
-                  <label className="block text-sm font-medium mb-1">Customer <span className="text-destructive">*</span></label>
-                  <select
-                    value={formData.customer_id}
-                    onChange={(e) => setFormData({ ...formData, customer_id: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-lg bg-background"
-                  >
-                    <option value="">Select customer...</option>
-                    {customers.map(c => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-1">Amount <span className="text-destructive">*</span></label>
-                  <input
-                    type="number"
-                    value={formData.amount}
-                    onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })}
-                    className="w-full px-3 py-2 border rounded-lg bg-background"
-                    placeholder="0.00"
-                    min="0"
-                    step="0.01"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-1">Payment Method</label>
-                  <select
-                    value={formData.payment_method}
-                    onChange={(e) => setFormData({ ...formData, payment_method: e.target.value as ReceiptPaymentMethod })}
-                    className="w-full px-3 py-2 border rounded-lg bg-background"
-                  >
-                    <option value="CASH">Cash</option>
-                    <option value="BANK">Bank Transfer</option>
-                    <option value="UPI">UPI</option>
-                    <option value="CHEQUE">Cheque</option>
-                    <option value="OTHER">Other</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-1">Reference Number</label>
-                  <input
-                    type="text"
-                    value={formData.reference_number}
-                    onChange={(e) => setFormData({ ...formData, reference_number: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-lg bg-background"
-                    placeholder="Transaction/Cheque reference"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-1">Notes</label>
-                  <textarea
-                    value={formData.notes}
-                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-lg bg-background"
-                    rows={2}
-                    placeholder="Optional notes..."
-                  />
-                </div>
-              </div>
-              <div className="px-6 py-4 border-t flex items-center justify-end gap-3">
-                <button onClick={() => setShowModal(false)} className="px-4 py-2 border rounded-lg hover:bg-accent transition-colors">Cancel</button>
-                <button onClick={handleSave} disabled={saving} className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center gap-2">
-                  {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-                  Record Receipt
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </PermissionGuard>
   )

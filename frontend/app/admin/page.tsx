@@ -6,20 +6,36 @@ import Link from 'next/link'
 import { api } from '@/lib/api/client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Users, ShieldCheck, Key, Activity, Home, BookOpen, Settings, Sparkles, FileText, TestTube, LayoutDashboard } from 'lucide-react'
-import { PageLoading } from '@/components/ui/loading'
-import { usePermissions } from '@/lib/auth/usePermissions'
-import { useAuth } from '@/lib/auth/AuthProvider'
+import { PageLoading } from '../../components/ui/loading'
+import { usePermissions } from '../../lib/auth/usePermissions'
+import { useAuth } from '../../lib/auth/AuthProvider'
+import { useDashboard } from '../../lib/hooks/useDashboard'
 
 export default function AdminDashboard() {
-  const { permissions, loading: permLoading } = usePermissions()
+  const router = useRouter()
+  const { permissions, roles, loading: permLoading } = usePermissions()
   const { user, loading: authLoading } = useAuth()
+  const { homepagePreference } = useDashboard()
+
+  const isAdmin = roles.includes('Admin')
+  const canViewDashboard = permissions.includes('systemdashboard.view')
+
+  useEffect(() => {
+    if (!authLoading && !permLoading) {
+      if (!user) {
+        router.push('/auth/login')
+      } else if (!isAdmin) {
+        // Non-admins go to home page
+        router.push('/admin/home')
+      }
+      // Admins can stay on /admin if they navigate here directly
+    }
+  }, [user, isAdmin, authLoading, permLoading, router])
+
 
   if (authLoading || permLoading) {
     return <PageLoading text="Loading..." />
   }
-
-  // Check if user has systemdashboard.view permission
-  const canViewDashboard = permissions.includes('systemdashboard.view')
 
   if (canViewDashboard) {
     return <AdminDashboardContent />
@@ -177,7 +193,7 @@ function HomeLandingPage() {
               <p className="text-sm text-muted-foreground">
                 You have access to the following areas:
               </p>
-              
+
               {/* Feature Cards */}
               {availableFeatures.length > 0 && (
                 <div className="grid gap-3 md:grid-cols-2">
@@ -348,7 +364,7 @@ function AdminDashboardContent() {
           <CardDescription>Common administrative tasks</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
-          <div 
+          <div
             className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent cursor-pointer transition-colors"
             onClick={() => router.push('/admin/users')}
           >
@@ -358,7 +374,7 @@ function AdminDashboardContent() {
             </div>
             <Users className="h-5 w-5 text-muted-foreground" />
           </div>
-          <div 
+          <div
             className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent cursor-pointer transition-colors"
             onClick={() => router.push('/admin/roles')}
           >
@@ -368,7 +384,7 @@ function AdminDashboardContent() {
             </div>
             <ShieldCheck className="h-5 w-5 text-muted-foreground" />
           </div>
-          <div 
+          <div
             className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent cursor-pointer transition-colors"
             onClick={() => router.push('/admin/logs')}
           >

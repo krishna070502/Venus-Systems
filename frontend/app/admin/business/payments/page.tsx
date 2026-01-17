@@ -13,9 +13,11 @@ import {
   Loader2,
   AlertCircle,
   Calendar,
-  Truck
+  Truck,
+  Download
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { generatePDF } from '@/lib/utils/generatePDF'
 
 export default function PaymentsPage() {
   const { permissions, loading: permLoading } = usePermissions()
@@ -194,6 +196,7 @@ export default function PaymentsPage() {
                     <th className="px-4 py-3 text-left text-sm font-medium">Date</th>
                     <th className="px-4 py-3 text-left text-sm font-medium">Method</th>
                     <th className="px-4 py-3 text-right text-sm font-medium">Amount</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -219,6 +222,25 @@ export default function PaymentsPage() {
                       </td>
                       <td className="px-4 py-4 text-right font-medium text-red-600">
                         {formatCurrency(payment.amount)}
+                      </td>
+                      <td className="px-4 py-4 text-center">
+                        <button
+                          onClick={() => generatePDF({
+                            type: 'PAYMENT',
+                            documentNumber: payment.payment_number,
+                            date: formatDate(payment.payment_date),
+                            partyName: payment.supplier_name || 'Unknown',
+                            amount: payment.amount,
+                            paymentMethod: payment.payment_method,
+                            referenceNumber: payment.reference_number || undefined,
+                            notes: payment.notes || undefined
+                          })}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-primary/10 text-primary hover:bg-primary/20 rounded-md transition-colors"
+                          title="Download PDF"
+                        >
+                          <Download className="h-4 w-4" />
+                          PDF
+                        </button>
                       </td>
                     </tr>
                   ))}

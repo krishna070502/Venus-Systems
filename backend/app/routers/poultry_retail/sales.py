@@ -290,3 +290,58 @@ async def get_daily_summary(
         total_bank=total_bank,
         sale_count=len(result.data)
     )
+
+
+@router.get("/summary/global")
+async def get_global_summary(
+    summary_date: Optional[date] = None,
+    current_user: dict = Depends(require_permission(["sales.view"]))
+):
+    """
+    Get global sales summary across ALL stores for today.
+    Intended for admin dashboard widgets.
+    """
+    from app.config.database import get_supabase
+    
+    supabase = get_supabase()
+    
+    target_date = summary_date or date.today()
+    
+    # Get sales for the day across ALL stores
+    result = supabase.table("sales").select(
+        "total_amount, payment_method"
+    ).gte(
+        "created_at", target_date.isoformat()
+    ).lt(
+        "created_at", (target_date.isoformat() + "T23:59:59")
+    ).execute()
+    
+    total_sales = Decimal("0")
+    total_cash = Decimal("0")
+    total_upi = Decimal("0")
+    total_card = Decimal("0")
+    total_bank = Decimal("0")
+    
+    for sale in result.data:
+        amount = Decimal(str(sale["total_amount"]))
+        total_sales += amount
+        
+        if sale["payment_method"] == "CASH":
+            total_cash += amount
+        elif sale["payment_method"] == "UPI":
+            total_upi += amount
+        elif sale["payment_method"] == "CARD":
+            total_card += amount
+        elif sale["payment_method"] == "BANK":
+            total_bank += amount
+    
+    return {
+        "date": target_date.isoformat(),
+        "total_sales": float(total_sales),
+        "total_cash": float(total_cash),
+        "total_upi": float(total_upi),
+        "total_card": float(total_card),
+        "total_bank": float(total_bank),
+        "sale_count": len(result.data)
+    }
+
