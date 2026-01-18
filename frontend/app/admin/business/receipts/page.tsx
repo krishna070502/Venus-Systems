@@ -110,7 +110,8 @@ export default function ReceiptsPage() {
     try {
       await apiRequest('/api/v1/poultry/receipts', {
         method: 'POST',
-        body: JSON.stringify(formData)
+        body: JSON.stringify(formData),
+        headers: { 'X-Store-Id': currentStore?.id.toString() || '' }
       })
       setShowModal(false)
       fetchReceipts()

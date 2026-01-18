@@ -37,7 +37,7 @@ async def list_receipts(
     
     # Join with customers and sales for details
     query = supabase.table("receipts").select(
-        "*, customers!inner(name), sales(invoice_number)"
+        "*, customers(name), sales(invoice_number)"
     )
     
     if x_store_id:
@@ -82,7 +82,7 @@ async def get_receipt(
     supabase = get_supabase()
     
     result = supabase.table("receipts").select(
-        "*, customers!inner(name), sales(invoice_number)"
+        "*, customers(name), sales(invoice_number)"
     ).eq("id", str(receipt_id)).execute()
     
     if not result.data:
