@@ -1,10 +1,12 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
     RefreshCw,
-    Home
+    Home,
+    Edit3,
+    Check
 } from 'lucide-react'
 import { useDashboard, WidgetConfig } from '../../../lib/hooks/useDashboard'
 import { usePermissions, hasPermission } from '../../../lib/auth/usePermissions'
@@ -12,7 +14,9 @@ import { useAuth } from '../../../lib/auth/AuthProvider'
 import { ShortcutGrid } from '../../../components/dashboard/ShortcutGrid'
 import { WidgetRenderer } from '../../../components/dashboard/DashboardWidgets'
 import { WidgetPicker } from '../../../components/dashboard/WidgetPicker'
+import { DraggableWidgetGrid } from '../../../components/dashboard/DraggableWidgetGrid'
 import { PageLoading } from '../../../components/ui/loading'
+import { cn } from '../../../lib/utils'
 
 export default function AdminHomePage() {
     const router = useRouter()
@@ -31,9 +35,13 @@ export default function AdminHomePage() {
         updateShortcut,
         deleteShortcut,
         moveWidget,
+        reorderWidgets,
+        resizeWidget,
         updateHomepagePreference,
         refresh
     } = useDashboard()
+
+    const [isEditMode, setIsEditMode] = useState(false)
 
     const isAdmin = roles.includes('Admin')
     const canCustomize = hasPermission(permissions, 'dashboard.customize')
@@ -64,6 +72,39 @@ export default function AdminHomePage() {
     // Get first name from user profile or fall back to email prefix
     const firstName = (user as any).user_metadata?.full_name?.split(' ')[0] || (user as any).full_name?.split(' ')[0] || user.email?.split('@')[0] || 'User'
 
+    // Handle widget reorder from drag-drop
+    const handleReorder = async (reorderedWidgets: WidgetConfig[]) => {
+        await reorderWidgets(reorderedWidgets)
+    }
+
+    // Render individual widget content
+    const renderWidgetContent = (widget: WidgetConfig) => {
+        if (widget.type === 'shortcuts') {
+            return (
+                <div className="p-6">
+                    <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
+                    <ShortcutGrid
+                        shortcuts={shortcuts}
+                        onAdd={addShortcut}
+                        onUpdate={updateShortcut}
+                        onDelete={deleteShortcut}
+                        editable={canCustomize}
+                        isEditMode={isEditMode}
+                    />
+                </div>
+            )
+        }
+
+        // For other widget types, use the existing WidgetRenderer's internal content
+        return (
+            <WidgetRenderer
+                widget={widget}
+                onRemove={() => { }}
+                onMove={() => { }}
+                editable={false}
+            />
+        )
+    }
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -78,7 +119,7 @@ export default function AdminHomePage() {
                     </p>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                     <button
                         onClick={() => refresh()}
                         className="p-2.5 hover:bg-accent rounded-xl border transition-all active:scale-95"
@@ -87,14 +128,53 @@ export default function AdminHomePage() {
                         <RefreshCw className="h-5 w-5" />
                     </button>
 
-                    {config && canCustomize && (
-                        <WidgetPicker
-                            onAdd={addWidget}
-                            existingWidgets={config.layout.widgets}
-                        />
+                    {canCustomize && (
+                        <>
+                            {/* Edit Mode Toggle */}
+                            <button
+                                onClick={() => setIsEditMode(!isEditMode)}
+                                className={cn(
+                                    "flex items-center gap-2 px-4 py-2.5 rounded-xl border transition-all active:scale-95 font-medium",
+                                    isEditMode
+                                        ? "bg-primary text-primary-foreground border-primary"
+                                        : "hover:bg-accent"
+                                )}
+                                title={isEditMode ? "Done editing" : "Edit layout"}
+                            >
+                                {isEditMode ? (
+                                    <>
+                                        <Check className="h-4 w-4" />
+                                        Done
+                                    </>
+                                ) : (
+                                    <>
+                                        <Edit3 className="h-4 w-4" />
+                                        Edit
+                                    </>
+                                )}
+                            </button>
+
+                            {/* Widget Picker - only visible in edit mode */}
+                            {isEditMode && config && (
+                                <WidgetPicker
+                                    onAdd={addWidget}
+                                    existingWidgets={config.layout.widgets}
+                                />
+                            )}
+                        </>
                     )}
                 </div>
             </div>
+
+            {/* Edit Mode Indicator */}
+            {isEditMode && canCustomize && (
+                <div className="bg-primary/5 border-2 border-primary/20 border-dashed rounded-xl p-4 flex items-center gap-3">
+                    <div className="h-3 w-3 rounded-full bg-primary animate-pulse" />
+                    <p className="text-sm font-medium text-primary">
+                        Edit mode active — Drag widgets to reorder, use controls to resize or remove.
+                    </p>
+                </div>
+            )}
 
             {/* Quick Actions / Preference Notice */}
             {!tablesExist && (
@@ -113,62 +193,20 @@ export default function AdminHomePage() {
             )}
 
 
-            {/* Widgets Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {config?.layout.widgets.map((widget: WidgetConfig) => {
-                    if (widget.type === 'shortcuts') {
-                        return (
-                            <div key={widget.id} className="col-span-full bg-card rounded-2xl border p-6 shadow-sm">
-                                <div className="flex items-center justify-between mb-6">
-                                    <h2 className="text-lg font-bold">Quick Links</h2>
-                                    {canCustomize && (
-                                        <div className="flex items-center gap-4 text-xs font-medium">
-                                            <button
-                                                onClick={() => moveWidget(widget.id, 'up')}
-                                                className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
-                                            >
-                                                Move Up
-                                            </button>
-                                            <button
-                                                onClick={() => moveWidget(widget.id, 'down')}
-                                                className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
-                                            >
-                                                Move Down
-                                            </button>
-                                            <button
-                                                onClick={() => removeWidget(widget.id)}
-                                                className="text-destructive/70 hover:text-destructive transition-colors flex items-center gap-1"
-                                            >
-                                                Remove
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                                <ShortcutGrid
-                                    shortcuts={shortcuts}
-                                    onAdd={addShortcut}
-                                    onUpdate={updateShortcut}
-                                    onDelete={deleteShortcut}
-                                    editable={canCustomize}
-                                />
-                            </div>
-                        )
-                    }
-
-                    return (
-                        <WidgetRenderer
-                            key={widget.id}
-                            widget={widget}
-                            onRemove={() => removeWidget(widget.id)}
-                            onMove={(dir: 'up' | 'down') => moveWidget(widget.id, dir)}
-                            editable={canCustomize}
-                        />
-                    )
-                })}
-            </div>
-
-            {/* Empty State */}
-            {config?.layout.widgets.length === 0 && (
+            {/* Widgets Grid with Drag-Drop */}
+            {config && config.layout.widgets.length > 0 ? (
+                <DraggableWidgetGrid
+                    widgets={config.layout.widgets}
+                    onReorder={handleReorder}
+                    onRemove={removeWidget}
+                    onResize={resizeWidget}
+                    onMove={moveWidget}
+                    renderWidget={renderWidgetContent}
+                    editable={canCustomize}
+                    isEditMode={isEditMode}
+                />
+            ) : (
+                /* Empty State */
                 <div className="text-center py-20 bg-muted/20 rounded-3xl border-2 border-dashed">
                     <div className="h-20 w-20 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-6">
                         <Home className="h-10 w-10 text-muted-foreground" />

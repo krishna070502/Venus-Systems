@@ -197,6 +197,19 @@ export function useDashboard() {
         return saveLayout({ ...config.layout, widgets: updatedWidgets })
     }
 
+    // Reorder widgets (for drag-drop)
+    const reorderWidgets = async (reorderedWidgets: WidgetConfig[]) => {
+        return saveLayout({ ...config.layout, widgets: reorderedWidgets })
+    }
+
+    // Resize widget
+    const resizeWidget = async (widgetId: string, size: 'half' | 'full') => {
+        const updatedWidgets = config.layout.widgets.map(w =>
+            w.id === widgetId ? { ...w, size } : w
+        )
+        return saveLayout({ ...config.layout, widgets: updatedWidgets })
+    }
+
     // Add shortcut
     const addShortcut = async (shortcut: Omit<Shortcut, 'id' | 'user_id' | 'position'>) => {
         if (!tablesExist) {
@@ -297,6 +310,8 @@ export function useDashboard() {
         updateShortcut,
         deleteShortcut,
         moveWidget,
+        reorderWidgets,
+        resizeWidget,
         updateHomepagePreference,
         refresh: () => {
             if (!user) return Promise.resolve()
