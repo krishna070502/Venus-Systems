@@ -20,7 +20,7 @@ interface UsePOSReturn {
     // Actions
     setActiveStore: (storeId: number) => void;
     fetchSKUs: () => Promise<void>;
-    createSale: (sale: Omit<SaleCreate, 'store_id' | 'sale_type'>) => Promise<Sale>;
+    createSale: (sale: Omit<SaleCreate, 'store_id' | 'sale_type'> & { idempotency_key?: string }) => Promise<Sale>;
     clearError: () => void;
     clearLastSale: () => void;
 }
@@ -69,7 +69,7 @@ export function usePOS(): UsePOSReturn {
     }, [activeStoreId]);
 
     const createSale = useCallback(async (
-        saleData: Omit<SaleCreate, 'store_id' | 'sale_type'>
+        saleData: Omit<SaleCreate, 'store_id' | 'sale_type'> & { idempotency_key?: string }
     ): Promise<Sale> => {
         if (!activeStoreId) {
             throw new Error('No store selected');

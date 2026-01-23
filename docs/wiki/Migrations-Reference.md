@@ -138,7 +138,7 @@ Complete reference of all 81 database migrations in the Venus-System.
 
 ---
 
-## Activity & Recent (080-083)
+## Activity & Recent (080-089)
 
 | File | Description |
 |------|-------------|
@@ -146,6 +146,12 @@ Complete reference of all 81 database migrations in the Venus-System.
 | `081_enterprise_activity_logs.sql` | Creates app_activity_logs for auth events |
 | `082_fix_activity_logs_relationship.sql` | Fixes activity logs FK to profiles |
 | `083_admin_profiles_policy.sql` | Adds RLS policy for admin profile viewing |
+| `084_user_dashboard_config.sql` | Creates user dashboard configuration tables |
+| `085_dashboard_widget_permissions.sql` | Adds permissions for specific dashboard widgets |
+| `086_stock_transfers.sql` | Implements multi-store stock transfer system |
+| `087_actual_wastage_tracking.sql` | Implements actual wastage logging & tracking |
+| `088_atomic_sale_creation.sql` | **CRITICAL**: Implements atomic function with row-level locking for safe sale creation |
+| `089_fix_processing_bird_count.sql` | Fixes bird count tracking in processing workflow |
 
 ---
 

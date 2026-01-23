@@ -27,11 +27,10 @@ The FastAPI backend makes sequential calls to Supabase (Sales insert -> for-loop
 
 ## 3. Concurrency & Data Integrity Risks
 
-### 🏃‍♂️ Inventory Race Condition (Moderate/Low Risk)
-The inventory check (`validate_stock_available`) and the deduction happen in separate steps. While the USER notes that in practice only one cashier operates one store (mitigating multi-user race conditions), technical risks remain:
-- **Retry Storms**: If the network lags and the client sends two identical requests, both can pass the stock check before the ledger entry is committed.
-- **System Concurrency**: Background tasks (wastage auto-calc, transfers) running simultaneously with a sale could still cause a "Write Skew".
-- **Future Scale**: Enterprise systems typically assume the possibility of multiple counters per store.
+### 🏃‍♂️ Inventory Race Condition (RESOLVED)
+The inventory check and deduction have been unified into a single atomic PostgreSQL function (`create_sale_atomic`).
+- **Atomic Locking**: Uses `SELECT ... FOR UPDATE` on `inventory_ledger` rows to prevent concurrent transactions from overselling stock.
+- **Row-Level Integrity**: Guarantees that stock validation and deduction are locked against any other concurrent sale.
 
 PostgreSQL's default `READ COMMITTED` isolation allows this skew if not explicitly locked.
 
@@ -61,8 +60,10 @@ The `expo-pos` application makes direct API calls for every sale. There is **no 
 - If the internet drops mid-transaction, the sale fails.
 - There is no local storage of failed transactions to retry when online.
 
-### 🌪️ Idempotency Failure
-The backend has an `idempotency_key` field, but the frontend `usePOS.ts` does not robustly generate or persist it. If the app retries a failed request automatically without the same key, it will result in **Double Billing**.
+### 🌪️ Idempotency Failure (FIXED)
+The system now robustly handles idempotency:
+- **Client-Side Generation**: The `expo-pos` app generates a unique UUID for every sale attempt.
+- **Server-Side Enforcement**: The `create_sale_atomic` function checks the `idempotency_key` and returns the existing sale if a retry is detected, preventing double-billing.
 
 ---
 
@@ -102,10 +103,10 @@ The permissions are checked in FastAPI dependencies, but several critical RPC fu
 
 ## 9. Top Fixes Before Launch (Priority 1)
 
-1.  **Atomic Transactions**: Implement internal database transactions (PostgreSQL `BEGIN/COMMIT`) for `create_sale` to ensure Sales and SaleItems are all-or-nothing.
-2.  **Server-Side Price Validation**: Backend MUST query the current price from the database and calculate the total, rather than trusting client input.
-3.  **Stock Locking**: Use `SELECT ... FOR UPDATE` on a `stock_snapshot` table or similar locking mechanism during `validate_stock_available` to prevent negative inventory race conditions.
-4.  **Idempotency persistence**: Generate the `idempotency_key` on the mobile device and store it until the transaction is confirmed as "Success" by the backend.
+1.  **Atomic Transactions** (DONE): Implemented `create_sale_atomic` in PostgreSQL for all-or-nothing sale creation.
+2.  **Server-Side Price Validation**: (Pending) Backend should query the current price rather than trusting client input.
+3.  **Stock Locking** (DONE): Integrated `SELECT ... FOR UPDATE` into the atomic sale process.
+4.  **Idempotency persistence** (DONE): POS app now generates and sends a unique UUID for every transaction.
 5.  **Offline Cache**: Implement a SQLite or AsyncStorage queue in `expo-pos` to handle sales during network instability.
 6.  **Structured Observability**: Implement middleware for Correlation IDs and structured JSON logging to enable enterprise-grade debugging and auditing.
 

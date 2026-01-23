@@ -58,6 +58,7 @@ export interface SaleCreate {
     customer_name?: string;
     customer_phone?: string;
     notes?: string;
+    idempotency_key?: string;
 }
 
 export interface Sale {

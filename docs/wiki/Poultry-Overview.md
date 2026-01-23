@@ -163,6 +163,13 @@ CREATE TYPE inventory_type AS ENUM (
 | `POST` | `/void/{id}` | Void a sale | `sales.void` |
 | `POST` | `/refund/{id}` | Refund a sale | `sales.refund` |
 
+#### Atomic Operations & Concurrency
+The sales module employs strict concurrency controls to ensure data integrity:
+
+1. **Atomic Sale Creation**: All sales are created using the `create_sale_atomic` PostgreSQL function. This ensures that the sale header, line items, ledger entries, and inventory deductions occur as a single unit or not at all.
+2. **Inventory Locking**: During sale creation, the system uses `SELECT ... FOR UPDATE` on `inventory_ledger` rows. This prevents concurrent transactions from overselling stock, even under heavy load.
+3. **Idempotency Support**: Every sale request from the POS includes a unique `idempotency_key`. The backend checks this key to prevent duplicate sale records in case of network retries or double-clicks.
+
 ### Settlements (`/api/v1/poultry/settlements`)
 
 | Method | Endpoint | Description | Permission |
