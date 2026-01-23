@@ -101,18 +101,18 @@ export default function HomePage() {
 
       {/* Modern Navigation */}
       <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-2xl border-b border-gray-50">
-        <div className="max-w-7xl mx-auto px-6 sm:px-8">
-          <div className="flex justify-between items-center h-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-8">
+          <div className="flex justify-between items-center h-20 lg:h-24">
             {/* Brand Identity */}
-            <Link href="/" className="flex items-center gap-4 group">
-              <div className="h-12 w-12 bg-core-blue rounded-2xl flex items-center justify-center shadow-lg shadow-blue-200 group-hover:scale-105 transition-transform duration-300">
-                <ShoppingBag className="h-6 w-6 text-white" />
+            <Link href="/" className="flex items-center gap-3 sm:gap-4 group">
+              <div className="h-10 w-10 sm:h-12 sm:w-12 bg-core-blue rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg shadow-blue-200 group-hover:scale-105 transition-transform duration-300">
+                <ShoppingBag className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
               </div>
               <div className="flex flex-col">
-                <span className="text-2xl font-black text-desk-black tracking-tighter uppercase leading-none">
+                <span className="text-lg sm:text-2xl font-black text-desk-black tracking-tighter uppercase leading-none">
                   Venus <span className="text-core-blue">Chicken</span>
                 </span>
-                <span className="text-[9px] text-gray-400 font-black uppercase tracking-[0.3em] mt-1.5">Premium Meat Systems</span>
+                <span className="text-[7px] sm:text-[9px] text-gray-400 font-black uppercase tracking-[0.3em] mt-1 sm:mt-1.5">Premium Meat Systems</span>
               </div>
             </Link>
 
@@ -124,11 +124,12 @@ export default function HomePage() {
             </div>
 
             {/* CTA */}
-            <div className="flex items-center gap-6">
+            <div className="flex items-center">
               <Link href="/auth/login">
-                <Button className="bg-desk-black text-white hover:bg-core-blue font-bold px-10 py-7 rounded-2xl shadow-2xl shadow-gray-200 transition-all active:scale-95">
-                  Internal Portal
-                  <Lock className="ml-3 h-4 w-4" />
+                <Button className="bg-desk-black text-white hover:bg-core-blue font-bold px-4 sm:px-10 py-4 sm:py-7 h-12 sm:h-auto rounded-xl sm:rounded-2xl shadow-xl sm:shadow-2xl shadow-gray-200 transition-all active:scale-95 text-xs sm:text-base">
+                  <span className="hidden sm:inline">Internal Portal</span>
+                  <span className="sm:hidden">Login</span>
+                  <Lock className="ml-2 sm:ml-3 h-3 w-3 sm:h-4 sm:h-4" />
                 </Button>
               </Link>
             </div>
@@ -137,36 +138,36 @@ export default function HomePage() {
       </nav>
 
       {/* Immersive Hero Section */}
-      <section className="relative pt-12 pb-32 lg:pt-20 lg:pb-52 overflow-hidden bg-white">
+      <section className="relative pt-8 pb-20 lg:pt-20 lg:pb-52 overflow-hidden bg-white">
         {/* Abstract Background Accents */}
         <div className="absolute top-0 right-0 w-1/2 h-full bg-blue-50/30 -skew-x-12 translate-x-1/4 pointer-events-none" />
         <div className="absolute -bottom-24 left-0 w-96 h-96 bg-cyan-100/20 blur-[120px] rounded-full pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto px-6 sm:px-8 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-24 items-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 relative z-10">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-24 items-center">
             {/* Vision Content */}
-            <div className="order-2 lg:order-1">
+            <div className="order-1 lg:order-1 text-center lg:text-left">
               <div className="inline-flex items-center gap-3 px-5 py-2.5 bg-blue-50/50 rounded-full text-core-blue text-[10px] font-black uppercase tracking-[0.25em] mb-10 border border-blue-100/50">
                 <Truck className="h-3.5 w-3.5" />
                 Next-Gen Meat Retail
               </div>
-              <h1 className="text-6xl lg:text-[5.5rem] font-black text-desk-black leading-[0.95] mb-10 tracking-tighter">
+              <h1 className="text-5xl sm:text-6xl lg:text-[5.5rem] font-black text-desk-black leading-[0.95] mb-8 lg:mb-10 tracking-tighter">
                 FRESHNESS <br />
                 <span className="text-core-blue">REDEFINED.</span>
               </h1>
-              <p className="text-xl text-gray-500 max-w-xl mb-14 leading-relaxed font-medium">
+              <p className="text-lg lg:text-xl text-gray-500 max-w-xl mx-auto lg:mx-0 mb-10 lg:mb-14 leading-relaxed font-medium">
                 Venus Chicken combines traditional meat sourcing with cutting-edge retail technology. We ensure the highest quality standards through digitized cold-chain monitoring and farm-to-table transparency.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-6 items-center mb-16">
+              <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-center mb-12 lg:mb-16">
                 <Link href={user ? '/admin/home' : '/admin'} className="w-full sm:w-auto">
-                  <Button size="lg" className="h-20 px-12 bg-core-blue hover:bg-desk-black text-white font-black text-xl shadow-3xl shadow-blue-200 transition-all rounded-[1.5rem] w-full group">
+                  <Button size="lg" className="h-16 sm:h-20 px-8 sm:px-12 bg-core-blue hover:bg-desk-black text-white font-black text-lg sm:text-xl shadow-3xl shadow-blue-200 transition-all rounded-[1.2rem] sm:rounded-[1.5rem] w-full group">
                     ACCESS SYSTEMS
-                    <ArrowRight className="ml-3 h-7 w-7 group-hover:translate-x-1 transition-transform" />
+                    <ArrowRight className="ml-2 sm:ml-3 h-5 w-5 sm:h-7 sm:w-7 group-hover:translate-x-1 transition-transform" />
                   </Button>
                 </Link>
                 <Link href="/docs" className="w-full sm:w-auto">
-                  <Button size="lg" variant="ghost" className="h-20 px-10 text-gray-400 font-extrabold text-lg hover:text-core-blue hover:bg-transparent rounded-2xl w-full">
+                  <Button size="lg" variant="ghost" className="h-14 sm:h-20 px-8 sm:px-10 text-gray-400 font-extrabold text-sm sm:text-lg hover:text-core-blue hover:bg-transparent rounded-2xl w-full">
                     DISCOVER OUR PROCESS
                   </Button>
                 </Link>
@@ -175,16 +176,16 @@ export default function HomePage() {
               {/* Data Strip */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-12 pt-14 border-t border-gray-100">
                 {metrics.map((metric, i) => (
-                  <div key={i}>
-                    <p className="text-4xl font-black text-desk-black tracking-tighter leading-none mb-3 italic">{metric.value}</p>
-                    <p className="text-[9px] text-gray-400 font-black uppercase tracking-[0.2em]">{metric.label}</p>
+                  <div key={i} className="text-center lg:text-left">
+                    <p className="text-3xl lg:text-4xl font-black text-desk-black tracking-tighter leading-none mb-2 lg:mb-3 italic">{metric.value}</p>
+                    <p className="text-[8px] lg:text-[9px] text-gray-400 font-black uppercase tracking-[0.2em]">{metric.label}</p>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Feature Visual */}
-            <div className="order-1 lg:order-2 relative group flex justify-center lg:justify-end">
+            <div className="order-2 lg:order-2 relative group flex justify-center lg:justify-end">
               <div className="absolute inset-0 bg-core-blue opacity-[0.03] blur-[100px] rounded-full scale-150 animate-pulse" />
               <div className="relative w-full aspect-square max-w-[600px]">
                 <div className="absolute -inset-4 bg-gradient-to-tr from-core-blue/10 to-transparent rounded-[4rem] blur-2xl opacity-50" />
@@ -197,17 +198,17 @@ export default function HomePage() {
                   />
                   {/* Glassmorphic Overlay */}
                   <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/20 to-transparent h-1/2" />
-                  <div className="absolute bottom-10 left-10 right-10 p-8 bg-white/10 backdrop-blur-3xl rounded-[2.5rem] border border-white/20 text-white flex items-center justify-between">
-                    <div className="flex items-center gap-5">
-                      <div className="h-14 w-14 bg-white/20 rounded-2xl flex items-center justify-center animate-pulse">
-                        <ThermometerSnowflake className="h-7 w-7" />
+                  <div className="absolute bottom-6 left-6 right-6 lg:bottom-10 lg:left-10 lg:right-10 p-5 lg:p-8 bg-white/10 backdrop-blur-3xl rounded-[2rem] lg:rounded-[2.5rem] border border-white/20 text-white flex items-center justify-between">
+                    <div className="flex items-center gap-3 lg:gap-5">
+                      <div className="h-10 w-10 lg:h-14 lg:w-14 bg-white/20 rounded-xl lg:rounded-2xl flex items-center justify-center animate-pulse">
+                        <ThermometerSnowflake className="h-5 w-5 lg:h-7 lg:w-7" />
                       </div>
                       <div>
-                        <p className="text-xs font-black uppercase tracking-widest opacity-80 mb-1">Live Freshness</p>
-                        <p className="text-2xl font-black tracking-tighter">-19.4°C SYSTEM OK</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest opacity-80 mb-0.5 lg:mb-1">Live Freshness</p>
+                        <p className="text-lg lg:text-2xl font-black tracking-tighter">-19.4°C SYSTEM OK</p>
                       </div>
                     </div>
-                    <CheckCircle2 className="h-8 w-8 text-success-green" />
+                    <CheckCircle2 className="h-6 w-6 lg:h-8 lg:w-8 text-success-green" />
                   </div>
                 </div>
               </div>
@@ -217,7 +218,7 @@ export default function HomePage() {
       </section>
 
       {/* Retail Infrastructure Section */}
-      <section className="py-40 bg-gray-50/30 relative">
+      <section className="py-20 lg:py-40 bg-gray-50/30 relative">
         <div className="max-w-7xl mx-auto px-6 sm:px-8">
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-10 mb-32">
             <div className="max-w-2xl">
