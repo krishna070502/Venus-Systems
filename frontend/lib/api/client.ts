@@ -379,6 +379,15 @@ export const api = {
       cancel: (id: string) => apiRequest(`/api/v1/poultry/purchases/${id}/cancel`, {
         method: 'POST',
       }),
+      getAnalytics: (params?: { store_id?: number; from_date?: string; to_date?: string }) => {
+        const query = new URLSearchParams()
+        if (params?.from_date) query.append('from_date', params.from_date)
+        if (params?.to_date) query.append('to_date', params.to_date)
+        const queryStr = query.toString() ? `?${query.toString()}` : ''
+        const headers: Record<string, string> = {}
+        if (params?.store_id) headers['X-Store-ID'] = params.store_id.toString()
+        return apiRequest(`/api/v1/poultry/purchases/analytics${queryStr ? `?${queryStr}` : ''}`, { headers })
+      },
     },
 
     // Inventory
@@ -444,6 +453,15 @@ export const api = {
         method: 'POST',
         body: JSON.stringify(data),
       }),
+      getAnalytics: (params?: { store_id?: number; from_date?: string; to_date?: string }) => {
+        const query = new URLSearchParams()
+        if (params?.from_date) query.append('from_date', params.from_date)
+        if (params?.to_date) query.append('to_date', params.to_date)
+        const queryStr = query.toString() ? `?${query.toString()}` : ''
+        const headers: Record<string, string> = {}
+        if (params?.store_id) headers['X-Store-ID'] = params.store_id.toString()
+        return apiRequest(`/api/v1/poultry/processing/analytics${queryStr ? `?${queryStr}` : ''}`, { headers })
+      },
     },
 
     // SKUs
@@ -501,6 +519,15 @@ export const api = {
         apiRequest(`/api/v1/poultry/sales/summary/daily?summary_date=${date}`, {
           headers: { 'X-Store-ID': storeId.toString() },
         }),
+      getAnalytics: (params?: { store_id?: number; from_date?: string; to_date?: string }) => {
+        const query = new URLSearchParams()
+        if (params?.from_date) query.append('from_date', params.from_date)
+        if (params?.to_date) query.append('to_date', params.to_date)
+        const queryStr = query.toString() ? `?${query.toString()}` : ''
+        const headers: Record<string, string> = {}
+        if (params?.store_id) headers['X-Store-ID'] = params.store_id.toString()
+        return apiRequest(`/api/v1/poultry/sales/analytics${queryStr ? `?${queryStr}` : ''}`, { headers })
+      },
     },
 
     // Settlements
@@ -562,6 +589,14 @@ export const api = {
       getById: (id: string) => apiRequest(`/api/v1/poultry/expenses/${id}`),
       approve: (id: string) => apiRequest(`/api/v1/poultry/expenses/${id}/approve`, { method: 'POST' }),
       reject: (id: string) => apiRequest(`/api/v1/poultry/expenses/${id}/reject`, { method: 'POST' }),
+      getAnalytics: (params: { store_id?: number; from_date?: string; to_date?: string }) => {
+        const query = new URLSearchParams()
+        if (params.store_id) query.append('store_id', params.store_id.toString())
+        if (params.from_date) query.append('from_date', params.from_date)
+        if (params.to_date) query.append('to_date', params.to_date)
+        const queryStr = query.toString() ? `?${query.toString()}` : ''
+        return apiRequest(`/api/v1/poultry/expenses/analytics${queryStr}`)
+      },
     },
 
     // Variance

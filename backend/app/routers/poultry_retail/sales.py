@@ -6,24 +6,139 @@ API endpoints for POS and bulk sales.
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Header
 from typing import Optional
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from uuid import UUID, uuid4
 from decimal import Decimal
+from collections import defaultdict
 
 from app.dependencies.rbac import require_permission
 from app.models.poultry_retail.sales import (
-    SaleCreate, Sale, SaleWithItems, SaleItemWithSKU, SaleSummary
+    SaleCreate, Sale, SaleWithItems, SaleItemWithSKU, SaleSummary,
+    SalesAnalyticsResponse, SaleTrendItem, PaymentBreakdownItem, SKURankingItem
 )
 from app.models.poultry_retail.enums import PaymentMethod, SaleType
+from app.routers.poultry_retail.utils import validate_store_access
 
 router = APIRouter(prefix="/sales", tags=["Sales"])
 
 
-def validate_store_access(store_id: int, user: dict) -> bool:
-    """Check if user has access to the store."""
-    if "Admin" in user.get("roles", []):
-        return True
-    return store_id in user.get("store_ids", [])
+
+
+@router.get("/analytics", response_model=SalesAnalyticsResponse)
+async def get_sales_analytics(
+    x_store_id: Optional[int] = Header(None, description="Store ID for context"),
+    from_date: Optional[date] = None,
+    to_date: Optional[date] = None,
+    current_user: dict = Depends(require_permission(["salesreport.view"]))
+):
+    """
+    Get comprehensive sales analytics for reports.
+    """
+    from app.config.database import get_supabase
+    
+    supabase = get_supabase()
+    
+    # Defaults to last 30 days
+    end_date = to_date or date.today()
+    start_date = from_date or (end_date - timedelta(days=30))
+    
+    start_iso = start_date.isoformat()
+    end_iso = end_date.isoformat() + "T23:59:59"
+    
+    # Base query for sales
+    query = supabase.table("sales").select("*").gte("created_at", start_iso).lte("created_at", end_iso)
+    
+    if x_store_id:
+        if not validate_store_access(x_store_id, current_user):
+            raise HTTPException(status_code=403, detail="Access denied to this store")
+        query = query.eq("store_id", x_store_id)
+    
+    sales_result = query.execute()
+    all_sales = sales_result.data
+    
+    # 1. KPIs
+    total_revenue = sum(Decimal(str(s["total_amount"])) for s in all_sales)
+    transaction_count = len(all_sales)
+    avg_order_value = total_revenue / transaction_count if transaction_count > 0 else Decimal("0")
+    
+    kpis = {
+        "total_revenue": float(total_revenue),
+        "transaction_count": transaction_count,
+        "avg_order_value": float(avg_order_value),
+        "growth": 0  # Dummy for now
+    }
+    
+    # 2. Trends (Grouped by Date)
+    trends_map = defaultdict(lambda: {"revenue": Decimal("0"), "count": 0})
+    for s in all_sales:
+        # Extract date from timestamp
+        dt = datetime.fromisoformat(s["created_at"].replace("Z", "+00:00")).date().isoformat()
+        trends_map[dt]["revenue"] += Decimal(str(s["total_amount"]))
+        trends_map[dt]["count"] += 1
+        
+    trends = [
+        SaleTrendItem(date=d, revenue=v["revenue"], transactions=v["count"])
+        for d, v in sorted(trends_map.items())
+    ]
+    
+    # 3. Payment Breakdown
+    payment_map = defaultdict(lambda: {"amount": Decimal("0"), "count": 0})
+    for s in all_sales:
+        method = s["payment_method"]
+        payment_map[method]["amount"] += Decimal(str(s["total_amount"]))
+        payment_map[method]["count"] += 1
+        
+    payments = [
+        PaymentBreakdownItem(method=m, amount=v["amount"], count=v["count"])
+        for m, v in payment_map.items()
+    ]
+    
+    # 4. Top SKUs
+    # This requires reaching into sale_items
+    sale_ids = [s["id"] for s in all_sales]
+    top_skus = []
+    
+    if sale_ids:
+        # Batch query sale items with SKU names
+        # Note: We can't use .in_ directly on many values in a single call easily if there are thousands
+        # but for a typical report range it should be fine. Or we query by created_at in sale_items.
+        
+        # Querying sale_items joined with skus
+        items_query = supabase.table("sale_items").select(
+            "sku_id, weight, total, skus(name, code)"
+        ).in_("sale_id", sale_ids)
+        
+        items_result = items_query.execute()
+        all_items = items_result.data
+        
+        sku_map = defaultdict(lambda: {"revenue": Decimal("0"), "weight": Decimal("0"), "count": 0, "name": "", "code": ""})
+        for item in all_items:
+            sku_id = item["sku_id"]
+            sku_info = item["skus"]
+            sku_map[sku_id]["revenue"] += Decimal(str(item["total"]))
+            sku_map[sku_id]["weight"] += Decimal(str(item["weight"]))
+            sku_map[sku_id]["count"] += 1
+            sku_map[sku_id]["name"] = sku_info["name"]
+            sku_map[sku_id]["code"] = sku_info["code"]
+            
+        top_skus = [
+            SKURankingItem(
+                sku_id=UUID(sid),
+                name=v["name"],
+                code=v["code"],
+                revenue=v["revenue"],
+                weight=v["weight"],
+                count=v["count"]
+            )
+            for sid, v in sorted(sku_map.items(), key=lambda x: x[1]["revenue"], reverse=True)[:10]
+        ]
+        
+    return SalesAnalyticsResponse(
+        kpis=kpis,
+        trends=trends,
+        payments=payments,
+        top_skus=top_skus
+    )
 
 
 @router.post("", response_model=Sale, status_code=201)

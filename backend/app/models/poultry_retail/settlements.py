@@ -162,3 +162,21 @@ class SettlementListResponse(BaseModel):
     total: int
     page: int
     page_size: int
+
+class ExpenseTrendItem(BaseModel):
+    """Item for expense trend over time"""
+    date: str
+    amount: Decimal
+
+class ExpenseCategoryItem(BaseModel):
+    """Expense breakdown by common categories (derived or explicit)"""
+    category: str
+    amount: Decimal
+    percentage: Decimal
+
+class ExpenseAnalyticsResponse(BaseModel):
+    """Comprehensive expense analytics response"""
+    kpis: Dict[str, Any]
+    trends: List[ExpenseTrendItem]
+    categories: List[ExpenseCategoryItem]
+    top_expenses: List[Dict[str, Any]]

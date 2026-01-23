@@ -204,3 +204,36 @@ class ProcessingListResponse(BaseModel):
     total: int
     page: int
     page_size: int
+
+
+# =============================================================================
+# WASTAGE ANALYTICS MODELS
+# =============================================================================
+
+class WastageTrendItem(BaseModel):
+    """Item for wastage trend over time"""
+    date: str
+    wastage_weight: Decimal
+    wastage_percentage: Decimal
+    efficiency: Decimal
+
+class BirdTypeWastageItem(BaseModel):
+    """Wastage breakdown for a single bird type"""
+    bird_type: str
+    weight: Decimal
+    percentage: Decimal
+
+class ProcessingEfficiencyItem(BaseModel):
+    """Efficiency stats for a processing session/type"""
+    type: str
+    input_weight: Decimal
+    output_weight: Decimal
+    wastage_weight: Decimal
+    efficiency: Decimal
+
+class WastageAnalyticsResponse(BaseModel):
+    """Comprehensive wastage analytics response"""
+    kpis: dict
+    trends: list[WastageTrendItem]
+    bird_types: list[BirdTypeWastageItem]
+    efficiencies: list[ProcessingEfficiencyItem]

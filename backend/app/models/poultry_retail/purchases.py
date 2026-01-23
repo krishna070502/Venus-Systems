@@ -73,3 +73,35 @@ class PurchaseListResponse(BaseModel):
     total: int
     page: int
     page_size: int
+
+
+# =============================================================================
+# PURCHASE ANALYTICS MODELS
+# =============================================================================
+
+class PurchaseTrendItem(BaseModel):
+    """Item for purchase trend over time"""
+    date: str
+    spend: Decimal
+    weight: Decimal
+    bird_count: int
+
+class SupplierSpendItem(BaseModel):
+    """Spend breakdown per supplier"""
+    supplier_name: str
+    amount: Decimal
+    weight: Decimal
+    count: int
+
+class BirdTypeSpendItem(BaseModel):
+    """Spend breakdown per bird type"""
+    bird_type: str
+    amount: Decimal
+    weight: Decimal
+
+class PurchaseAnalyticsResponse(BaseModel):
+    """Comprehensive purchase analytics response"""
+    kpis: dict
+    trends: list[PurchaseTrendItem]
+    suppliers: list[SupplierSpendItem]
+    bird_types: list[BirdTypeSpendItem]

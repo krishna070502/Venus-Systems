@@ -124,3 +124,36 @@ class SaleSummary(BaseModel):
     total_card: Decimal
     total_bank: Decimal
     sale_count: int
+
+
+# =============================================================================
+# ANALYTICS MODELS
+# =============================================================================
+
+class SaleTrendItem(BaseModel):
+    """Item for sales trend over time"""
+    date: str
+    revenue: Decimal
+    transactions: int
+
+class PaymentBreakdownItem(BaseModel):
+    """Breakdown for a single payment method"""
+    method: str
+    amount: Decimal
+    count: int
+
+class SKURankingItem(BaseModel):
+    """Ranking info for an SKU"""
+    sku_id: UUID
+    name: str
+    code: str
+    revenue: Decimal
+    weight: Decimal
+    count: int
+
+class SalesAnalyticsResponse(BaseModel):
+    """Comprehensive sales analytics response"""
+    kpis: dict
+    trends: list[SaleTrendItem]
+    payments: list[PaymentBreakdownItem]
+    top_skus: list[SKURankingItem]

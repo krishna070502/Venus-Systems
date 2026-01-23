@@ -1,40 +1,128 @@
-"""
-Purchases Router for PoultryRetail-Core
-=======================================
-API endpoints for purchase order management.
-"""
-
 from fastapi import APIRouter, Depends, HTTPException, Query, Header
 from typing import Optional
-from datetime import date
+from datetime import date, timedelta, datetime
 from uuid import UUID
+from decimal import Decimal
+from collections import defaultdict
 
 from app.dependencies.rbac import require_permission
 from app.models.poultry_retail.purchases import (
-    PurchaseCreate, PurchaseCommit, Purchase, PurchaseWithSupplier
+    PurchaseCreate, PurchaseCommit, Purchase, PurchaseWithSupplier,
+    PurchaseAnalyticsResponse, PurchaseTrendItem, SupplierSpendItem, BirdTypeSpendItem
 )
 from app.models.poultry_retail.enums import PurchaseStatus, BirdType
+from app.routers.poultry_retail.utils import validate_store_access
 
 router = APIRouter(prefix="/purchases", tags=["Purchases"])
 
 
-def validate_store_access(store_id: int, user: dict) -> bool:
-    """Check if user has access to the store."""
-    import logging
-    logger = logging.getLogger(__name__)
+@router.get("/analytics", response_model=PurchaseAnalyticsResponse)
+async def get_purchase_analytics(
+    x_store_id: Optional[int] = Header(None, description="Store ID for context"),
+    from_date: Optional[date] = None,
+    to_date: Optional[date] = None,
+    current_user: dict = Depends(require_permission(["purchasereport.view"]))
+):
+    """
+    Get comprehensive purchase and procurement analytics.
+    """
+    from app.config.database import get_supabase
     
-    # Admin has access to all stores
-    if "Admin" in user.get("roles", []):
-        return True
+    supabase = get_supabase()
     
-    # Check user's assigned stores
-    store_ids = user.get("store_ids", [])
-    has_access = store_id in store_ids
+    # Defaults to last 30 days
+    end_date = to_date or date.today()
+    start_date = from_date or (end_date - timedelta(days=30))
     
-    if not has_access:
-        logger.warning(f"Access denied: store_id={store_id} (type={type(store_id)}) not in user.store_ids={store_ids} for user={user.get('id')}")
+    start_iso = start_date.isoformat()
+    end_iso = end_date.isoformat()
     
-    return has_access
+    # Base query for purchases (only COMMITTED ones for analytics)
+    query = supabase.table("purchases").select(
+        "*, suppliers(name)"
+    ).eq("status", "COMMITTED").gte("created_at", start_iso).lte("created_at", end_iso)
+    
+    if x_store_id:
+        if not validate_store_access(x_store_id, current_user):
+            raise HTTPException(status_code=403, detail="Access denied to this store")
+        query = query.eq("store_id", x_store_id)
+    
+    result = query.execute()
+    all_purchases = result.data
+    
+    # 1. KPIs
+    total_spend = sum(Decimal(str(p["total_amount"])) for p in all_purchases)
+    total_weight = sum(Decimal(str(p["total_weight"])) for p in all_purchases)
+    total_birds = sum(int(p["bird_count"]) for p in all_purchases)
+    avg_price = (total_spend / total_weight) if total_weight > 0 else Decimal("0")
+    
+    kpis = {
+        "total_spend": float(total_spend),
+        "total_weight": float(total_weight),
+        "total_bird_count": total_birds,
+        "avg_price_per_kg": float(avg_price),
+        "purchase_count": len(all_purchases)
+    }
+    
+    # 2. Trends (Grouped by Date)
+    trends_map = defaultdict(lambda: {"spend": Decimal("0"), "weight": Decimal("0"), "birds": 0})
+    for p in all_purchases:
+        dt = p["created_at"][:10]  # Extract date YYYY-MM-DD
+        trends_map[dt]["spend"] += Decimal(str(p["total_amount"]))
+        trends_map[dt]["weight"] += Decimal(str(p["total_weight"]))
+        trends_map[dt]["birds"] += int(p["bird_count"])
+        
+    trends = []
+    for d, v in sorted(trends_map.items()):
+        trends.append(PurchaseTrendItem(
+            date=d,
+            spend=v["spend"],
+            weight=v["weight"],
+            bird_count=v["birds"]
+        ))
+    
+    # 3. Supplier Breakdown
+    supplier_map = defaultdict(lambda: {"spend": Decimal("0"), "weight": Decimal("0"), "count": 0, "name": "Unknown"})
+    for p in all_purchases:
+        sid = p["supplier_id"]
+        sname = p.get("suppliers", {}).get("name", "Unknown") if p.get("suppliers") else "Unknown"
+        supplier_map[sid]["spend"] += Decimal(str(p["total_amount"]))
+        supplier_map[sid]["weight"] += Decimal(str(p["total_weight"]))
+        supplier_map[sid]["count"] += 1
+        supplier_map[sid]["name"] = sname
+        
+    suppliers_list = []
+    for sid, v in supplier_map.items():
+        suppliers_list.append(SupplierSpendItem(
+            supplier_name=v["name"],
+            amount=v["spend"],
+            weight=v["weight"],
+            count=v["count"]
+        ))
+    
+    # 4. Bird Type Distribution
+    bird_map = defaultdict(lambda: {"spend": Decimal("0"), "weight": Decimal("0")})
+    for p in all_purchases:
+        bt = p["bird_type"]
+        bird_map[bt]["spend"] += Decimal(str(p["total_amount"]))
+        bird_map[bt]["weight"] += Decimal(str(p["total_weight"]))
+        
+    bird_types_list = []
+    for bt, v in bird_map.items():
+        bird_types_list.append(BirdTypeSpendItem(
+            bird_type=bt,
+            amount=v["spend"],
+            weight=v["weight"]
+        ))
+        
+    return PurchaseAnalyticsResponse(
+        kpis=kpis,
+        trends=trends,
+        suppliers=suppliers_list,
+        bird_types=bird_types_list
+    )
+
+
 
 
 @router.get("", response_model=list[PurchaseWithSupplier])

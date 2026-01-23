@@ -6,25 +6,132 @@ API endpoints for processing live birds into dressed meat.
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Header
 from typing import Optional
-from datetime import date
+from datetime import date, timedelta, datetime
 from uuid import UUID, uuid4
 from decimal import Decimal
+from collections import defaultdict
 
 from app.dependencies.rbac import require_permission
 from app.models.poultry_retail.inventory import (
     ProcessingEntryCreate, ProcessingEntry, ProcessingCalculation,
-    WastageConfig, WastageConfigCreate
+    WastageConfig, WastageConfigCreate,
+    WastageAnalyticsResponse, WastageTrendItem, BirdTypeWastageItem, ProcessingEfficiencyItem
 )
 from app.models.poultry_retail.enums import BirdType, InventoryType
+from app.routers.poultry_retail.utils import validate_store_access
 
 router = APIRouter(prefix="/processing", tags=["Processing"])
 
 
-def validate_store_access(store_id: int, user: dict) -> bool:
-    """Check if user has access to the store."""
-    if "Admin" in user.get("roles", []):
-        return True
-    return store_id in user.get("store_ids", [])
+
+
+@router.get("/analytics", response_model=WastageAnalyticsResponse)
+async def get_wastage_analytics(
+    x_store_id: Optional[int] = Header(None, description="Store ID for context"),
+    from_date: Optional[date] = None,
+    to_date: Optional[date] = None,
+    current_user: dict = Depends(require_permission(["wastagereport.view"]))
+):
+    """
+    Get comprehensive wastage and efficiency analytics.
+    """
+    from app.config.database import get_supabase
+    
+    supabase = get_supabase()
+    
+    # Defaults to last 30 days
+    end_date = to_date or date.today()
+    start_date = from_date or (end_date - timedelta(days=30))
+    
+    start_iso = start_date.isoformat()
+    end_iso = end_date.isoformat()
+    
+    # Base query for processing entries
+    query = supabase.table("processing_entries").select("*").gte("processing_date", start_iso).lte("processing_date", end_iso)
+    
+    if x_store_id:
+        if not validate_store_access(x_store_id, current_user):
+            raise HTTPException(status_code=403, detail="Access denied to this store")
+        query = query.eq("store_id", x_store_id)
+    
+    entries_result = query.execute()
+    all_entries = entries_result.data
+    
+    # 1. KPIs
+    total_input = sum(Decimal(str(e["input_weight"])) for e in all_entries)
+    total_output = sum(Decimal(str(e["actual_output_weight"])) for e in all_entries)
+    total_wastage = total_input - total_output
+    avg_efficiency = (total_output / total_input * 100) if total_input > 0 else Decimal("0")
+    
+    kpis = {
+        "total_input_weight": float(total_input),
+        "total_output_weight": float(total_output),
+        "total_wastage_weight": float(total_wastage),
+        "avg_efficiency_percentage": float(avg_efficiency),
+        "entry_count": len(all_entries)
+    }
+    
+    # 2. Trends (Grouped by Date)
+    trends_map = defaultdict(lambda: {"input": Decimal("0"), "output": Decimal("0")})
+    for e in all_entries:
+        dt = e["processing_date"]
+        trends_map[dt]["input"] += Decimal(str(e["input_weight"]))
+        trends_map[dt]["output"] += Decimal(str(e["actual_output_weight"]))
+        
+    trends = []
+    for d, v in sorted(trends_map.items()):
+        wastage = v["input"] - v["output"]
+        eff = (v["output"] / v["input"] * 100) if v["input"] > 0 else Decimal("0")
+        wastage_pct = (wastage / v["input"] * 100) if v["input"] > 0 else Decimal("0")
+        trends.append(WastageTrendItem(
+            date=d,
+            wastage_weight=wastage,
+            wastage_percentage=wastage_pct,
+            efficiency=eff
+        ))
+    
+    # 3. Bird Type Breakdown
+    bird_map = defaultdict(lambda: {"input": Decimal("0"), "output": Decimal("0")})
+    for e in all_entries:
+        bt = e["input_bird_type"]
+        bird_map[bt]["input"] += Decimal(str(e["input_weight"]))
+        bird_map[bt]["output"] += Decimal(str(e["actual_output_weight"]))
+        
+    bird_types = []
+    for bt, v in bird_map.items():
+        wastage = v["input"] - v["output"]
+        wastage_pct = (wastage / v["input"] * 100) if v["input"] > 0 else Decimal("0")
+        bird_types.append(BirdTypeWastageItem(
+            bird_type=bt,
+            weight=wastage,
+            percentage=wastage_pct
+        ))
+    
+    # 4. Processing Efficiencies (Detailed per type combination)
+    eff_map = defaultdict(lambda: {"input": Decimal("0"), "output": Decimal("0")})
+    for e in all_entries:
+        key = f"{e['input_bird_type']} → {e['output_inventory_type']}"
+        eff_map[key]["input"] += Decimal(str(e["input_weight"]))
+        eff_map[key]["output"] += Decimal(str(e["actual_output_weight"]))
+        
+    efficiencies = []
+    for k, v in eff_map.items():
+        wastage = v["input"] - v["output"]
+        eff = (v["output"] / v["input"] * 100) if v["input"] > 0 else Decimal("0")
+        efficiencies.append(ProcessingEfficiencyItem(
+            type=k,
+            input_weight=v["input"],
+            output_weight=v["output"],
+            wastage_weight=wastage,
+            efficiency=eff
+        ))
+        
+    return WastageAnalyticsResponse(
+        kpis=kpis,
+        trends=trends,
+        bird_types=bird_types,
+        efficiencies=efficiencies
+    )
 
 
 @router.get("/calculate")
