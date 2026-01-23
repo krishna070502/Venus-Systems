@@ -20,6 +20,9 @@ router = APIRouter(prefix="/ledger", tags=["Ledger"])
 class LedgerEntry(BaseModel):
     """Individual ledger transaction"""
     id: UUID
+    store_id: Optional[int]
+    entity_type: str
+    entity_id: UUID
     transaction_type: str
     debit: Decimal
     credit: Decimal
@@ -27,6 +30,12 @@ class LedgerEntry(BaseModel):
     ref_table: Optional[str]
     ref_id: Optional[UUID]
     created_at: datetime
+
+
+class EnrichedLedgerEntry(LedgerEntry):
+    """Ledger entry with entity name and phone"""
+    entity_name: str = "Unknown"
+    entity_phone: Optional[str] = None
 
 
 class EntityBalance(BaseModel):
@@ -57,6 +66,7 @@ class CustomerLedgerSummary(EntityBalance):
 async def get_supplier_ledger(
     limit: int = Query(default=50, le=100),
     offset: int = 0,
+    store_id: Optional[int] = None,
     current_user: dict = Depends(require_permission(["ledger.view"]))
 ):
     """
@@ -79,9 +89,18 @@ async def get_supplier_ledger(
         supplier_id = supplier["id"]
         
         # Get aggregated ledger data for this supplier
-        ledger_result = supabase.table("financial_ledger").select(
+        ledger_query = supabase.table("financial_ledger").select(
             "debit, credit"
-        ).eq("entity_type", "SUPPLIER").eq("entity_id", supplier_id).execute()
+        ).eq("entity_type", "SUPPLIER").eq("entity_id", supplier_id)
+        
+        if store_id:
+            ledger_query = ledger_query.eq("store_id", store_id)
+            
+        ledger_result = ledger_query.execute()
+        
+        # If filtering by store, skip partners with no activity in that store
+        if store_id and not ledger_result.data:
+            continue
         
         total_debit = sum(Decimal(str(e["debit"])) for e in ledger_result.data)
         total_credit = sum(Decimal(str(e["credit"])) for e in ledger_result.data)
@@ -132,6 +151,7 @@ async def get_supplier_ledger_detail(
 async def get_customer_ledger(
     limit: int = Query(default=50, le=100),
     offset: int = 0,
+    store_id: Optional[int] = None,
     current_user: dict = Depends(require_permission(["ledger.view"]))
 ):
     """
@@ -154,9 +174,18 @@ async def get_customer_ledger(
         customer_id = customer["id"]
         
         # Get aggregated ledger data for this customer
-        ledger_result = supabase.table("financial_ledger").select(
+        ledger_query = supabase.table("financial_ledger").select(
             "debit, credit"
-        ).eq("entity_type", "CUSTOMER").eq("entity_id", customer_id).execute()
+        ).eq("entity_type", "CUSTOMER").eq("entity_id", customer_id)
+        
+        if store_id:
+            ledger_query = ledger_query.eq("store_id", store_id)
+            
+        ledger_result = ledger_query.execute()
+
+        # If filtering by store, skip partners with no activity in that store
+        if store_id and not ledger_result.data:
+            continue
         
         total_debit = sum(Decimal(str(e["debit"])) for e in ledger_result.data)
         total_credit = sum(Decimal(str(e["credit"])) for e in ledger_result.data)
@@ -202,3 +231,86 @@ async def get_customer_ledger_detail(
     ).range(offset, offset + limit - 1).execute()
     
     return result.data
+
+
+@router.get("/all", response_model=list[EnrichedLedgerEntry])
+async def get_all_ledger_entries(
+    limit: int = Query(default=50, le=100),
+    offset: int = 0,
+    from_date: Optional[str] = None,
+    to_date: Optional[str] = None,
+    entity_type: Optional[str] = None,
+    transaction_type: Optional[str] = None,
+    store_id: Optional[int] = None,
+    search: Optional[str] = None,
+    current_user: dict = Depends(require_permission(["ledger.view"]))
+):
+    """
+    Get all financial ledger entries with filters and enriched entity data.
+    """
+    from app.config.database import get_supabase
+    
+    supabase = get_supabase()
+    
+    query = supabase.table("financial_ledger").select("*")
+    
+    # Apply filters
+    if from_date:
+        query = query.gte("created_at", from_date)
+    if to_date:
+        query = query.lte("created_at", to_date)
+    if entity_type:
+        query = query.eq("entity_type", entity_type)
+    if transaction_type:
+        query = query.eq("transaction_type", transaction_type)
+    if store_id:
+        query = query.eq("store_id", store_id)
+    if search:
+        # Search customers
+        cust_matches = supabase.table("customers").select("id").ilike("name", f"%{search}%").execute()
+        cust_ids = [c["id"] for c in cust_matches.data]
+        
+        # Search suppliers
+        supp_matches = supabase.table("suppliers").select("id").ilike("name", f"%{search}%").execute()
+        supp_ids = [s["id"] for s in supp_matches.data]
+        
+        all_match_ids = cust_ids + supp_ids
+        if all_match_ids:
+            query = query.in_("entity_id", all_match_ids)
+        else:
+            # If search is provided but no entities match, search in notes
+            query = query.ilike("notes", f"%{search}%")
+
+    result = query.order("created_at", desc=True).range(offset, offset + limit - 1).execute()
+    ledger_entries = result.data
+    
+    if not ledger_entries:
+        return []
+
+    # Enrich with entity names
+    customer_ids = {e["entity_id"] for e in ledger_entries if e["entity_type"] == "CUSTOMER"}
+    supplier_ids = {e["entity_id"] for e in ledger_entries if e["entity_type"] == "SUPPLIER"}
+    
+    entity_map = {}
+    
+    if customer_ids:
+        customers = supabase.table("customers").select("id, name, phone").in_("id", list(customer_ids)).execute()
+        for c in customers.data:
+            entity_map[c["id"]] = {"name": c["name"], "phone": c["phone"]}
+            
+    if supplier_ids:
+        suppliers = supabase.table("suppliers").select("id, name, phone").in_("id", list(supplier_ids)).execute()
+        for s in suppliers.data:
+            entity_map[s["id"]] = {"name": s["name"], "phone": s["phone"]}
+            
+    # Map back to results
+    enriched_results = []
+    for entry in ledger_entries:
+        entity_info = entity_map.get(entry["entity_id"], {"name": "Unknown", "phone": None})
+        enriched_results.append({
+            **entry,
+            "entity_name": entity_info["name"],
+            "entity_phone": entity_info["phone"]
+        })
+        
+    return enriched_results

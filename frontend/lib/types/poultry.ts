@@ -664,6 +664,11 @@ export interface FinancialLedgerEntry {
     created_at: string
 }
 
+export interface EnrichedFinancialLedgerEntry extends FinancialLedgerEntry {
+    entity_name: string
+    entity_phone: string | null
+}
+
 export interface SupplierLedgerSummary {
     entity_id: string
     entity_name: string

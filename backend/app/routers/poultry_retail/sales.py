@@ -147,13 +147,16 @@ async def create_sale(
     current_user: dict = Depends(require_permission(["sales.create"]))
 ):
     """
-    Create a new sale.
+    Create a new sale atomically.
     
-    This atomically:
-    1. Validates stock availability for all items
-    2. Creates sale and sale_items records
-    3. Debits inventory for each item
-    4. Generates receipt number
+    Uses the create_sale_atomic PostgreSQL function which:
+    1. Locks inventory rows with SELECT FOR UPDATE (prevents race conditions)
+    2. Validates stock availability for all items
+    3. Creates sale and sale_items records
+    4. Triggers handle inventory deduction and financial ledger entries
+    5. Generates receipt number
+    
+    This ensures concurrent sales cannot oversell inventory.
     """
     from app.config.database import get_supabase
     
@@ -167,94 +170,99 @@ async def create_sale(
     
     supabase = get_supabase()
     
-    # Check store is active
-    store_check = supabase.rpc("check_store_active", {"p_store_id": sale.store_id}).execute()
-    if not store_check.data:
-        raise HTTPException(status_code=400, detail="Store is in maintenance mode")
-    
     # Generate idempotency key if not provided
     idempotency_key = sale.idempotency_key or uuid4()
     
-    # Check for duplicate submission
-    existing = supabase.table("sales").select("*").eq(
-        "idempotency_key", str(idempotency_key)
-    ).execute()
+    # Prepare items for the atomic function (convert Decimal to float for JSON)
+    items_json = [
+        {
+            "sku_id": str(item.sku_id),
+            "weight": float(item.weight),
+            "price_snapshot": float(item.price_snapshot)
+        }
+        for item in sale.items
+    ]
     
-    if existing.data:
-        # Return existing sale (idempotent)
-        return existing.data[0]
-    
-    # Validate stock for each item
-    for item in sale.items:
-        sku = supabase.table("skus").select("*").eq("id", str(item.sku_id)).execute()
-        
-        if not sku.data:
-            raise HTTPException(status_code=404, detail=f"SKU {item.sku_id} not found")
-        
-        sku_data = sku.data[0]
-        
-        # Check stock availability
-        stock_check = supabase.rpc("validate_stock_available", {
+    try:
+        # Call the atomic sale creation function
+        # This handles: idempotency check, store validation, stock locking,
+        # stock validation, receipt generation, sale creation, and item creation
+        # All within a single transaction with row-level locking
+        result = supabase.rpc("create_sale_atomic", {
             "p_store_id": sale.store_id,
-            "p_bird_type": sku_data["bird_type"],
-            "p_inventory_type": sku_data["inventory_type"],
-            "p_required_qty": float(item.weight)
+            "p_cashier_id": str(current_user["user_id"]),
+            "p_payment_method": sale.payment_method.value,
+            "p_sale_type": sale.sale_type.value,
+            "p_items": items_json,
+            "p_idempotency_key": str(idempotency_key),
+            "p_customer_id": str(sale.customer_id) if sale.customer_id else None,
+            "p_customer_name": sale.customer_name,
+            "p_customer_phone": sale.customer_phone,
+            "p_notes": sale.notes
         }).execute()
         
-        if not stock_check.data:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Insufficient stock for {sku_data['name']}. Required: {item.weight} kg"
-            )
-    
-    # Generate receipt number
-    receipt_result = supabase.rpc("generate_receipt_number", {
-        "p_store_id": sale.store_id
-    }).execute()
-    
-    receipt_number = receipt_result.data
-    
-    # Calculate total
-    total_amount = sum(item.weight * item.price_snapshot for item in sale.items)
-    
-    # Create sale record
-    sale_data = {
-        "store_id": sale.store_id,
-        "cashier_id": current_user["user_id"],
-        "total_amount": str(total_amount),
-        "payment_method": sale.payment_method.value,
-        "sale_type": sale.sale_type.value,
-        "receipt_number": receipt_number,
-        "idempotency_key": str(idempotency_key),
-        "customer_id": str(sale.customer_id) if sale.customer_id else None,
-        "customer_name": sale.customer_name,
-        "customer_phone": sale.customer_phone,
-        "notes": sale.notes
-    }
-    
-    sale_result = supabase.table("sales").insert(sale_data).execute()
-    
-    if not sale_result.data:
-        raise HTTPException(status_code=400, detail="Failed to create sale")
-    
-    sale_id = sale_result.data[0]["id"]
-    
-    # Create sale items (triggers will handle inventory deduction)
-    for item in sale.items:
-        item_data = {
-            "sale_id": sale_id,
-            "sku_id": str(item.sku_id),
-            "weight": str(item.weight),
-            "price_snapshot": str(item.price_snapshot)
-        }
+        if not result.data:
+            raise HTTPException(status_code=400, detail="Failed to create sale")
         
-        item_result = supabase.table("sale_items").insert(item_data).execute()
+        return result.data
         
-        if not item_result.data:
-            # Rollback would be needed here in production
-            raise HTTPException(status_code=400, detail="Failed to create sale item")
-    
-    return sale_result.data[0]
+    except HTTPException:
+        # Re-raise HTTPExceptions as-is
+        raise
+    except Exception as e:
+        # Extract the actual error message from the exception
+        # Supabase exceptions may contain the error in different formats:
+        # 1. As a 'message' attribute
+        # 2. As a 'details' attribute  
+        # 3. In the string representation
+        error_message = ""
+        
+        # Try to get message from exception attributes (Supabase APIError format)
+        if hasattr(e, 'message'):
+            error_message = str(e.message)
+        elif hasattr(e, 'details'):
+            error_message = str(e.details)
+        elif hasattr(e, 'args') and e.args:
+            # PostgreSQL RAISE EXCEPTION messages come through args
+            error_message = str(e.args[0]) if e.args else str(e)
+        else:
+            error_message = str(e)
+        
+        # Clean up the error message - extract the actual message from PostgreSQL format
+        # PostgreSQL errors often look like: '{"code":"P0001","details":null,"hint":null,"message":"..."}'
+        if '"message":' in error_message or '"message"' in error_message:
+            import json
+            try:
+                # Try to parse as JSON
+                error_data = json.loads(error_message) if error_message.startswith('{') else None
+                if error_data and 'message' in error_data:
+                    error_message = error_data['message']
+            except (json.JSONDecodeError, TypeError):
+                # If JSON parsing fails, try regex extraction
+                import re
+                match = re.search(r'"message"\s*:\s*"([^"]+)"', error_message)
+                if match:
+                    error_message = match.group(1)
+        
+        # Map PostgreSQL error messages to appropriate HTTP responses
+        error_lower = error_message.lower()
+        
+        if "maintenance mode" in error_lower:
+            raise HTTPException(status_code=400, detail="Store is in maintenance mode")
+        elif "sku" in error_lower and "not found" in error_lower:
+            raise HTTPException(status_code=404, detail=error_message)
+        elif "store" in error_lower and "not found" in error_lower:
+            raise HTTPException(status_code=404, detail=error_message)
+        elif "insufficient stock" in error_lower:
+            # Extract the helpful stock info from the message
+            raise HTTPException(status_code=400, detail=error_message)
+        elif "not found" in error_lower:
+            raise HTTPException(status_code=404, detail=error_message)
+        else:
+            # Log the full exception for debugging
+            import logging
+            logging.error(f"Unexpected error in create_sale: {error_message}", exc_info=True)
+            raise HTTPException(status_code=400, detail=f"Failed to create sale: {error_message}")
 
 
 @router.get("", response_model=list[SaleWithItems])
