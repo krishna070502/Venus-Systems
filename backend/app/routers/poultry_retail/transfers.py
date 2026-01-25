@@ -4,10 +4,11 @@ Stock Transfers Router for PoultryRetail-Core
 API endpoints for inter-store stock transfers.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Header
+from fastapi import APIRouter, Depends, HTTPException, Query, Header, Request
 from typing import Optional
 from datetime import date, datetime
 from uuid import UUID
+from decimal import Decimal
 
 from app.dependencies.rbac import require_permission
 from app.models.poultry_retail.stock_transfers import (
@@ -44,6 +45,7 @@ async def list_shops_for_transfer(
 @router.post("", response_model=StockTransfer, status_code=201)
 async def create_transfer(
     transfer: StockTransferCreate,
+    request: Request,
     current_user: dict = Depends(require_permission(["inventory.transfer.create"]))
 ):
     """
@@ -114,6 +116,20 @@ async def create_transfer(
     
     if not result.data:
         raise HTTPException(status_code=400, detail="Failed to create transfer")
+    
+    # Log the transaction
+    from app.services.transaction_logger_service import transaction_logger, TransactionAction
+    await transaction_logger.log_transfer(
+        user_id=str(user_id),
+        transfer_id=str(result.data[0].get("id", "")),
+        action=TransactionAction.CREATE,
+        from_store_id=transfer.from_store_id,
+        to_store_id=transfer.to_store_id,
+        quantity=Decimal(str(transfer.weight_kg)),
+        bird_type=transfer.bird_type,
+        inventory_type=transfer.inventory_type,
+        request=request
+    )
     
     return result.data[0]
 
@@ -229,6 +245,7 @@ async def get_transfer(
 @router.post("/{transfer_id}/receive", response_model=StockTransfer)
 async def receive_transfer(
     transfer_id: UUID,
+    request: Request,
     current_user: dict = Depends(require_permission(["inventory.transfer.receive"]))
 ):
     """
@@ -269,12 +286,27 @@ async def receive_transfer(
         "received_at": datetime.utcnow().isoformat()
     }).eq("id", str(transfer_id)).execute()
     
+    # Log the transaction
+    from app.services.transaction_logger_service import transaction_logger, TransactionAction
+    await transaction_logger.log_transfer(
+        user_id=str(user_id),
+        transfer_id=str(transfer_id),
+        action=TransactionAction.RECEIVE,
+        from_store_id=transfer["from_store_id"],
+        to_store_id=transfer["to_store_id"],
+        quantity=Decimal(str(transfer.get("weight_kg", 0))),
+        bird_type=transfer.get("bird_type"),
+        inventory_type=transfer.get("inventory_type"),
+        request=request
+    )
+    
     return update_result.data[0]
 
 
 @router.post("/{transfer_id}/approve", response_model=StockTransfer)
 async def approve_transfer(
     transfer_id: UUID,
+    request: Request,
     current_user: dict = Depends(require_permission(["inventory.transfer.approve"]))
 ):
     """
@@ -320,6 +352,20 @@ async def approve_transfer(
     
     if not result.data:
         raise HTTPException(status_code=400, detail="Failed to process transfer approval")
+    
+    # Log the transaction
+    from app.services.transaction_logger_service import transaction_logger, TransactionAction
+    await transaction_logger.log_transfer(
+        user_id=str(user_id),
+        transfer_id=str(transfer_id),
+        action=TransactionAction.APPROVE,
+        from_store_id=transfer["from_store_id"],
+        to_store_id=transfer["to_store_id"],
+        quantity=Decimal(str(transfer.get("weight_kg", 0))),
+        bird_type=transfer.get("bird_type"),
+        inventory_type=transfer.get("inventory_type"),
+        request=request
+    )
         
     # Refresh transfer data to return
     result = supabase.table("stock_transfers").select("*").eq("id", str(transfer_id)).execute()
@@ -330,6 +376,7 @@ async def approve_transfer(
 async def reject_transfer(
     transfer_id: UUID,
     rejection: TransferReject,
+    request: Request,
     current_user: dict = Depends(require_permission(["inventory.transfer.receive"]))
 ):
     """
@@ -368,5 +415,19 @@ async def reject_transfer(
         "status": "REJECTED",
         "rejection_reason": rejection.rejection_reason
     }).eq("id", str(transfer_id)).execute()
+    
+    # Log the transaction
+    from app.services.transaction_logger_service import transaction_logger, TransactionAction
+    await transaction_logger.log_transfer(
+        user_id=str(user_id),
+        transfer_id=str(transfer_id),
+        action=TransactionAction.REJECT,
+        from_store_id=transfer["from_store_id"],
+        to_store_id=transfer["to_store_id"],
+        quantity=Decimal(str(transfer.get("weight_kg", 0))),
+        bird_type=transfer.get("bird_type"),
+        inventory_type=transfer.get("inventory_type"),
+        request=request
+    )
     
     return update_result.data[0]

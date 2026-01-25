@@ -17,19 +17,32 @@ from app.dependencies.rbac import require_permission
 router = APIRouter(prefix="/ledger", tags=["Ledger"])
 
 
+def safe_decimal(value) -> Decimal:
+    """Safely convert a value to Decimal, returning 0 for None/empty/invalid."""
+    if value is None:
+        return Decimal("0")
+    try:
+        str_val = str(value).strip()
+        if not str_val:
+            return Decimal("0")
+        return Decimal(str_val)
+    except Exception:
+        return Decimal("0")
+
+
 class LedgerEntry(BaseModel):
     """Individual ledger transaction"""
     id: UUID
-    store_id: Optional[int]
+    store_id: Optional[int] = None
     entity_type: str
     entity_id: UUID
     transaction_type: str
-    debit: Decimal
-    credit: Decimal
-    notes: Optional[str]
-    ref_table: Optional[str]
-    ref_id: Optional[UUID]
-    created_at: datetime
+    debit: Decimal = Decimal("0")
+    credit: Decimal = Decimal("0")
+    notes: Optional[str] = None
+    ref_table: Optional[str] = None
+    ref_id: Optional[UUID] = None
+    created_at: Optional[datetime] = None
 
 
 class EnrichedLedgerEntry(LedgerEntry):
@@ -102,8 +115,8 @@ async def get_supplier_ledger(
         if store_id and not ledger_result.data:
             continue
         
-        total_debit = sum(Decimal(str(e["debit"])) for e in ledger_result.data)
-        total_credit = sum(Decimal(str(e["credit"])) for e in ledger_result.data)
+        total_debit = sum(safe_decimal(e["debit"]) for e in ledger_result.data)
+        total_credit = sum(safe_decimal(e["credit"]) for e in ledger_result.data)
         
         # For suppliers: Credit = they owe us less, Debit = we paid them
         # Outstanding = Credit - Debit (positive means we owe them)
@@ -144,7 +157,14 @@ async def get_supplier_ledger_detail(
         "created_at", desc=True
     ).range(offset, offset + limit - 1).execute()
     
-    return result.data
+    # Sanitize None values for Pydantic validation
+    sanitized = []
+    for entry in result.data:
+        entry["debit"] = safe_decimal(entry.get("debit"))
+        entry["credit"] = safe_decimal(entry.get("credit"))
+        sanitized.append(entry)
+    
+    return sanitized
 
 
 @router.get("/customers", response_model=list[CustomerLedgerSummary])
@@ -187,8 +207,8 @@ async def get_customer_ledger(
         if store_id and not ledger_result.data:
             continue
         
-        total_debit = sum(Decimal(str(e["debit"])) for e in ledger_result.data)
-        total_credit = sum(Decimal(str(e["credit"])) for e in ledger_result.data)
+        total_debit = sum(safe_decimal(e["debit"]) for e in ledger_result.data)
+        total_credit = sum(safe_decimal(e["credit"]) for e in ledger_result.data)
         
         # For customers: Debit = they owe us (sales), Credit = they paid us (receipts)
         # Outstanding = Debit - Credit (positive means they owe us)
@@ -198,7 +218,7 @@ async def get_customer_ledger(
             "entity_id": customer_id,
             "entity_name": customer["name"],
             "phone": customer.get("phone"),
-            "credit_limit": Decimal(str(customer.get("credit_limit", 0))),
+            "credit_limit": safe_decimal(customer.get("credit_limit", 0)),
             "total_debit": total_debit,
             "total_credit": total_credit,
             "outstanding": outstanding,
@@ -230,7 +250,15 @@ async def get_customer_ledger_detail(
         "created_at", desc=True
     ).range(offset, offset + limit - 1).execute()
     
-    return result.data
+    # Sanitize None values for Pydantic validation
+    sanitized = []
+    for entry in result.data:
+        entry["debit"] = safe_decimal(entry.get("debit"))
+        entry["credit"] = safe_decimal(entry.get("credit"))
+        sanitized.append(entry)
+    
+    return sanitized
+
 
 
 @router.get("/all", response_model=list[EnrichedLedgerEntry])

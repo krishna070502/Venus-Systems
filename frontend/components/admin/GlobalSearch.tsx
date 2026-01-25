@@ -60,6 +60,7 @@ const allPages: SearchableItem[] = [
   { name: 'Health', href: '/admin/health', icon: Activity, permission: 'system.admin', category: 'System Administration', keywords: ['status', 'monitoring', 'system'] },
   { name: 'Settings', href: '/admin/settings', icon: Settings, permission: 'system.settings', category: 'System Administration', keywords: ['configuration', 'preferences', 'options'] },
   { name: 'Logs', href: '/admin/logs', icon: FileText, permission: 'system.logs', category: 'System Administration', keywords: ['audit', 'history', 'activity'] },
+  { name: 'Transaction Logs', href: '/admin/transaction-logs', icon: Receipt, permission: 'transaction_logs.view', category: 'System Administration', keywords: ['business', 'audit', 'sales', 'purchases', 'operations'] },
   { name: 'Test', href: '/admin/test', icon: TestTube, permission: 'test.run', category: 'System Administration', keywords: ['debug', 'testing'] },
   { name: 'Sessions', href: '/admin/sessions', icon: Users, permission: 'system.admin', category: 'System Administration', keywords: ['active', 'login', 'connected'] },
   { name: 'Documentation', href: '/admin/docs', icon: BookOpen, permission: 'system.docs', category: 'System Administration', keywords: ['help', 'guide', 'manual'] },

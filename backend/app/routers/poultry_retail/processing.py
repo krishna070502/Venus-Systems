@@ -4,7 +4,7 @@ Processing Router for PoultryRetail-Core
 API endpoints for processing live birds into dressed meat.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Header
+from fastapi import APIRouter, Depends, HTTPException, Query, Header, Request
 from typing import Optional
 from datetime import date, timedelta, datetime
 from uuid import UUID, uuid4
@@ -176,6 +176,7 @@ async def calculate_processing_yield(
 @router.post("", response_model=ProcessingEntry, status_code=201)
 async def create_processing_entry(
     entry: ProcessingEntryCreate,
+    request: Request,
     current_user: dict = Depends(require_permission(["processing.create"]))
 ):
     """
@@ -244,6 +245,20 @@ async def create_processing_entry(
     
     if not result.data:
         raise HTTPException(status_code=400, detail="Failed to create processing entry")
+    
+    # Log the transaction
+    from app.services.transaction_logger_service import transaction_logger
+    await transaction_logger.log_processing(
+        user_id=str(current_user["user_id"]),
+        store_id=entry.store_id,
+        processing_id=str(result.data[0].get("id", "")),
+        input_weight=entry.input_weight,
+        output_weight=entry.actual_output_weight or Decimal("0"),
+        wastage_weight=entry.input_weight - (entry.actual_output_weight or entry.input_weight),
+        bird_type=entry.input_bird_type.value,
+        output_type=entry.output_inventory_type.value,
+        request=request
+    )
     
     return result.data[0]
 

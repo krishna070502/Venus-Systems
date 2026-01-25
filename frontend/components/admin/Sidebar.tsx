@@ -97,6 +97,7 @@ const systemAdministrationGroup: NavigationGroup = {
     { name: 'Settings', href: '/admin/settings', icon: Settings, permission: 'system.settings' },
     { name: 'Logs', href: '/admin/logs', icon: FileText, permission: 'system.logs' },
     { name: 'Activity Logs', href: '/admin/activity-logs', icon: Activity, permission: 'system.logs' },
+    { name: 'Transaction Logs', href: '/admin/transaction-logs', icon: Receipt, permission: 'transaction_logs.view' },
     { name: 'Test', href: '/admin/test', icon: TestTube, permission: 'test.run' },
   ]
 }

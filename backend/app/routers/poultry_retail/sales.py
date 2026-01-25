@@ -4,7 +4,7 @@ Sales Router for PoultryRetail-Core
 API endpoints for POS and bulk sales.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Header
+from fastapi import APIRouter, Depends, HTTPException, Query, Header, Request
 from typing import Optional
 from datetime import date, datetime, timedelta
 from uuid import UUID, uuid4
@@ -144,6 +144,7 @@ async def get_sales_analytics(
 @router.post("", response_model=Sale, status_code=201)
 async def create_sale(
     sale: SaleCreate,
+    request: Request,
     current_user: dict = Depends(require_permission(["sales.create"]))
 ):
     """
@@ -203,6 +204,20 @@ async def create_sale(
         
         if not result.data:
             raise HTTPException(status_code=400, detail="Failed to create sale")
+        
+        # Log the transaction
+        from app.services.transaction_logger_service import transaction_logger
+        await transaction_logger.log_sale(
+            user_id=str(current_user["user_id"]),
+            store_id=sale.store_id,
+            sale_id=str(result.data.get("id", "")),
+            total_amount=Decimal(str(result.data.get("total_amount", 0))),
+            total_weight=Decimal(str(result.data.get("total_weight", 0))) if result.data.get("total_weight") else None,
+            payment_method=sale.payment_method.value,
+            sale_type=sale.sale_type.value,
+            items_count=len(sale.items),
+            request=request
+        )
         
         return result.data
         

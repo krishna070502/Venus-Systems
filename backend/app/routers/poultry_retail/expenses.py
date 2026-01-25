@@ -4,7 +4,7 @@ Expenses Router for PoultryRetail-Core
 API endpoints for viewing settlement expenses with bill receipts.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Header
+from fastapi import APIRouter, Depends, HTTPException, Query, Header, Request
 from typing import Optional, List
 from datetime import date, datetime, timedelta
 from uuid import UUID
@@ -300,6 +300,7 @@ async def list_expenses(
 @router.post("/{expense_id}/approve", response_model=ExpenseItem)
 async def approve_expense(
     expense_id: UUID,
+    request: Request,
     current_user: dict = Depends(require_permission(["expense.approve"]))
 ):
     """Approve a store expense."""
@@ -308,10 +309,12 @@ async def approve_expense(
     
     supabase = get_supabase()
     
-    # Check if exists
-    check = supabase.table("daily_settlements").select("id").eq("id", str(expense_id)).execute()
+    # Check if exists and get details for logging
+    check = supabase.table("daily_settlements").select("id, store_id, expense_amount, expense_notes").eq("id", str(expense_id)).execute()
     if not check.data:
         raise HTTPException(status_code=404, detail="Expense not found")
+    
+    expense_data = check.data[0]
         
     result = supabase.table("daily_settlements").update({
         "expense_status": "APPROVED",
@@ -321,6 +324,18 @@ async def approve_expense(
     
     if not result.data:
         raise HTTPException(status_code=500, detail="Failed to approve expense")
+    
+    # Log the transaction
+    from app.services.transaction_logger_service import transaction_logger, TransactionAction
+    await transaction_logger.log_expense(
+        user_id=str(current_user["user_id"]),
+        store_id=expense_data["store_id"],
+        expense_id=str(expense_id),
+        action=TransactionAction.APPROVE,
+        amount=Decimal(str(expense_data.get("expense_amount", 0))),
+        expense_notes=expense_data.get("expense_notes"),
+        request=request
+    )
         
     return await get_expense(expense_id, current_user)
 
@@ -328,6 +343,7 @@ async def approve_expense(
 @router.post("/{expense_id}/reject", response_model=ExpenseItem)
 async def reject_expense(
     expense_id: UUID,
+    request: Request,
     current_user: dict = Depends(require_permission(["expense.approve"]))
 ):
     """Reject a store expense."""
@@ -336,10 +352,12 @@ async def reject_expense(
     
     supabase = get_supabase()
     
-    # Check if exists
-    check = supabase.table("daily_settlements").select("id").eq("id", str(expense_id)).execute()
+    # Check if exists and get details for logging
+    check = supabase.table("daily_settlements").select("id, store_id, expense_amount, expense_notes").eq("id", str(expense_id)).execute()
     if not check.data:
         raise HTTPException(status_code=404, detail="Expense not found")
+    
+    expense_data = check.data[0]
         
     result = supabase.table("daily_settlements").update({
         "expense_status": "REJECTED",
@@ -349,6 +367,18 @@ async def reject_expense(
     
     if not result.data:
         raise HTTPException(status_code=500, detail="Failed to reject expense")
+    
+    # Log the transaction
+    from app.services.transaction_logger_service import transaction_logger, TransactionAction
+    await transaction_logger.log_expense(
+        user_id=str(current_user["user_id"]),
+        store_id=expense_data["store_id"],
+        expense_id=str(expense_id),
+        action=TransactionAction.REJECT,
+        amount=Decimal(str(expense_data.get("expense_amount", 0))),
+        expense_notes=expense_data.get("expense_notes"),
+        request=request
+    )
         
     return await get_expense(expense_id, current_user)
 

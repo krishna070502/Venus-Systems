@@ -4,10 +4,11 @@ Settlements Router for PoultryRetail-Core
 API endpoints for daily settlements and reconciliation.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Header
+from fastapi import APIRouter, Depends, HTTPException, Query, Header, Request
 from typing import Optional
 from datetime import date, datetime
 from uuid import UUID
+from decimal import Decimal
 
 from app.dependencies.rbac import require_permission
 from app.models.poultry_retail.settlements import (
@@ -63,6 +64,7 @@ async def get_expected_values(
 @router.post("", response_model=Settlement, status_code=201)
 async def create_settlement(
     settlement: SettlementCreate,
+    request: Request,
     current_user: dict = Depends(require_permission(["settlements.create"]))
 ):
     """Create a new settlement draft."""
@@ -96,6 +98,17 @@ async def create_settlement(
     if not result.data:
         raise HTTPException(status_code=400, detail="Failed to create settlement")
     
+    # Log the transaction
+    from app.services.transaction_logger_service import transaction_logger, TransactionAction
+    await transaction_logger.log_settlement(
+        user_id=str(current_user["user_id"]),
+        store_id=settlement.store_id,
+        settlement_id=str(result.data[0].get("id", "")),
+        action=TransactionAction.CREATE,
+        settlement_date=settlement.settlement_date.isoformat(),
+        request=request
+    )
+    
     return result.data[0]
 
 
@@ -103,6 +116,7 @@ async def create_settlement(
 async def submit_settlement(
     settlement_id: UUID,
     submit_data: SettlementSubmit,
+    request: Request,
     current_user: dict = Depends(require_permission(["settlements.submit"]))
 ):
     """
@@ -184,6 +198,20 @@ async def submit_settlement(
     negative_count = sum(1 for v in variance_logs.data if v["variance_type"] == "NEGATIVE")
     pending_count = sum(1 for v in variance_logs.data if v["status"] == "PENDING")
     
+    # Log the transaction
+    from app.services.transaction_logger_service import transaction_logger, TransactionAction
+    await transaction_logger.log_settlement(
+        user_id=str(current_user["user_id"]),
+        store_id=settlement["store_id"],
+        settlement_id=str(settlement_id),
+        action=TransactionAction.SUBMIT,
+        declared_cash=Decimal(str(submit_data.declared_cash)),
+        declared_sales=Decimal(str(submit_data.declared_cash)) + Decimal(str(submit_data.declared_upi)) + Decimal(str(submit_data.declared_card)) + Decimal(str(submit_data.declared_bank)),
+        expense_amount=Decimal(str(submit_data.expense_amount)),
+        settlement_date=settlement.get("settlement_date"),
+        request=request
+    )
+    
     return SettlementWithVariance(
         **updated.data[0],
         variance_count=len(variance_logs.data),
@@ -196,6 +224,7 @@ async def submit_settlement(
 @router.post("/{settlement_id}/approve", response_model=Settlement)
 async def approve_settlement(
     settlement_id: UUID,
+    request: Request,
     current_user: dict = Depends(require_permission(["settlements.approve"]))
 ):
     """Approve a submitted settlement."""
@@ -257,6 +286,19 @@ async def approve_settlement(
         # Don't fail the approval if point awarding fails (logs and continue)
         print(f"Warning: Failed to award points: {str(e)}")
     
+    # Log the transaction
+    from app.services.transaction_logger_service import transaction_logger, TransactionAction
+    await transaction_logger.log_settlement(
+        user_id=str(current_user["user_id"]),
+        store_id=settlement["store_id"],
+        settlement_id=str(settlement_id),
+        action=TransactionAction.APPROVE,
+        declared_cash=Decimal(str(settlement.get("declared_cash", 0) or 0)),
+        expense_amount=Decimal(str(settlement.get("expense_amount", 0) or 0)),
+        settlement_date=settlement.get("settlement_date"),
+        request=request
+    )
+    
     return await get_settlement(settlement_id)
 
 
@@ -264,6 +306,7 @@ async def approve_settlement(
 async def reject_settlement(
     settlement_id: UUID,
     rejection: SettlementReject,
+    request: Request,
     current_user: dict = Depends(require_permission(["settlements.approve"]))
 ):
     """
@@ -308,6 +351,17 @@ async def reject_settlement(
     
     if not result.data:
         raise HTTPException(status_code=500, detail="Failed to reject settlement")
+    
+    # Log the transaction
+    from app.services.transaction_logger_service import transaction_logger, TransactionAction
+    await transaction_logger.log_settlement(
+        user_id=str(current_user["user_id"]),
+        store_id=settlement["store_id"],
+        settlement_id=str(settlement_id),
+        action=TransactionAction.REJECT,
+        settlement_date=settlement.get("settlement_date"),
+        request=request
+    )
         
     return result.data[0]
 
@@ -315,6 +369,7 @@ async def reject_settlement(
 @router.post("/{settlement_id}/lock", response_model=Settlement)
 async def lock_settlement(
     settlement_id: UUID,
+    request: Request,
     current_user: dict = Depends(require_permission(["settlements.lock"]))
 ):
     """Lock an approved settlement (Admin only)."""
@@ -344,6 +399,17 @@ async def lock_settlement(
         "status": "LOCKED",
         "locked_at": "now()"
     }).eq("id", str(settlement_id)).execute()
+    
+    # Log the transaction
+    from app.services.transaction_logger_service import transaction_logger, TransactionAction
+    await transaction_logger.log_settlement(
+        user_id=str(current_user["user_id"]),
+        store_id=settlement["store_id"],
+        settlement_id=str(settlement_id),
+        action=TransactionAction.LOCK,
+        settlement_date=settlement.get("settlement_date"),
+        request=request
+    )
     
     return result.data[0]
 

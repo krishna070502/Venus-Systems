@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, Header
+from fastapi import APIRouter, Depends, HTTPException, Query, Header, Request
 from typing import Optional
 from datetime import date, timedelta, datetime
 from uuid import UUID
@@ -214,6 +214,7 @@ async def get_purchase(
 @router.post("", response_model=Purchase, status_code=201)
 async def create_purchase(
     purchase: PurchaseCreate,
+    request: Request,
     current_user: dict = Depends(require_permission(["purchases.create"]))
 ):
     """
@@ -256,6 +257,20 @@ async def create_purchase(
     if not result.data:
         raise HTTPException(status_code=400, detail="Failed to create purchase")
     
+    # Log the transaction
+    from app.services.transaction_logger_service import transaction_logger, TransactionAction
+    await transaction_logger.log_purchase(
+        user_id=str(current_user["user_id"]),
+        store_id=purchase.store_id,
+        purchase_id=str(result.data[0].get("id", "")),
+        action=TransactionAction.CREATE,
+        total_amount=Decimal(str(result.data[0].get("total_amount", 0))),
+        total_weight=Decimal(str(purchase.total_weight)),
+        supplier_id=str(purchase.supplier_id),
+        bird_type=purchase.bird_type.value if hasattr(purchase.bird_type, "value") else str(purchase.bird_type),
+        request=request
+    )
+    
     return result.data[0]
 
 
@@ -263,6 +278,7 @@ async def create_purchase(
 async def commit_purchase(
     purchase_id: UUID,
     commit_data: PurchaseCommit,
+    request: Request,
     current_user: dict = Depends(require_permission(["purchases.commit"]))
 ):
     """
@@ -315,12 +331,27 @@ async def commit_purchase(
     if not result.data:
         raise HTTPException(status_code=400, detail="Failed to commit purchase")
     
+    # Log the transaction
+    from app.services.transaction_logger_service import transaction_logger, TransactionAction
+    await transaction_logger.log_purchase(
+        user_id=str(current_user["user_id"]),
+        store_id=purchase["store_id"],
+        purchase_id=str(purchase_id),
+        action=TransactionAction.COMMIT,
+        total_amount=Decimal(str(purchase.get("total_amount", 0))),
+        total_weight=Decimal(str(purchase.get("total_weight", 0))),
+        supplier_id=str(purchase.get("supplier_id", "")),
+        bird_type=purchase.get("bird_type"),
+        request=request
+    )
+    
     return result.data[0]
 
 
 @router.post("/{purchase_id}/cancel", response_model=Purchase)
 async def cancel_purchase(
     purchase_id: UUID,
+    request: Request,
     current_user: dict = Depends(require_permission(["purchases.cancel"]))
 ):
     """
@@ -355,5 +386,19 @@ async def cancel_purchase(
     result = supabase.table("purchases").update(
         {"status": "CANCELLED"}
     ).eq("id", str(purchase_id)).execute()
+    
+    # Log the transaction
+    from app.services.transaction_logger_service import transaction_logger, TransactionAction
+    await transaction_logger.log_purchase(
+        user_id=str(current_user["user_id"]),
+        store_id=purchase["store_id"],
+        purchase_id=str(purchase_id),
+        action=TransactionAction.CANCEL,
+        total_amount=Decimal(str(purchase.get("total_amount", 0))),
+        total_weight=Decimal(str(purchase.get("total_weight", 0))),
+        supplier_id=str(purchase.get("supplier_id", "")),
+        bird_type=purchase.get("bird_type"),
+        request=request
+    )
     
     return result.data[0]

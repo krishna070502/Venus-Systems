@@ -335,6 +335,30 @@ export const api = {
     getStats: () => apiRequest('/api/v1/activity-logs/stats'),
   },
 
+  // Transaction Logs endpoints (business operations audit)
+  transactionLogs: {
+    getAll: (params: {
+      store_id?: number;
+      transaction_type?: string;
+      action?: string;
+      from_date?: string;
+      to_date?: string;
+      limit?: number;
+      offset?: number;
+    } = {}) => {
+      const queryParams = new URLSearchParams()
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          queryParams.append(key, value.toString())
+        }
+      })
+      const queryString = queryParams.toString()
+      return apiRequest(`/api/v1/transaction-logs/${queryString ? `?${queryString}` : ''}`)
+    },
+    getStats: () => apiRequest('/api/v1/transaction-logs/stats'),
+    getRecent: (limit: number = 10) => apiRequest(`/api/v1/transaction-logs/recent?limit=${limit}`),
+  },
+
   // ============ Poultry Retail Endpoints ============
   poultry: {
     // Suppliers
