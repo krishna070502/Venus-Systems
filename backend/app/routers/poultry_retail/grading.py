@@ -205,10 +205,14 @@ async def get_reason_codes(
     return result.data
 
 
+class ReasonCodeUpdate(BaseModel):
+    points_value: int
+
+
 @router.patch("/reason-codes/{code}")
 async def update_reason_code(
     code: str,
-    points_value: int,
+    update: ReasonCodeUpdate,
     current_user: dict = Depends(require_permission(["staffgrading.config"]))
 ):
     """Update points value for a reason code."""
@@ -228,10 +232,10 @@ async def update_reason_code(
         raise HTTPException(status_code=400, detail="This reason code is not configurable")
     
     result = supabase.table("staff_points_reason_codes").update({
-        "points_value": points_value
+        "points_value": update.points_value
     }).eq("code", code).execute()
     
-    return {"message": f"Updated {code} to {points_value} points"}
+    return {"message": f"Updated {code} to {update.points_value} points"}
 
 
 # =============================================================================

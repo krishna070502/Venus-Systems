@@ -12,7 +12,8 @@ from uuid import UUID
 from app.dependencies.rbac import require_permission
 from app.models.poultry_retail.staff_points import (
     StaffPointEntry, StaffPointEntryWithUser, StaffPointSummary,
-    StaffPointsCreate, StaffPointsConfig, StaffLeaderboard, StaffLeaderboardResponse,
+    StaffPointsCreate, StaffPointsConfig, StaffPointsConfigUpdate,
+    StaffLeaderboard, StaffLeaderboardResponse,
     StaffPerformanceBreakdown
 )
 
@@ -341,7 +342,7 @@ async def get_points_config(
 @router.patch("/config/{config_key}", response_model=StaffPointsConfig)
 async def update_points_config(
     config_key: str,
-    config_value: int,
+    update: StaffPointsConfigUpdate,
     current_user: dict = Depends(require_permission(["staffpoints.manage"]))
 ):
     """Update staff points configuration (Admin only)."""
@@ -350,7 +351,7 @@ async def update_points_config(
     supabase = get_supabase()
     
     result = supabase.table("staff_points_config").update({
-        "config_value": config_value
+        "config_value": update.config_value
     }).eq("config_key", config_key).execute()
     
     if not result.data:
